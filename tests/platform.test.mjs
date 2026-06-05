@@ -84,6 +84,19 @@ test("home-lab deployment package renders WorkloadApp draft", () => {
   assert.match(rta(["hosting", "validate", "meeting-digest"]), /Hosting package passed/);
 });
 
+test("agent docs describe the current RTA QA loop", () => {
+  const rootGuide = readFileSync(new URL("../AGENTS.md", import.meta.url), "utf8");
+  const appGuide = readFileSync(new URL("../examples/meeting-digest-seed/AGENTS.md", import.meta.url), "utf8");
+  const demo = readFileSync(new URL("../docs/demos/meeting-digest-local-demo.md", import.meta.url), "utf8");
+  assert.match(rootGuide, /check --production/);
+  assert.match(rootGuide, /check --runtime-wiring/);
+  assert.match(rootGuide, /hosting validate meeting-digest/);
+  assert.match(appGuide, /approved-digest-publishes-work-items/);
+  assert.match(appGuide, /Do not add hard AFFiNE, Plane, Otter, or home-lab writes/);
+  assert.match(demo, /scenario replay <run-id>/);
+  assert.match(demo, /check --connector-safety/);
+});
+
 test("security rejects escaping input paths and redacts secret-like logs", () => {
   assert.throws(() => rta(["scenario", "run", "meeting-digest.integrated.fixture", "--input", "../outside.txt"]), /path escapes RTA root/);
 

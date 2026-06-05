@@ -36,6 +36,20 @@ To use a different transcript:
 node examples/meeting-digest-seed/bin/meeting-digest.mjs --input path/to/transcript.txt --review --high
 ```
 
+Run the proving app scenario that emits reviewable work-item specs:
+
+```bash
+node examples/meeting-digest-seed/bin/meeting-digest.mjs scenario run approved-digest-publishes-work-items --review --high
+```
+
+Other app scenarios:
+
+```bash
+node scripts/rta.mjs scenario run meeting-digest.streaming.fixture --high
+node scripts/rta.mjs scenario run meeting-digest.loopback.fixture --high
+node scripts/rta.mjs scenario run meeting-digest.enrichment-unavailable.fixture --high
+```
+
 ## Compare Implementations
 
 The repo intentionally keeps three meeting digest implementations:
@@ -56,6 +70,13 @@ node .rta/generated/meeting-digest/meeting-digest.mjs --input tests/fixtures/cus
 
 The integrated output should include `version: integrated-v3`, RTA vocabulary,
 use cases, derived obligations, and task-level `rtaObligations`.
+
+Check generated/runtime parity:
+
+```bash
+node scripts/rta.mjs check --runtime-wiring
+node scripts/rta.mjs check --scenario-runtime-parity
+```
 
 ## Review
 
@@ -82,11 +103,19 @@ node scripts/rta.mjs publish dry-run <review-id> --target fixture
 This writes only a local `.rta/published/*.json` proof artifact. It performs no
 AFFiNE, Plane, GitHub, or home-lab write.
 
+Connector safety checks:
+
+```bash
+node scripts/rta.mjs check --review-gates
+node scripts/rta.mjs check --connector-safety
+```
+
 ## Optional Hosting Intent
 
 Generate home-lab adapter intent without deploying:
 
 ```bash
+node scripts/rta.mjs hosting intent meeting-digest
 node scripts/rta.mjs hosting render meeting-digest
 ```
 
@@ -96,6 +125,7 @@ Generate a full draft WorkloadApp package:
 
 ```bash
 node scripts/rta.mjs hosting package meeting-digest
+node scripts/rta.mjs hosting validate meeting-digest
 ```
 
 Validate an isolated draft against Virgil's home-lab contract:
@@ -106,12 +136,20 @@ cd /Users/virgil/Developer/Virgil-Info/home-lab-v7
 WORKLOAD_APPS_DIR=tmp/rta-workload-root/tmp/workload-apps nix develop --command scripts/test/integrity/workload-apps.rb
 ```
 
+The home-lab step is optional. Do not promote or run live checks without explicit operator approval.
+
 ## Scheduler And Queue
 
 ```bash
 node scripts/rta.mjs queue enqueue meeting-digest.integrated.fixture --input tests/fixtures/custom-transcript.txt --review
-node scripts/rta.mjs queue run-next
+node scripts/rta.mjs scheduler start --once
 node scripts/rta.mjs queue list
+```
+
+Replay a run:
+
+```bash
+node scripts/rta.mjs scenario replay <run-id>
 ```
 
 ## Grafana Dashboard
@@ -139,3 +177,7 @@ Each run writes:
 - `meeting-digest-v2.md`
 - `logs.json`
 - `provenance.json`
+
+The `approved-digest-publishes-work-items` scenario also writes:
+
+- `approved-digest-work-items.json`

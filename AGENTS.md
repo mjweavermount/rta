@@ -50,7 +50,32 @@ Do not hand-edit always-regenerated files.
 
 ## Required Checks
 
-The target production check surface is defined in the spec. During bootstrap, add checks incrementally and keep placeholders honest.
+The target production check surface is implemented through the local CLI. Run generation before production checks when the app declaration changes:
+
+```bash
+node scripts/rta.mjs generate
+node scripts/rta.mjs check --production
+npm run check
+```
+
+For focused work, use the named checks instead of guessing:
+
+```bash
+node scripts/rta.mjs check --tier-contracts
+node scripts/rta.mjs check --ard-meta
+node scripts/rta.mjs check --generated-sync
+node scripts/rta.mjs check --use-cases
+node scripts/rta.mjs check --scenario-coverage
+node scripts/rta.mjs check --boundary-coverage
+node scripts/rta.mjs check --log-ceremony
+node scripts/rta.mjs check --telemetry-coverage
+node scripts/rta.mjs check --review-gates
+node scripts/rta.mjs check --connector-safety
+node scripts/rta.mjs check --runtime-wiring
+node scripts/rta.mjs check --scenario-runtime-parity
+node scripts/rta.mjs check --hosting-package
+node scripts/rta.mjs check --security
+```
 
 Run the repo-native work check before claiming a capability is ready:
 
@@ -59,6 +84,39 @@ node scripts/check-work-ledger.mjs
 ```
 
 The check must not require Plane, GitHub, or any other external work tracker.
+
+## Runtime Demo Loop
+
+Use the proving app to verify that generated/runtime paths still line up:
+
+```bash
+node scripts/rta.mjs scenario watch meeting-digest.integrated.fixture --input tests/fixtures/custom-transcript.txt
+node scripts/rta.mjs scenario replay <run-id>
+node scripts/rta.mjs queue enqueue meeting-digest.integrated.fixture --input tests/fixtures/custom-transcript.txt --review
+node scripts/rta.mjs scheduler start --once
+node examples/meeting-digest-seed/bin/meeting-digest.mjs scenario run approved-digest-publishes-work-items --review --high
+```
+
+Publication must remain review-gated and connector-policy-gated:
+
+```bash
+node scripts/rta.mjs review approve <review-id> --actor Virgil
+node scripts/rta.mjs publish dry-run <review-id> --target fixture
+```
+
+The dry-run publisher must not write to AFFiNE, Plane, GitHub, or the home lab.
+
+## Optional Hosting
+
+Home-lab deployment is optional adapter output. Generate and validate draft artifacts locally:
+
+```bash
+node scripts/rta.mjs hosting intent meeting-digest
+node scripts/rta.mjs hosting package meeting-digest
+node scripts/rta.mjs hosting validate meeting-digest
+```
+
+Do not promote into `/Users/virgil/Developer/Virgil-Info/home-lab-v7` unless the user explicitly asks for a live lab step.
 
 ## Demo Coverage
 

@@ -1,7 +1,7 @@
 kind: Feature
 id: rta-prod-14-docs-agent-experience
 name: RtaProd14DocsAgentExperience
-status: planned
+status: demo-covered
 why: Agents should start from RTA context, generated docs, obligations, and leaves instead of freehanding code.
 ownedBy:
   internal: rta-platform

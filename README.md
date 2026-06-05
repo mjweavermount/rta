@@ -6,7 +6,7 @@ It turns declared vocabulary, tier contracts, use cases, scenarios, ARDs, and ru
 
 ## Current Status
 
-This repository is in bootstrap state. The source of truth for the initial build is:
+This repository is in production-bootstrap state. The source of truth for the build and proving app is:
 
 - [RTA Production Authoring Platform Spec](docs/rta-production-authoring-platform-spec.md)
 - [RTA To Live Meeting Digest Milestones](docs/meeting-digest-live-milestones.md)
@@ -15,11 +15,11 @@ This repository is in bootstrap state. The source of truth for the initial build
 ## Intended Authoring Loop
 
 ```bash
-pnpm rta init
-pnpm rta context
-pnpm rta generate
-pnpm rta explain obligations
-pnpm rta check
+node scripts/rta.mjs context
+node scripts/rta.mjs generate
+node scripts/rta.mjs explain graph
+node scripts/rta.mjs check --production
+npm run check
 ```
 
 Authored apps should also receive an operational app CLI generated from their vocab, use cases, scenarios, and runtime wiring.
@@ -33,6 +33,18 @@ Authored apps should also receive an operational app CLI generated from their vo
 5. Generated app CLI and runtime wiring.
 6. Meeting digest proving app.
 7. Optional hosting adapters.
+
+## Current QA Loop
+
+```bash
+node scripts/rta.mjs scenario watch meeting-digest.integrated.fixture --input tests/fixtures/custom-transcript.txt
+node examples/meeting-digest-seed/bin/meeting-digest.mjs scenario run approved-digest-publishes-work-items --review --high
+node scripts/rta.mjs check --review-gates
+node scripts/rta.mjs check --connector-safety
+node scripts/rta.mjs check --runtime-wiring
+node scripts/rta.mjs check --scenario-runtime-parity
+node scripts/rta.mjs check --hosting-package
+```
 
 ## Demo Coverage
 
