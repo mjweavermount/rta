@@ -10,10 +10,12 @@ demonstratedBy:
   - integration: end-to-end-demo-harness
   - command: app-cli run
   - command: rta check --app-cli
+  - command: rta generate app .rta/generated/scaffold/test-app
 requires:
   - UseCaseScenarioCoverage
   - RuntimePorts
 produces:
   - packages/app-cli
   - packages/app-wiring
+  - packages/generators
   - generated app command surface

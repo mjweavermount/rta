@@ -1,0 +1,18 @@
+kind: Capability
+id: security-hardening
+name: SecurityHardening
+status: demo-covered
+why: RTA apps need generic security guardrails beyond review gates, including input containment and secret redaction.
+ownedBy:
+  internal: rta-platform
+demonstratedBy:
+  - command: rta check --security
+  - test: security rejects escaping input paths and redacts secret-like logs
+requires:
+  - ReviewIdentityApproval
+  - RuntimePorts
+produces:
+  - packages/security
+  - rta check --security
+  - repo-contained input policy
+  - secret redaction

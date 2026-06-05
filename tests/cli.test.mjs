@@ -21,6 +21,7 @@ test("cli lists work and explains meeting digest obligation", () => {
   assert.match(rta(["check", "--extensions-upstreamable"]), /passed/);
   assert.match(rta(["check", "--derived-obligations"]), /passed/);
   assert.match(rta(["check", "--log-ceremony"]), /passed/);
+  assert.match(rta(["check", "--security"]), /passed/);
   assert.match(rta(["check", "--all"]), /All implemented RTA checks passed/);
 });
 
@@ -70,7 +71,8 @@ test("generated-style meeting digest cli accepts custom transcript and emits mar
 test("hosting adapter renders intent without deploying", () => {
   const out = rta(["hosting", "render", "meeting-digest"]).trim();
   assert.match(out, /\.rta\/hosting\/meeting-digest\.workload-app\.yaml$/);
-  assert.match(readFileSync(out, "utf8"), /This is intent only and does not deploy anything/);
+  assert.match(readFileSync(out, "utf8"), /apiVersion: lab.virgil.info\/v1alpha1/);
+  assert.match(readFileSync(out, "utf8"), /contractLevel: full/);
 });
 
 test("rta generates an app cli that runs the integrated meeting digest", () => {

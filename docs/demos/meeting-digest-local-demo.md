@@ -73,6 +73,45 @@ node scripts/rta.mjs hosting render meeting-digest
 
 This writes `.rta/hosting/meeting-digest.workload-app.yaml`.
 
+Generate a full draft WorkloadApp package:
+
+```bash
+node scripts/rta.mjs hosting package meeting-digest
+```
+
+Validate an isolated draft against Virgil's home-lab contract:
+
+```bash
+node scripts/rta.mjs hosting package meeting-digest --lab-root /Users/virgil/Developer/Virgil-Info/home-lab-v7/tmp/rta-workload-root
+cd /Users/virgil/Developer/Virgil-Info/home-lab-v7
+WORKLOAD_APPS_DIR=tmp/rta-workload-root/tmp/workload-apps nix develop --command scripts/test/integrity/workload-apps.rb
+```
+
+## Scheduler And Queue
+
+```bash
+node scripts/rta.mjs queue enqueue meeting-digest.integrated.fixture --input tests/fixtures/custom-transcript.txt --review
+node scripts/rta.mjs queue run-next
+node scripts/rta.mjs queue list
+```
+
+## Grafana Dashboard
+
+```bash
+node scripts/rta.mjs grafana render meeting-digest
+```
+
+This writes `.rta/grafana/meeting-digest.dashboard.json`.
+
+## Security Checks
+
+```bash
+node scripts/rta.mjs check --security
+```
+
+The current security layer enforces repo-contained transcript input paths and
+redacts secret-like values from ceremony logs.
+
 ## Artifacts
 
 Each run writes:

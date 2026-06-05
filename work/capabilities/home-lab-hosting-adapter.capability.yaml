@@ -8,6 +8,8 @@ ownedBy:
   plane: LAB-41
 demonstratedBy:
   - artifact: generated WorkloadApp intent
+  - artifact: generated WorkloadApp draft package
+  - command: WORKLOAD_APPS_DIR=tmp/rta-workload-root/tmp/workload-apps nix develop --command scripts/test/integrity/workload-apps.rb
   - optionalDemo: approved home-lab deployment
 requires:
   - GeneratedAppCliRuntimeWiring
@@ -16,3 +18,4 @@ produces:
   - packages/hosting-adapters
   - home-lab adapter
   - WorkloadApp generation path
+  - .rta/hosting/workload-apps

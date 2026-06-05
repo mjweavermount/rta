@@ -22,6 +22,8 @@ This map links RTA work to the demo surface that should prove it.
 | `end-to-end-demo-harness` | `LAB-47` | End-to-end demo harness | Direct integration demo: run the smallest full RTA-authored app loop |
 | `monitor-review-provenance-ui` | `LAB-48` | Monitor/review/provenance UI scope | Direct UI/spec demo once UI exists; until then source/doc acceptance for UX scope |
 | `work-ledger` | `LAB-49` | Work ledger/demo coverage tracking | Direct CLI/doc demo: show capability linked to optional mirror and demo path |
+| `scheduler-queue` | local | Persistent scheduler/queue | Direct CLI demo: enqueue a meeting digest job, run next, inspect completed queue state |
+| `security-hardening` | local | Generic security guardrails | Direct test/CLI demo: escaping input paths fail, secret-like log fields are redacted, `rta check --security` passes |
 
 ## Principle
 

@@ -1,3 +1,5 @@
+import { redactSecrets } from "../security/index.mjs";
+
 export class CeremonyLogger {
   constructor({ verbosity = "normal", sink = console.log, onEvent = null } = {}) {
     this.verbosity = verbosity;
@@ -13,10 +15,10 @@ export class CeremonyLogger {
       runId,
       actor,
       step,
-      input: summarize(input),
-      output: summarize(output),
+      input: redactSecrets(summarize(input)),
+      output: redactSecrets(summarize(output)),
       parent,
-      detail: this.verbosity === "high" ? detail : null,
+      detail: this.verbosity === "high" ? redactSecrets(detail) : null,
     };
     this.events.push(event);
     this.onEvent?.(event);

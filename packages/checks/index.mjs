@@ -72,3 +72,13 @@ export function checkLogCeremony({ root, appDir }) {
     .filter((token) => !template.includes(token))
     .map((token) => `logging template missing ${token}`);
 }
+
+export function checkSecurity({ root, appDir }) {
+  const app = loadAppDeclaration(join(root, appDir, "rta.app.json"));
+  const errors = [];
+  if (app.security?.inputPathPolicy !== "repo-contained") errors.push("security.inputPathPolicy must be repo-contained");
+  if (app.security?.redactSecrets !== true) errors.push("security.redactSecrets must be true");
+  if (app.publication?.requiresReview !== true) errors.push("publication.requiresReview must be true");
+  if (!Array.isArray(app.publication?.adapters) || app.publication.adapters.length === 0) errors.push("publication.adapters must declare allowed adapters");
+  return errors;
+}

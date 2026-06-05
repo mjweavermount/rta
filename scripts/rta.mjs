@@ -4,13 +4,16 @@ import { join, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { publishDryRun } from "../packages/connectors/index.mjs";
 import { explainMeetingDigestObligation } from "../packages/derivation/index.mjs";
-import { renderHomeLabIntent } from "../packages/hosting-adapters/index.mjs";
-import { checkApp, checkArds, checkDerivation, checkExtensions, checkLogCeremony } from "../packages/checks/index.mjs";
+import { renderGrafanaDashboard } from "../packages/grafana/index.mjs";
+import { renderHomeLabDeploymentPackage, renderHomeLabIntent } from "../packages/hosting-adapters/index.mjs";
+import { checkApp, checkArds, checkDerivation, checkExtensions, checkLogCeremony, checkSecurity } from "../packages/checks/index.mjs";
 import { buildDerivationGraph } from "../packages/derivation/index.mjs";
-import { generateAppCli } from "../packages/generators/index.mjs";
+import { generateAppCli, generateAppScaffold } from "../packages/generators/index.mjs";
 import { CeremonyLogger } from "../packages/logging/index.mjs";
 import { ReviewQueue } from "../packages/review/index.mjs";
 import { FileRuntime, createRunId } from "../packages/runtime/index.mjs";
+import { FileQueue } from "../packages/scheduler/index.mjs";
+import { assertInsideRoot } from "../packages/security/index.mjs";
 import { runScenario } from "../packages/use-cases/index.mjs";
 import { findWorkItem, loadWorkLedger, summarizeWorkItem } from "../packages/work-ledger/index.mjs";
 import { loadAppDeclaration, summarizeAppDeclaration } from "../packages/vocab/index.mjs";
@@ -33,6 +36,8 @@ async function main() {
   if (cmd === "review") return review(sub, rest);
   if (cmd === "publish") return publish(sub, rest);
   if (cmd === "hosting") return hosting(sub, rest);
+  if (cmd === "queue") return queue(sub, rest);
+  if (cmd === "grafana") return grafana(sub, rest);
 
   throw new Error(`unknown command: ${args.join(" ")}`);
 }
@@ -50,8 +55,14 @@ Commands:
   rta check --extensions-upstreamable
   rta check --derived-obligations
   rta check --log-ceremony
+  rta check --security
   rta check --all
   rta generate app-cli
+  rta generate app <out-dir>
+  rta queue enqueue <scenario> [--input transcript.txt] [--review] [--high]
+  rta queue run-next
+  rta queue list
+  rta grafana render [meeting-digest]
   rta init [dir]
   rta context
   rta explain obligation meeting-digest
@@ -62,7 +73,8 @@ Commands:
   rta review approve <id> --actor <name>
   rta review reject <id> --actor <name>
   rta publish dry-run <review-id> [--target fixture]
-  rta hosting render [meeting-digest]`);
+  rta hosting render [meeting-digest]
+  rta hosting package [meeting-digest] [--lab-root /path/to/home-lab-v7]`);
 }
 
 function work(sub, rest) {
@@ -100,6 +112,7 @@ async function check(flag) {
   if (flag === "--extensions-upstreamable") return reportCheck("Upstreamable extensions", checkExtensions({ root, appDir: "examples/meeting-digest-seed", upstreamable: true }));
   if (flag === "--derived-obligations") return reportCheck("Derived obligations", checkDerivation({ root, appDir: "examples/meeting-digest-seed" }));
   if (flag === "--log-ceremony") return reportCheck("Log ceremony", checkLogCeremony({ root, appDir: "examples/meeting-digest-seed" }));
+  if (flag === "--security") return reportCheck("Security", checkSecurity({ root, appDir: "examples/meeting-digest-seed" }));
   if (flag === "--app-cli") {
     const app = loadAppDeclaration(join(root, "examples/meeting-digest-seed/rta.app.json"));
     const generated = generateAppCli({ root, app });
@@ -115,6 +128,7 @@ async function check(flag) {
       ...checkExtensions({ root, appDir: "examples/meeting-digest-seed", upstreamable: true }),
       ...checkDerivation({ root, appDir: "examples/meeting-digest-seed" }),
       ...checkLogCeremony({ root, appDir: "examples/meeting-digest-seed" }),
+      ...checkSecurity({ root, appDir: "examples/meeting-digest-seed" }),
     ];
     if (errors.length > 0) {
       console.error(errors.map((error) => `- ${error}`).join("\n"));
@@ -123,7 +137,7 @@ async function check(flag) {
     console.log("All implemented RTA checks passed.");
     return;
   }
-  throw new Error("usage: rta check --work-ledger | --meeting-digest | --ard-meta | --extensions-local | --extensions-upstreamable | --derived-obligations | --log-ceremony | --app-cli | --all");
+  throw new Error("usage: rta check --work-ledger | --meeting-digest | --ard-meta | --extensions-local | --extensions-upstreamable | --derived-obligations | --log-ceremony | --security | --app-cli | --all");
 }
 
 function reportCheck(label, errors) {
@@ -174,9 +188,17 @@ function explain(rest) {
 }
 
 function generate(sub) {
-  if (sub !== "app-cli") throw new Error("usage: rta generate app-cli");
   const app = loadAppDeclaration(join(root, "examples/meeting-digest-seed/rta.app.json"));
-  console.log(generateAppCli({ root, app }));
+  if (sub === "app-cli") {
+    console.log(generateAppCli({ root, app }));
+    return;
+  }
+  if (sub === "app") {
+    const outDir = args[2] ?? ".rta/generated/scaffold/meeting-digest";
+    console.log(generateAppScaffold({ root, app, outDir }));
+    return;
+  }
+  throw new Error("usage: rta generate app-cli | app <out-dir>");
 }
 
 async function scenarioCommand(sub, rest) {
@@ -201,7 +223,7 @@ function optionsFrom(rest, defaults = {}) {
   return {
     review: defaults.review ?? rest.includes("--review"),
     verbosity: rest.includes("--high") ? "high" : "normal",
-    input: inputIndex >= 0 ? { transcriptPath: resolve(root, rest[inputIndex + 1]) } : {},
+    input: inputIndex >= 0 ? { transcriptPath: assertInsideRoot(root, rest[inputIndex + 1]) } : {},
   };
 }
 
@@ -258,9 +280,68 @@ function publish(sub, rest) {
 }
 
 function hosting(sub, rest) {
-  if (sub !== "render") throw new Error("usage: rta hosting render [meeting-digest]");
   const appName = rest[0] ?? "meeting-digest";
-  console.log(renderHomeLabIntent({ root, appName }));
+  if (sub === "render") {
+    console.log(renderHomeLabIntent({ root, appName }));
+    return;
+  }
+  if (sub === "package") {
+    const labRootIndex = rest.indexOf("--lab-root");
+    const labRoot = labRootIndex >= 0 ? resolve(rest[labRootIndex + 1]) : null;
+    if (labRoot) {
+      console.log(renderHomeLabDeploymentPackage({
+        root,
+        appName,
+        baseDir: join(labRoot, "tmp/workload-apps"),
+        manifestPath: `tmp/workload-apps/${appName}/manifests`,
+      }));
+      return;
+    }
+    console.log(renderHomeLabDeploymentPackage({ root, appName }));
+    return;
+  }
+  throw new Error("usage: rta hosting render|package [meeting-digest]");
+}
+
+async function queue(sub, rest) {
+  const q = new FileQueue({ root });
+  if (sub === "enqueue") {
+    const scenario = rest[0];
+    if (!scenario) throw new Error("usage: rta queue enqueue <scenario>");
+    const job = q.enqueue({ scenario, ...optionsFrom(rest.slice(1)) });
+    console.log(JSON.stringify(job, null, 2));
+    return;
+  }
+  if (sub === "list") {
+    console.log(JSON.stringify(q.list(), null, 2));
+    return;
+  }
+  if (sub === "run-next") {
+    const job = q.next();
+    if (!job) {
+      console.log("no queued jobs");
+      return;
+    }
+    q.update(job.id, { status: "running", startedAt: new Date().toISOString() });
+    try {
+      const result = await runNamedScenario(job.scenario, {
+        review: job.review,
+        verbosity: job.high ? "high" : "normal",
+        input: job.input,
+      });
+      q.update(job.id, { status: "completed", completedAt: new Date().toISOString(), result });
+    } catch (error) {
+      q.update(job.id, { status: "failed", completedAt: new Date().toISOString(), error: error.message });
+      throw error;
+    }
+    return;
+  }
+  throw new Error("usage: rta queue enqueue|list|run-next");
+}
+
+function grafana(sub, rest) {
+  if (sub !== "render") throw new Error("usage: rta grafana render [meeting-digest]");
+  console.log(renderGrafanaDashboard({ root, appName: rest[0] ?? "meeting-digest" }));
 }
 
 main().catch((error) => {

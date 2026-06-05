@@ -1,0 +1,19 @@
+kind: Capability
+id: scheduler-queue
+name: SchedulerQueue
+status: demo-covered
+why: RTA needs persistent queued jobs beyond direct local run execution.
+ownedBy:
+  internal: rta-platform
+demonstratedBy:
+  - command: rta queue enqueue meeting-digest.integrated.fixture --input tests/fixtures/custom-transcript.txt --review
+  - command: rta queue run-next
+requires:
+  - RuntimePorts
+  - GeneratedAppCliRuntimeWiring
+produces:
+  - packages/scheduler
+  - .rta/queue
+  - rta queue enqueue
+  - rta queue run-next
+  - rta queue list

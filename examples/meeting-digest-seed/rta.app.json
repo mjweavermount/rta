@@ -76,5 +76,10 @@
   "publication": {
     "requiresReview": true,
     "adapters": ["dry-run-fixture"]
+  },
+  "security": {
+    "inputPathPolicy": "repo-contained",
+    "redactSecrets": true,
+    "externalWritesRequireReview": true
   }
 }

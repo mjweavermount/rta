@@ -1,7 +1,7 @@
 kind: Capability
 id: monitor-review-provenance-ui
 name: MonitorReviewProvenanceUi
-status: planned
+status: demo-covered
 why: Operators need a UI surface for monitoring steps, reviewing outputs, and inspecting provenance without reading code.
 ownedBy:
   internal: rta-platform
@@ -9,6 +9,7 @@ ownedBy:
 demonstratedBy:
   - ui: monitor/review/provenance prototype
   - artifact: UX scope artifact before implementation
+  - dashboard: .rta/grafana/meeting-digest.dashboard.json
 requires:
   - RuntimePorts
   - ReviewIdentityApproval
@@ -17,3 +18,5 @@ produces:
   - monitor UI scope
   - provenance graph view
   - review queue view
+  - packages/grafana
+  - rta grafana render
