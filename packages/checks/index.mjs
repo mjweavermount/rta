@@ -257,6 +257,60 @@ export function checkConnectorSafety({ root, appDir }) {
   return errors;
 }
 
+export function checkRuntimeWiring({ root, appDir }) {
+  const app = loadAppDeclaration(join(root, appDir, "rta.app.json"));
+  const all = deriveAll(app);
+  const errors = [];
+  const generatedDir = join(root, ".rta", "generated", app.name);
+  const runtimeContractPath = join(generatedDir, "runtime-contract.json");
+  const schemaPath = join(generatedDir, "app-runtime.schema.json");
+  const cliPath = join(generatedDir, `${app.name}.mjs`);
+  if (!existsSync(runtimeContractPath)) errors.push("generated runtime-contract.json missing");
+  if (!existsSync(schemaPath)) errors.push("generated app-runtime.schema.json missing");
+  if (!existsSync(cliPath)) errors.push("generated app CLI missing");
+  if (errors.length > 0) return errors;
+
+  const runtimeContract = JSON.parse(readFileSync(runtimeContractPath, "utf8")).content;
+  const schema = JSON.parse(readFileSync(schemaPath, "utf8")).content;
+  const cli = readFileSync(cliPath, "utf8");
+  for (const processName of all.runtimeContract.processes) {
+    if (!runtimeContract.processes?.includes(processName)) errors.push(`runtime contract missing process ${processName}`);
+    if (!schema.properties?.process?.enum?.includes(processName)) errors.push(`AppRuntime schema missing process ${processName}`);
+  }
+  for (const port of all.runtimeContract.ports) {
+    if (!runtimeContract.ports?.includes(port)) errors.push(`runtime contract missing port ${port}`);
+    if (!schema.properties?.ports?.items?.enum?.includes(port)) errors.push(`AppRuntime schema missing port ${port}`);
+  }
+  for (const target of all.runtimeContract.targets) {
+    if (!runtimeContract.targets?.includes(target)) errors.push(`runtime contract missing target ${target}`);
+    if (!schema.properties?.targets?.items?.enum?.includes(target)) errors.push(`AppRuntime schema missing target ${target}`);
+  }
+  for (const command of ["scenario", "queue", "scheduler", "review", "publish"]) {
+    if (!cli.includes(JSON.stringify(command))) errors.push(`generated app CLI missing ${command} route`);
+  }
+  return errors;
+}
+
+export function checkScenarioRuntimeParity({ root, appDir }) {
+  const app = loadAppDeclaration(join(root, appDir, "rta.app.json"));
+  const errors = [];
+  const cliPath = join(root, ".rta", "generated", app.name, `${app.name}.mjs`);
+  if (!existsSync(cliPath)) return ["generated app CLI missing"];
+  const cli = readFileSync(cliPath, "utf8");
+  const defaultScenario = app.scenarios?.find((scenario) => scenario.id.includes("integrated"))?.id ?? app.scenarios?.[0]?.id;
+  if (!cli.includes(defaultScenario)) errors.push(`generated app CLI missing default scenario ${defaultScenario}`);
+  for (const route of [
+    `["scenario", "run"`,
+    `["scenario", "watch"`,
+    `["scenario", "replay"`,
+    `["queue", ...rest]`,
+    `["scheduler", ...rest]`,
+  ]) {
+    if (!cli.includes(route)) errors.push(`generated app CLI missing parity route ${route}`);
+  }
+  return errors;
+}
+
 export function checkTelemetryCoverage({ root, appDir }) {
   const app = loadAppDeclaration(join(root, appDir, "rta.app.json"));
   const all = deriveAll(app);
@@ -310,6 +364,8 @@ export function checkProduction({ root, appDir }) {
     ...checkIntegrationContracts({ root, appDir }),
     ...checkReviewGates({ root, appDir }),
     ...checkConnectorSafety({ root, appDir }),
+    ...checkRuntimeWiring({ root, appDir }),
+    ...checkScenarioRuntimeParity({ root, appDir }),
     ...checkTelemetryCoverage({ root, appDir }),
     ...checkSecurity({ root, appDir }),
     ...checkGeneratedSync({ root, app }),

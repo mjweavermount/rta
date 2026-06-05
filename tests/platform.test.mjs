@@ -39,6 +39,10 @@ test("generator writes derivation hashes and generated-sync catches drift", () =
   const manifest = JSON.parse(readFileSync(manifestPath, "utf8"));
   assert.equal(manifest.generated.policy, "always-regenerated");
   assert.match(manifest.generated.derivationHash, /^[a-f0-9]{16}$/);
+  assert.ok(manifest.content.files.includes("app-runtime.schema.json"));
+  const runtimeSchema = JSON.parse(readFileSync(`${out}/app-runtime.schema.json`, "utf8"));
+  assert.equal(runtimeSchema.content.title, "RTA AppRuntime");
+  assert.ok(runtimeSchema.content.properties.process.enum.includes("worker"));
   assert.match(rta(["check", "--generated-sync"]), /Generated sync passed/);
 
   writeFileSync(`${out}/obligations.json`, "{}\n");

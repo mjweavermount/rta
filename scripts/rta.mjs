@@ -6,7 +6,7 @@ import { publishDryRun } from "../packages/connectors/index.mjs";
 import { explainMeetingDigestObligation } from "../packages/derivation/index.mjs";
 import { renderGrafanaDashboard } from "../packages/grafana/index.mjs";
 import { renderHomeLabDeploymentPackage, renderHomeLabIntent } from "../packages/hosting-adapters/index.mjs";
-import { checkApp, checkArchetypeBindings, checkArds, checkBoundaryCoverage, checkConnectorSafety, checkDerivation, checkExtensions, checkIntegrationContracts, checkLogCeremony, checkPatternContracts, checkProduction, checkReviewGates, checkScenarioCoverage, checkSecurity, checkTelemetryCoverage, checkTierContracts, checkUseCases } from "../packages/checks/index.mjs";
+import { checkApp, checkArchetypeBindings, checkArds, checkBoundaryCoverage, checkConnectorSafety, checkDerivation, checkExtensions, checkIntegrationContracts, checkLogCeremony, checkPatternContracts, checkProduction, checkReviewGates, checkRuntimeWiring, checkScenarioCoverage, checkScenarioRuntimeParity, checkSecurity, checkTelemetryCoverage, checkTierContracts, checkUseCases } from "../packages/checks/index.mjs";
 import { buildDerivationGraph } from "../packages/derivation/index.mjs";
 import { checkGeneratedSync, generateAppCli, generateAppScaffold, generateDerivationBundle } from "../packages/generators/index.mjs";
 import { CeremonyLogger } from "../packages/logging/index.mjs";
@@ -116,6 +116,8 @@ Commands:
   rta check --integration-contracts
   rta check --review-gates
   rta check --connector-safety
+  rta check --runtime-wiring
+  rta check --scenario-runtime-parity
   rta check --telemetry-coverage
   rta check --log-ceremony
   rta check --security
@@ -201,6 +203,8 @@ async function check(flag) {
   if (flag === "--integration-contracts") return reportCheck("Integration contracts", checkIntegrationContracts({ root, appDir: "examples/meeting-digest-seed" }));
   if (flag === "--review-gates") return reportCheck("Review gates", checkReviewGates({ root, appDir: "examples/meeting-digest-seed" }));
   if (flag === "--connector-safety") return reportCheck("Connector safety", checkConnectorSafety({ root, appDir: "examples/meeting-digest-seed" }));
+  if (flag === "--runtime-wiring") return reportCheck("Runtime wiring", checkRuntimeWiring({ root, appDir: "examples/meeting-digest-seed" }));
+  if (flag === "--scenario-runtime-parity") return reportCheck("Scenario runtime parity", checkScenarioRuntimeParity({ root, appDir: "examples/meeting-digest-seed" }));
   if (flag === "--telemetry-coverage") return reportCheck("Telemetry coverage", checkTelemetryCoverage({ root, appDir: "examples/meeting-digest-seed" }));
   if (flag === "--log-ceremony") return reportCheck("Log ceremony", checkLogCeremony({ root, appDir: "examples/meeting-digest-seed" }));
   if (flag === "--security") return reportCheck("Security", checkSecurity({ root, appDir: "examples/meeting-digest-seed" }));
@@ -224,6 +228,8 @@ async function check(flag) {
       ...checkDerivation({ root, appDir: "examples/meeting-digest-seed" }),
       ...checkReviewGates({ root, appDir: "examples/meeting-digest-seed" }),
       ...checkConnectorSafety({ root, appDir: "examples/meeting-digest-seed" }),
+      ...checkRuntimeWiring({ root, appDir: "examples/meeting-digest-seed" }),
+      ...checkScenarioRuntimeParity({ root, appDir: "examples/meeting-digest-seed" }),
       ...checkTelemetryCoverage({ root, appDir: "examples/meeting-digest-seed" }),
       ...checkLogCeremony({ root, appDir: "examples/meeting-digest-seed" }),
       ...checkSecurity({ root, appDir: "examples/meeting-digest-seed" }),
@@ -235,7 +241,7 @@ async function check(flag) {
     console.log("All implemented RTA checks passed.");
     return;
   }
-  throw new Error("usage: rta check --work-ledger | --meeting-digest | --ard-meta | --generated-sync | --tier-contracts | --pattern-contracts | --archetype-bindings | --extensions-local | --extensions-upstreamable | --derived-obligations | --use-cases | --scenario-coverage | --boundary-coverage | --integration-contracts | --review-gates | --connector-safety | --telemetry-coverage | --log-ceremony | --security | --production | --app-cli | --all");
+  throw new Error("usage: rta check --work-ledger | --meeting-digest | --ard-meta | --generated-sync | --tier-contracts | --pattern-contracts | --archetype-bindings | --extensions-local | --extensions-upstreamable | --derived-obligations | --use-cases | --scenario-coverage | --boundary-coverage | --integration-contracts | --review-gates | --connector-safety | --runtime-wiring | --scenario-runtime-parity | --telemetry-coverage | --log-ceremony | --security | --production | --app-cli | --all");
 }
 
 function reportCheck(label, errors) {

@@ -32,6 +32,8 @@ test("cli lists work and explains meeting digest obligation", () => {
   assert.match(rta(["check", "--integration-contracts"]), /passed/);
   assert.match(rta(["check", "--review-gates"]), /passed/);
   assert.match(rta(["check", "--connector-safety"]), /passed/);
+  assert.match(rta(["check", "--runtime-wiring"]), /passed/);
+  assert.match(rta(["check", "--scenario-runtime-parity"]), /passed/);
   assert.match(rta(["check", "--telemetry-coverage"]), /passed/);
   assert.match(rta(["check", "--log-ceremony"]), /passed/);
   assert.match(rta(["check", "--security"]), /passed/);
@@ -127,6 +129,11 @@ test("rta generates an app cli that runs the integrated meeting digest", () => {
   assert.match(out, /ReviewableDigestJob.materialize.complete/);
   assert.match(out, /215 chars/);
   assert.match(out, /meeting-digest-integrated.json/);
+  const watch = execFileSync("node", [generated, "watch", "--input", "tests/fixtures/custom-transcript.txt"], {
+    cwd: repoRoot,
+    encoding: "utf8",
+  });
+  assert.match(watch, /scenario\.meeting-digest\.integrated\.fixture\.start/);
 });
 
 test("runtime records unit-of-work state and replays run provenance", () => {

@@ -14,16 +14,39 @@ import { resolve } from "node:path";
 
 const root = resolve(new URL("../../..", import.meta.url).pathname);
 const args = process.argv.slice(2);
-const scenarioIndex = args.indexOf("--scenario");
-const scenario = scenarioIndex >= 0 ? args[scenarioIndex + 1] : ${JSON.stringify(defaultScenario)};
-const passthrough = scenarioIndex >= 0
-  ? args.filter((arg, index) => index !== scenarioIndex && index !== scenarioIndex + 1)
-  : args;
-const res = spawnSync("node", ["scripts/rta.mjs", "scenario", "run", scenario, ...passthrough], {
+const command = args[0] ?? "run";
+const rest = args.slice(1);
+const defaultScenario = ${JSON.stringify(defaultScenario)};
+const rtaArgs = route(command, rest);
+const res = spawnSync("node", ["scripts/rta.mjs", ...rtaArgs], {
   cwd: root,
   stdio: "inherit",
 });
 process.exit(res.status ?? 1);
+
+function route(command, rest) {
+  if (command === "run") return ["scenario", "run", scenarioFrom(rest), ...withoutScenario(rest)];
+  if (command === "watch") return ["scenario", "watch", scenarioFrom(rest), ...withoutScenario(rest)];
+  if (command === "replay") return ["scenario", "replay", rest[0]];
+  if (command === "queue") return ["queue", ...rest];
+  if (command === "scheduler") return ["scheduler", ...rest];
+  if (command === "review") return ["review", ...rest];
+  if (command === "publish") return ["publish", ...rest];
+  if (command === "help" || command === "--help") return ["help"];
+  return ["scenario", "run", defaultScenario, command, ...rest];
+}
+
+function scenarioFrom(rest) {
+  const scenarioIndex = rest.indexOf("--scenario");
+  return scenarioIndex >= 0 ? rest[scenarioIndex + 1] : defaultScenario;
+}
+
+function withoutScenario(rest) {
+  const scenarioIndex = rest.indexOf("--scenario");
+  return scenarioIndex >= 0
+    ? rest.filter((arg, index) => index !== scenarioIndex && index !== scenarioIndex + 1)
+    : rest;
+}
 `;
   const path = join(outDir, `${app.name}.mjs`);
   writeFileSync(path, content, { mode: 0o755 });
@@ -72,6 +95,7 @@ export function generateDerivationBundle({ root, app }) {
     "scenario-coverage.json": generatedJson({ policy: "always-regenerated", hash, source: "deriveScenarioCoverage", content: all.scenarioCoverage }),
     "boundary-coverage.json": generatedJson({ policy: "always-regenerated", hash, source: "deriveBoundaryCoverage", content: all.boundaryCoverage }),
     "runtime-contract.json": generatedJson({ policy: "always-regenerated", hash, source: "deriveRuntimeContract", content: all.runtimeContract }),
+    "app-runtime.schema.json": generatedJson({ policy: "always-regenerated", hash, source: "deriveRuntimeContract", content: appRuntimeSchema(all.runtimeContract) }),
   };
   const manifestContent = {
     app: app.name,
@@ -114,6 +138,7 @@ export function expectedGeneratedBundle(app) {
     "scenario-coverage.json": generatedJson({ policy: "always-regenerated", hash, source: "deriveScenarioCoverage", content: all.scenarioCoverage }),
     "boundary-coverage.json": generatedJson({ policy: "always-regenerated", hash, source: "deriveBoundaryCoverage", content: all.boundaryCoverage }),
     "runtime-contract.json": generatedJson({ policy: "always-regenerated", hash, source: "deriveRuntimeContract", content: all.runtimeContract }),
+    "app-runtime.schema.json": generatedJson({ policy: "always-regenerated", hash, source: "deriveRuntimeContract", content: appRuntimeSchema(all.runtimeContract) }),
   };
   files["derivation-manifest.json"] = generatedJson({
     policy: "always-regenerated",
@@ -133,6 +158,29 @@ function generatedJson({ policy, hash, source, content }) {
     generated: { policy, derivationHash: hash, source },
     content,
   }, null, 2)}\n`;
+}
+
+function appRuntimeSchema(runtimeContract) {
+  return {
+    $schema: "https://json-schema.org/draft/2020-12/schema",
+    title: "RTA AppRuntime",
+    type: "object",
+    required: ["app", "process", "ports", "targets"],
+    properties: {
+      app: { const: runtimeContract.app },
+      process: { enum: runtimeContract.processes },
+      ports: {
+        type: "array",
+        minItems: runtimeContract.ports.length,
+        items: { enum: runtimeContract.ports },
+      },
+      targets: {
+        type: "array",
+        minItems: runtimeContract.targets.length,
+        items: { enum: runtimeContract.targets },
+      },
+    },
+  };
 }
 
 function generatedTextHeader({ policy, hash, source }) {
