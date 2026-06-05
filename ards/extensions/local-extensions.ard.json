@@ -1,0 +1,9 @@
+{
+  "id": "ARD-RTA-EXTENSIONS",
+  "title": "Local Extensions Stay Upstream-Shaped",
+  "tier": "extensions",
+  "status": "accepted",
+  "supports": ["local-extensions-upstreaming", "vocab-ard-cli-skeleton"],
+  "enforcedBy": ["rta check --extensions-local", "rta check --extensions-upstreamable"],
+  "decision": "Applications may define local concrete extensions, but every extension must say what abstract primitive, pattern, or archetype it extends and what would be needed to upstream it."
+}

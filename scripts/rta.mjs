@@ -5,7 +5,9 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 import { publishDryRun } from "../packages/connectors/index.mjs";
 import { explainMeetingDigestObligation } from "../packages/derivation/index.mjs";
 import { renderHomeLabIntent } from "../packages/hosting-adapters/index.mjs";
-import { checkApp } from "../packages/checks/index.mjs";
+import { checkApp, checkArds, checkDerivation, checkExtensions, checkLogCeremony } from "../packages/checks/index.mjs";
+import { buildDerivationGraph } from "../packages/derivation/index.mjs";
+import { generateAppCli } from "../packages/generators/index.mjs";
 import { CeremonyLogger } from "../packages/logging/index.mjs";
 import { ReviewQueue } from "../packages/review/index.mjs";
 import { FileRuntime, createRunId } from "../packages/runtime/index.mjs";
@@ -25,6 +27,7 @@ async function main() {
   if (cmd === "init") return init(rest[0] ?? "examples/hello-rta");
   if (cmd === "context") return context();
   if (cmd === "explain") return explain(rest);
+  if (cmd === "generate") return generate(sub, rest);
   if (cmd === "scenario") return scenarioCommand(sub, rest);
   if (cmd === "demo" && sub === "run") return runNamedScenario("meeting-digest.v2.fixture", optionsFrom(rest, { review: true }));
   if (cmd === "review") return review(sub, rest);
@@ -42,7 +45,13 @@ Commands:
   rta work show <id>
   rta check --work-ledger
   rta check --meeting-digest
+  rta check --ard-meta
+  rta check --extensions-local
+  rta check --extensions-upstreamable
+  rta check --derived-obligations
+  rta check --log-ceremony
   rta check --all
+  rta generate app-cli
   rta init [dir]
   rta context
   rta explain obligation meeting-digest
@@ -86,9 +95,27 @@ async function check(flag) {
     console.log("Meeting digest app declaration passed.");
     return;
   }
+  if (flag === "--ard-meta") return reportCheck("ARD metadata", checkArds({ root }));
+  if (flag === "--extensions-local") return reportCheck("Local extensions", checkExtensions({ root, appDir: "examples/meeting-digest-seed" }));
+  if (flag === "--extensions-upstreamable") return reportCheck("Upstreamable extensions", checkExtensions({ root, appDir: "examples/meeting-digest-seed", upstreamable: true }));
+  if (flag === "--derived-obligations") return reportCheck("Derived obligations", checkDerivation({ root, appDir: "examples/meeting-digest-seed" }));
+  if (flag === "--log-ceremony") return reportCheck("Log ceremony", checkLogCeremony({ root, appDir: "examples/meeting-digest-seed" }));
+  if (flag === "--app-cli") {
+    const app = loadAppDeclaration(join(root, "examples/meeting-digest-seed/rta.app.json"));
+    const generated = generateAppCli({ root, app });
+    console.log(`Generated app CLI: ${generated}`);
+    return;
+  }
   if (flag === "--all") {
     await import("./check-work-ledger.mjs");
-    const errors = checkApp({ root, appDir: "examples/meeting-digest-seed" });
+    const errors = [
+      ...checkApp({ root, appDir: "examples/meeting-digest-seed" }),
+      ...checkArds({ root }),
+      ...checkExtensions({ root, appDir: "examples/meeting-digest-seed" }),
+      ...checkExtensions({ root, appDir: "examples/meeting-digest-seed", upstreamable: true }),
+      ...checkDerivation({ root, appDir: "examples/meeting-digest-seed" }),
+      ...checkLogCeremony({ root, appDir: "examples/meeting-digest-seed" }),
+    ];
     if (errors.length > 0) {
       console.error(errors.map((error) => `- ${error}`).join("\n"));
       process.exit(1);
@@ -96,7 +123,15 @@ async function check(flag) {
     console.log("All implemented RTA checks passed.");
     return;
   }
-  throw new Error("usage: rta check --work-ledger | --meeting-digest | --all");
+  throw new Error("usage: rta check --work-ledger | --meeting-digest | --ard-meta | --extensions-local | --extensions-upstreamable | --derived-obligations | --log-ceremony | --app-cli | --all");
+}
+
+function reportCheck(label, errors) {
+  if (errors.length > 0) {
+    console.error(errors.map((error) => `- ${error}`).join("\n"));
+    process.exit(1);
+  }
+  console.log(`${label} passed.`);
 }
 
 function init(dir) {
@@ -126,11 +161,22 @@ function context() {
 }
 
 function explain(rest) {
+  if (rest.join(" ").includes("graph")) {
+    const app = loadAppDeclaration(join(root, "examples/meeting-digest-seed/rta.app.json"));
+    console.log(JSON.stringify(buildDerivationGraph(app), null, 2));
+    return;
+  }
   if (rest.join(" ").includes("meeting-digest")) {
     console.log(JSON.stringify(explainMeetingDigestObligation(), null, 2));
     return;
   }
   console.log(JSON.stringify(explainMeetingDigestObligation(), null, 2));
+}
+
+function generate(sub) {
+  if (sub !== "app-cli") throw new Error("usage: rta generate app-cli");
+  const app = loadAppDeclaration(join(root, "examples/meeting-digest-seed/rta.app.json"));
+  console.log(generateAppCli({ root, app }));
 }
 
 async function scenarioCommand(sub, rest) {

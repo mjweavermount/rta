@@ -1,7 +1,7 @@
 kind: Capability
 id: agent-playbook-docs
 name: AgentPlaybookDocs
-status: planned
+status: in-progress
 why: Agents need the right information at the right level so they can author apps through RTA without rediscovering the philosophy or rules every time.
 ownedBy:
   internal: rta-platform

@@ -3,6 +3,7 @@ import { existsSync, readFileSync } from "node:fs";
 import test from "node:test";
 import { digestTranscriptV1 } from "../examples/meeting-digest-seed/meeting-digest-v1.mjs";
 import { digestTranscriptV2, formatDigestMarkdown } from "../examples/meeting-digest-seed/meeting-digest-v2.mjs";
+import { digestTranscriptIntegrated } from "../examples/meeting-digest-seed/meeting-digest-integrated.mjs";
 import { checkApp } from "../packages/checks/index.mjs";
 
 const transcript = readFileSync(new URL("../examples/meeting-digest-seed/transcript.txt", import.meta.url), "utf8");
@@ -41,4 +42,14 @@ test("meeting digest v2 recognizes monitoring and provenance work", () => {
   assert.equal(digest.topics[0].title, "Monitoring and provenance UI");
   assert.equal(digest.tasks[0].user, "operator monitoring runs");
   assert.ok(digest.tasks[0].talksTo.includes("Grafana dashboard adapter"));
+});
+
+test("integrated meeting digest rebuild adds RTA obligations without losing v2 tasks", () => {
+  const v2 = digestTranscriptV2(transcript);
+  const integrated = digestTranscriptIntegrated(transcript);
+  assert.equal(integrated.version, "integrated-v3");
+  assert.equal(integrated.tasks.length, v2.tasks.length);
+  assert.ok(integrated.rta.obligations.includes("ReviewBeforePublication"));
+  assert.ok(integrated.tasks.every((task) => task.rtaObligations.length > 0));
+  assert.ok(integrated.provenance.derivationNodes > 0);
 });

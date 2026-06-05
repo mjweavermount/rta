@@ -1,5 +1,7 @@
-import { existsSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
+import { validateArds } from "../ards/index.mjs";
+import { buildDerivationGraph } from "../derivation/index.mjs";
 import { loadAppDeclaration, validateAppDeclaration } from "../vocab/index.mjs";
 
 export function checkApp({ root, appDir }) {
@@ -31,4 +33,42 @@ export function checkApp({ root, appDir }) {
   }
 
   return errors;
+}
+
+export function checkArds({ root }) {
+  return validateArds(root);
+}
+
+export function checkExtensions({ root, appDir, upstreamable = false }) {
+  const path = join(root, appDir, "extensions.json");
+  if (!existsSync(path)) return [`missing ${appDir}/extensions.json`];
+  const data = JSON.parse(readFileSync(path, "utf8"));
+  const errors = [];
+  for (const extension of data.extensions ?? []) {
+    if (!extension.id) errors.push("extension missing id");
+    if (!extension.extends) errors.push(`${extension.id ?? "(unknown)"} missing extends`);
+    if (extension.concrete !== true) errors.push(`${extension.id} must be concrete`);
+    if (!extension.localReason) errors.push(`${extension.id} missing localReason`);
+    if (upstreamable && extension.upstreamCandidate && (!extension.upstreamRequires || extension.upstreamRequires.length === 0)) {
+      errors.push(`${extension.id} marked upstreamCandidate without upstreamRequires`);
+    }
+  }
+  return errors;
+}
+
+export function checkDerivation({ root, appDir }) {
+  const app = loadAppDeclaration(join(root, appDir, "rta.app.json"));
+  const graph = buildDerivationGraph(app);
+  const required = ["ReviewBeforePublication", "HumanReadableLogs", "ScenarioBoundaryCoverage"];
+  return required
+    .filter((id) => !graph.nodes.some((node) => node.id === id))
+    .map((id) => `missing derived obligation ${id}`);
+}
+
+export function checkLogCeremony({ root, appDir }) {
+  const app = loadAppDeclaration(join(root, appDir, "rta.app.json"));
+  const template = app.logging?.humanReadableTemplate ?? "";
+  return ["{runId}", "{step}", "{actor}", "{input}", "{output}"]
+    .filter((token) => !template.includes(token))
+    .map((token) => `logging template missing ${token}`);
 }

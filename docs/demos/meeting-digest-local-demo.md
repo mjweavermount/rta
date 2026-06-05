@@ -17,6 +17,27 @@ To use a different transcript:
 node examples/meeting-digest-seed/bin/meeting-digest.mjs --input path/to/transcript.txt --review --high
 ```
 
+## Compare Implementations
+
+The repo intentionally keeps three meeting digest implementations:
+
+- `meeting-digest-v1.mjs`: first spiral pass, block-oriented and simple.
+- `meeting-digest-v2.mjs`: rebuilt digest engine with topic loopback merging,
+  touchstone inference, Markdown output, and task classification.
+- `meeting-digest-integrated.mjs`: post-RTA rebuild that uses the app
+  declaration and derivation graph, then annotates extracted work with RTA
+  obligations.
+
+Generate and run the integrated app CLI:
+
+```bash
+node scripts/rta.mjs generate app-cli
+node .rta/generated/meeting-digest/meeting-digest.mjs --input tests/fixtures/custom-transcript.txt --review --high
+```
+
+The integrated output should include `version: integrated-v3`, RTA vocabulary,
+use cases, derived obligations, and task-level `rtaObligations`.
+
 ## Review
 
 The demo prints a review id:

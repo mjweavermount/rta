@@ -1,0 +1,9 @@
+{
+  "id": "ARD-RTA-REVIEW-PUBLICATION",
+  "title": "Review Before External Publication",
+  "tier": "runtime",
+  "status": "accepted",
+  "supports": ["review-identity-approval", "meeting-digest-proving-app"],
+  "enforcedBy": ["rta check --review-gates", "rta publish dry-run"],
+  "decision": "Publication adapters must reject pending review items and only publish after an approval actor is recorded."
+}

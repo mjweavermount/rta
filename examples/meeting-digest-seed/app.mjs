@@ -1,6 +1,7 @@
 import { readFileSync } from "node:fs";
 import { digestTranscriptV1 } from "./meeting-digest-v1.mjs";
 import { digestTranscriptV2, formatDigestMarkdown } from "./meeting-digest-v2.mjs";
+import { digestTranscriptIntegrated } from "./meeting-digest-integrated.mjs";
 
 function readTranscript(input) {
   if (input?.transcriptPath) return readFileSync(input.transcriptPath, "utf8");
@@ -34,6 +35,24 @@ export const scenarios = [
       });
       const artifactPath = runtime.saveArtifact("meeting-digest-v2.json", digest);
       const markdownPath = runtime.saveArtifact("meeting-digest-v2.md", formatDigestMarkdown(digest));
+      return { artifactPath, markdownPath, ...digest };
+    },
+  },
+  {
+    name: "meeting-digest.integrated.fixture",
+    async run({ runtime, logger, input }) {
+      const transcript = readTranscript(input);
+      logger.step({ runId: runtime.runId, step: "meetingDigest.integrated.ingest", input: input?.transcriptPath ?? "transcript.txt", output: `${transcript.length} chars` });
+      const digest = digestTranscriptIntegrated(transcript);
+      logger.step({
+        runId: runtime.runId,
+        step: "meetingDigest.integrated.digest",
+        input: `${digest.provenance.utteranceCount} utterances`,
+        output: `${digest.topics.length} topics, ${digest.tasks.length} tasks`,
+        detail: digest.provenance,
+      });
+      const artifactPath = runtime.saveArtifact("meeting-digest-integrated.json", digest);
+      const markdownPath = runtime.saveArtifact("meeting-digest-integrated.md", formatDigestMarkdown(digest));
       return { artifactPath, markdownPath, ...digest };
     },
   },

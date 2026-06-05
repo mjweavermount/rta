@@ -1,7 +1,7 @@
 kind: Capability
 id: vocab-ard-cli-skeleton
 name: VocabArdCliSkeleton
-status: in-progress
+status: demo-covered
 why: RTA needs the first authoring surface for declaring vocabulary, generating ARD scaffolds, and running checks.
 ownedBy:
   internal: rta-platform

@@ -46,6 +46,11 @@
       "id": "meeting-digest.v2.fixture",
       "mode": "bulk",
       "expectedArtifacts": ["meeting-digest-v2.json", "logs.json", "provenance.json"]
+    },
+    {
+      "id": "meeting-digest.integrated.fixture",
+      "mode": "bulk",
+      "expectedArtifacts": ["meeting-digest-integrated.json", "meeting-digest-integrated.md", "logs.json", "provenance.json"]
     }
   ],
   "boundaries": [

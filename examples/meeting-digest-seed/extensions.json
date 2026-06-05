@@ -1,0 +1,20 @@
+{
+  "extensions": [
+    {
+      "id": "MeetingDigestTopicSegmenter",
+      "extends": "T2.Pattern.TopicSegmentation",
+      "concrete": true,
+      "localReason": "Meeting transcripts need loopback-aware topic accumulation.",
+      "upstreamCandidate": true,
+      "upstreamRequires": ["generic topic-key strategy", "confidence model", "golden fixtures"]
+    },
+    {
+      "id": "MeetingDigestWorkExtractor",
+      "extends": "T2.Pattern.TaskExtraction",
+      "concrete": true,
+      "localReason": "Meeting digests need feature, automation, and research extraction.",
+      "upstreamCandidate": true,
+      "upstreamRequires": ["classification vocabulary", "adapter touchstone inference"]
+    }
+  ]
+}
