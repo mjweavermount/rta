@@ -127,7 +127,17 @@
   },
   "publication": {
     "requiresReview": true,
-    "adapters": ["dry-run-fixture"]
+    "adapters": ["dry-run-fixture"],
+    "connectorPolicies": [
+      {
+        "id": "dry-run-fixture",
+        "mode": "dry-run",
+        "dataSensitivity": "internal",
+        "externalWrites": false,
+        "requiresReview": true,
+        "allowedTargets": ["fixture"]
+      }
+    ]
   },
   "security": {
     "inputPathPolicy": "repo-contained",

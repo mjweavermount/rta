@@ -204,6 +204,59 @@ export function checkIntegrationContracts({ root, appDir }) {
   return errors;
 }
 
+export function checkReviewGates({ root, appDir }) {
+  const app = loadAppDeclaration(join(root, appDir, "rta.app.json"));
+  const all = deriveAll(app);
+  const errors = [];
+  if (app.publication?.requiresReview !== true) errors.push("publication.requiresReview must be true");
+  if (all.reviewGates.length === 0) errors.push("missing derived review gates");
+  for (const gate of all.reviewGates) {
+    if (gate.requiredCheck !== "rta check --review-gates") {
+      errors.push(`${gate.id} must require rta check --review-gates`);
+    }
+    if (!gate.explanation?.includes("publication adapters")) {
+      errors.push(`${gate.id} must explain publication adapter review behavior`);
+    }
+  }
+  return errors;
+}
+
+export function checkConnectorSafety({ root, appDir }) {
+  const app = loadAppDeclaration(join(root, appDir, "rta.app.json"));
+  const errors = [];
+  const adapters = app.publication?.adapters ?? [];
+  const policies = app.publication?.connectorPolicies ?? [];
+  const policiesById = new Map(policies.map((policy) => [policy.id, policy]));
+  if (adapters.length === 0) errors.push("publication.adapters must declare allowed adapters");
+  if (policies.length === 0) errors.push("publication.connectorPolicies must declare connector data sensitivity policy");
+
+  for (const adapter of adapters) {
+    const policy = policiesById.get(adapter);
+    if (!policy) {
+      errors.push(`adapter ${adapter} missing connector policy`);
+      continue;
+    }
+    if (!policy.mode) errors.push(`connector ${adapter} missing mode`);
+    if (!policy.dataSensitivity) errors.push(`connector ${adapter} missing dataSensitivity`);
+    if (policy.requiresReview !== true) errors.push(`connector ${adapter} must require review`);
+    if (policy.externalWrites !== false && app.publication?.requiresReview !== true) {
+      errors.push(`connector ${adapter} can write externally without publication review`);
+    }
+    if (policy.mode === "dry-run" && policy.externalWrites !== false) {
+      errors.push(`dry-run connector ${adapter} must declare externalWrites=false`);
+    }
+    if (!Array.isArray(policy.allowedTargets) || policy.allowedTargets.length === 0) {
+      errors.push(`connector ${adapter} must declare allowedTargets`);
+    }
+  }
+
+  for (const policy of policies) {
+    if (!adapters.includes(policy.id)) errors.push(`connector policy ${policy.id} is not listed in publication.adapters`);
+  }
+
+  return errors;
+}
+
 export function checkTelemetryCoverage({ root, appDir }) {
   const app = loadAppDeclaration(join(root, appDir, "rta.app.json"));
   const all = deriveAll(app);
@@ -255,6 +308,8 @@ export function checkProduction({ root, appDir }) {
     ...checkScenarioCoverage({ root, appDir }),
     ...checkBoundaryCoverage({ root, appDir }),
     ...checkIntegrationContracts({ root, appDir }),
+    ...checkReviewGates({ root, appDir }),
+    ...checkConnectorSafety({ root, appDir }),
     ...checkTelemetryCoverage({ root, appDir }),
     ...checkSecurity({ root, appDir }),
     ...checkGeneratedSync({ root, app }),

@@ -30,6 +30,8 @@ test("cli lists work and explains meeting digest obligation", () => {
   assert.match(rta(["check", "--scenario-coverage"]), /passed/);
   assert.match(rta(["check", "--boundary-coverage"]), /passed/);
   assert.match(rta(["check", "--integration-contracts"]), /passed/);
+  assert.match(rta(["check", "--review-gates"]), /passed/);
+  assert.match(rta(["check", "--connector-safety"]), /passed/);
   assert.match(rta(["check", "--telemetry-coverage"]), /passed/);
   assert.match(rta(["check", "--log-ceremony"]), /passed/);
   assert.match(rta(["check", "--security"]), /passed/);
@@ -58,7 +60,9 @@ test("cli runs demo, review can approve, and dry-run publish is gated", () => {
   const approved = rta(["review", "approve", reviewId, "--actor", "test-operator"]);
   assert.match(approved, /approved/);
   const publication = rta(["publish", "dry-run", reviewId, "--target", "fixture"]);
+  assert.match(publication, /"connector": "dry-run-fixture"/);
   assert.match(publication, /"externalWrites": \[\]/);
+  assert.throws(() => rta(["publish", "dry-run", reviewId, "--target", "plane"]), /target plane is not allowed/);
 });
 
 test("generated-style meeting digest cli runs v2 through rta", () => {

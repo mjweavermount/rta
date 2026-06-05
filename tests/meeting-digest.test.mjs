@@ -6,7 +6,7 @@ import test from "node:test";
 import { digestTranscriptV1 } from "../examples/meeting-digest-seed/meeting-digest-v1.mjs";
 import { digestTranscriptV2, formatDigestMarkdown } from "../examples/meeting-digest-seed/meeting-digest-v2.mjs";
 import { digestTranscriptIntegrated } from "../examples/meeting-digest-seed/meeting-digest-integrated.mjs";
-import { checkApp, checkBoundaryCoverage, checkIntegrationContracts, checkLogCeremony, checkScenarioCoverage, checkUseCases } from "../packages/checks/index.mjs";
+import { checkApp, checkBoundaryCoverage, checkConnectorSafety, checkIntegrationContracts, checkLogCeremony, checkReviewGates, checkScenarioCoverage, checkUseCases } from "../packages/checks/index.mjs";
 
 const transcript = readFileSync(new URL("../examples/meeting-digest-seed/transcript.txt", import.meta.url), "utf8");
 
@@ -73,6 +73,8 @@ test("coverage checks fail missing use case, scenario, boundary, and review cont
   assert.match(checkScenarioCoverage({ root, appDir: "app" }).join("\n"), /missing expectedArtifacts|missing coversVocabulary/);
   assert.match(checkBoundaryCoverage({ root, appDir: "app" }).join("\n"), /unknown scenario/);
   assert.match(checkIntegrationContracts({ root, appDir: "app" }).join("\n"), /review-gated|dry-run-fixture/);
+  assert.match(checkReviewGates({ root, appDir: "app" }).join("\n"), /publication\.requiresReview/);
+  assert.match(checkConnectorSafety({ root, appDir: "app" }).join("\n"), /connectorPolicies|allowed adapters/);
 });
 
 test("meeting digest v2 produces human-readable markdown", () => {

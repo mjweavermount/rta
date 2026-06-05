@@ -1,7 +1,7 @@
 kind: Feature
 id: rta-prod-10-review-connector-safety
 name: RtaProd10ReviewConnectorSafety
-status: planned
+status: demo-covered
 why: Review must be a first-class primitive, and external writes must be blocked unless connector policy and review artifacts allow them.
 ownedBy:
   internal: rta-platform
@@ -17,4 +17,3 @@ produces:
   - external write safety checks
 selfAudit:
   - "@can any external write happen without a declared connector policy and approved review artifact?"
-
