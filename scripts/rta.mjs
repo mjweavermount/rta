@@ -37,6 +37,7 @@ const requiredCommands = [
   "extensions",
   "upstream",
   "doctor",
+  "scheduler",
 ];
 const implementedCommands = [
   "init",
@@ -60,6 +61,7 @@ const implementedCommands = [
   "hosting",
   "queue",
   "grafana",
+  "scheduler",
 ];
 
 async function main() {
@@ -86,6 +88,7 @@ async function main() {
   if (cmd === "publish") return publish(sub, rest);
   if (cmd === "hosting") return hosting(sub, rest);
   if (cmd === "queue") return queue(sub, rest);
+  if (cmd === "scheduler") return scheduler(sub, rest);
   if (cmd === "grafana") return grafana(sub, rest);
 
   throw new Error(`unknown command: ${args.join(" ")}`);
@@ -120,17 +123,20 @@ Commands:
   rta graph
   rta dev
   rta run scenario <name> [--input transcript.txt] [--high] [--review]
+  rta run replay <run-id>
   rta generate app-cli
   rta generate app <out-dir>
   rta queue enqueue <scenario> [--input transcript.txt] [--review] [--high]
   rta queue run-next
   rta queue list
+  rta scheduler start --once
   rta grafana render [meeting-digest]
   rta init [dir]
   rta context
   rta explain obligation meeting-digest
   rta scenario list
   rta scenario run <name> [--input transcript.txt] [--high] [--review]
+  rta scenario replay <run-id>
   rta scenario watch <name> [--input transcript.txt] [--high|--trace] [--review]
   rta test-scenario list
   rta test-scenario run <name>
@@ -302,7 +308,8 @@ async function testScenario(sub, rest) {
 
 async function runCommand(sub, rest) {
   if (sub === "scenario") return runNamedScenario(rest[0], optionsFrom(rest.slice(1)));
-  throw new Error("usage: rta run scenario <name>");
+  if (sub === "replay") return replayRun(rest[0]);
+  throw new Error("usage: rta run scenario <name> | replay <run-id>");
 }
 
 async function dev(sub, rest) {
@@ -401,10 +408,13 @@ async function scenarioCommand(sub, rest) {
   if (sub === "run") {
     return runNamedScenario(rest[0], optionsFrom(rest));
   }
+  if (sub === "replay") {
+    return replayRun(rest[0]);
+  }
   if (sub === "watch") {
     return runNamedScenario(rest[0], optionsFrom(rest, { verbosity: "trace" }));
   }
-  throw new Error("usage: rta scenario list | run <name> | watch <name>");
+  throw new Error("usage: rta scenario list | run <name> | replay <run-id> | watch <name>");
 }
 
 async function loadMeetingDigestScenarios() {
@@ -432,6 +442,7 @@ async function runNamedScenario(name, { review: shouldReview = false, verbosity 
   const result = await runScenario({ scenario: selected, runtime, logger, input });
   runtime.saveArtifact("logs.json", logger.events);
 
+  let reviewId = null;
   if (shouldReview) {
     const queue = new ReviewQueue({ root });
     const item = queue.create({
@@ -441,12 +452,45 @@ async function runNamedScenario(name, { review: shouldReview = false, verbosity 
       summary: `${result.topics?.length ?? 0} topics, ${result.tasks?.length ?? 0} tasks`,
     });
     runtime.saveState({ review: item });
+    reviewId = item.id;
     console.log(`review=${item.id}`);
   }
 
   console.log(`run=${runId}`);
   console.log(`artifact=${result.artifactPath}`);
   if (result.markdownPath) console.log(`digest=${result.markdownPath}`);
+  return { runId, artifactPath: result.artifactPath, digestPath: result.markdownPath ?? null, reviewId };
+}
+
+function replayRun(runId) {
+  if (!runId) throw new Error("usage: rta scenario replay <run-id>");
+  const runRoot = join(root, ".rta", "runs", runId);
+  const statePath = join(runRoot, "state.json");
+  if (!existsSync(statePath)) throw new Error(`unknown run: ${runId}`);
+  const state = JSON.parse(readFileSync(statePath, "utf8"));
+  const logsPath = join(runRoot, "artifacts", "logs.json");
+  const provenancePath = join(runRoot, "artifacts", "provenance.json");
+  const logs = existsSync(logsPath) ? JSON.parse(readFileSync(logsPath, "utf8")) : [];
+  const provenance = existsSync(provenancePath) ? JSON.parse(readFileSync(provenancePath, "utf8")) : { nodes: [], edges: [] };
+  console.log(JSON.stringify({
+    runId,
+    status: state.status,
+    artifacts: (state.artifacts ?? []).map((artifact) => artifact.name),
+    unitOfWorks: state.unitOfWorks ?? [],
+    logSteps: logs.map((event) => ({
+      index: event.index,
+      step: event.step,
+      unitOfWork: event.unitOfWork,
+      at: event.at,
+      actor: event.actor,
+    })),
+    provenance: {
+      nodes: provenance.nodes.length,
+      edges: provenance.edges.length,
+      stepNodes: provenance.nodes.filter((node) => node.type === "step").length,
+    },
+    review: state.review ?? null,
+  }, null, 2));
 }
 
 function review(sub, rest) {
@@ -511,26 +555,37 @@ async function queue(sub, rest) {
     return;
   }
   if (sub === "run-next") {
-    const job = q.next();
-    if (!job) {
-      console.log("no queued jobs");
-      return;
-    }
-    q.update(job.id, { status: "running", startedAt: new Date().toISOString() });
-    try {
-      const result = await runNamedScenario(job.scenario, {
-        review: job.review,
-        verbosity: job.high ? "high" : "normal",
-        input: job.input,
-      });
-      q.update(job.id, { status: "completed", completedAt: new Date().toISOString(), result });
-    } catch (error) {
-      q.update(job.id, { status: "failed", completedAt: new Date().toISOString(), error: error.message });
-      throw error;
-    }
+    await runNextQueuedJob(q);
     return;
   }
   throw new Error("usage: rta queue enqueue|list|run-next");
+}
+
+async function scheduler(sub, rest) {
+  if (sub !== "start" || !rest.includes("--once")) throw new Error("usage: rta scheduler start --once");
+  await runNextQueuedJob(new FileQueue({ root }));
+}
+
+async function runNextQueuedJob(q) {
+  const job = q.next();
+  if (!job) {
+    console.log("no queued jobs");
+    return null;
+  }
+  q.update(job.id, { status: "running", startedAt: nowIso() });
+  try {
+    const result = await runNamedScenario(job.scenario, {
+      review: job.review,
+      verbosity: job.verbosity ?? (job.high ? "high" : "normal"),
+      input: job.input,
+    });
+    q.update(job.id, { status: "completed", completedAt: nowIso(), result });
+    console.log(`job=${job.id}`);
+    return result;
+  } catch (error) {
+    q.update(job.id, { status: "failed", completedAt: nowIso(), error: error.message });
+    throw error;
+  }
 }
 
 function grafana(sub, rest) {
@@ -542,3 +597,7 @@ main().catch((error) => {
   console.error(error.message);
   process.exit(1);
 });
+
+function nowIso() {
+  return process.env.RTA_NOW || new Date().toISOString();
+}

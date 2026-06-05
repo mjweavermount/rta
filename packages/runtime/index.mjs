@@ -8,7 +8,7 @@ export class FileRuntime {
     this.runRoot = join(root, ".rta", "runs", runId);
     mkdirSync(this.runRoot, { recursive: true });
     mkdirSync(join(this.runRoot, "artifacts"), { recursive: true });
-    this.state = { runId, status: "running", artifacts: [], reviews: [] };
+    this.state = { runId, status: "running", artifacts: [], reviews: [], unitOfWorks: [] };
     this.provenance = { nodes: [{ id: runId, type: "run" }], edges: [] };
     this.saveState();
   }
@@ -21,6 +21,7 @@ export class FileRuntime {
       step: event.step,
       at: event.at,
       actor: event.actor,
+      unitOfWork: event.unitOfWork,
     });
     this.provenance.edges.push({
       from: event.parent ?? this.runId,
@@ -31,6 +32,9 @@ export class FileRuntime {
   }
 
   async operation({ logger, name, actor = "system", input, detail = null, parent = null, run }) {
+    const unitOfWork = `${name}-${this.state.unitOfWorks.length + 1}`.replace(/[^a-zA-Z0-9_.-]/g, "-");
+    this.state.unitOfWorks.push({ id: unitOfWork, name, status: "running", parent, startedAt: nowIso() });
+    this.saveState();
     logger.step({
       runId: this.runId,
       actor,
@@ -38,10 +42,12 @@ export class FileRuntime {
       input,
       output: "starting",
       parent,
+      unitOfWork,
       detail,
     });
     try {
       const output = await run();
+      this.updateUnitOfWork(unitOfWork, { status: "completed", completedAt: nowIso() });
       logger.step({
         runId: this.runId,
         actor,
@@ -49,10 +55,12 @@ export class FileRuntime {
         input,
         output,
         parent,
+        unitOfWork,
         detail,
       });
       return output;
     } catch (error) {
+      this.updateUnitOfWork(unitOfWork, { status: "failed", completedAt: nowIso(), error: error.message });
       logger.step({
         runId: this.runId,
         actor,
@@ -60,10 +68,16 @@ export class FileRuntime {
         input,
         output: error.message,
         parent,
+        unitOfWork,
         detail: { ...detail, name: error.name, stack: error.stack },
       });
       throw error;
     }
+  }
+
+  updateUnitOfWork(id, patch) {
+    this.state.unitOfWorks = this.state.unitOfWorks.map((item) => item.id === id ? { ...item, ...patch } : item);
+    this.saveState();
   }
 
   saveArtifact(name, data) {
@@ -96,5 +110,9 @@ export class FileRuntime {
 }
 
 export function createRunId(prefix = "run") {
-  return `${prefix}-${new Date().toISOString().replace(/[:.]/g, "-")}`;
+  return `${prefix}-${nowIso().replace(/[:.]/g, "-")}`;
+}
+
+function nowIso() {
+  return process.env.RTA_NOW || new Date().toISOString();
 }

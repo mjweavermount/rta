@@ -8,15 +8,16 @@ export class CeremonyLogger {
     this.events = [];
   }
 
-  step({ runId, actor = "system", step, input, output, parent = null, detail = null }) {
+  step({ runId, actor = "system", step, input, output, parent = null, unitOfWork = null, detail = null }) {
     const index = this.events.length + 1;
     const event = {
       type: "rta.step",
-      at: new Date().toISOString(),
+      at: nowIso(),
       index,
       runId,
       actor,
       step,
+      unitOfWork,
       input: redactSecrets(summarize(input)),
       output: redactSecrets(summarize(output)),
       parent,
@@ -56,6 +57,7 @@ function formatHumanEvent(event, verbosity) {
       head,
       `  at=${event.at}`,
       `  ${body}`,
+      `  unitOfWork=${JSON.stringify(event.unitOfWork)}`,
       `  parent=${JSON.stringify(event.parent)}`,
       `  detail=${JSON.stringify(event.detail)}`,
       `  event=${JSON.stringify({ type: event.type, runId: event.runId, step: event.step })}`,
@@ -65,4 +67,8 @@ function formatHumanEvent(event, verbosity) {
     return `${head}\n  ${body}\n  detail=${JSON.stringify(event.detail)}`;
   }
   return `${head} ${body}`;
+}
+
+function nowIso() {
+  return process.env.RTA_NOW || new Date().toISOString();
 }

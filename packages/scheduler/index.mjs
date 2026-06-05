@@ -7,16 +7,17 @@ export class FileQueue {
     mkdirSync(this.root, { recursive: true });
   }
 
-  enqueue({ scenario, input = {}, review = false, high = false }) {
-    const id = `job-${new Date().toISOString().replace(/[:.]/g, "-")}`;
+  enqueue({ scenario, input = {}, review = false, verbosity = "normal", high = false }) {
+    const id = `job-${nowIso().replace(/[:.]/g, "-")}`;
     const job = {
       id,
       scenario,
       input,
       review,
+      verbosity,
       high,
       status: "queued",
-      createdAt: new Date().toISOString(),
+      createdAt: nowIso(),
       startedAt: null,
       completedAt: null,
       result: null,
@@ -50,4 +51,8 @@ export class FileQueue {
   write(job) {
     writeFileSync(join(this.root, `${job.id}.json`), JSON.stringify(job, null, 2));
   }
+}
+
+function nowIso() {
+  return process.env.RTA_NOW || new Date().toISOString();
 }

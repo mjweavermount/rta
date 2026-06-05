@@ -1,7 +1,7 @@
 kind: Feature
 id: rta-prod-08-runtime-unit-of-work
 name: RtaProd08RuntimeUnitOfWork
-status: planned
+status: demo-covered
 why: Runtime execution needs a unit-of-work model, flow runner, scheduler/worker contract, simulated time, replay, provenance, and artifact ports.
 ownedBy:
   internal: rta-platform
@@ -18,4 +18,3 @@ produces:
   - replayable run records
 selfAudit:
   - "@can I watch, replay, and explain a run from logs/provenance without reading source?"
-

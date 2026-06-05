@@ -1,12 +1,15 @@
 import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync, readFileSync, rmSync } from "node:fs";
 import test from "node:test";
 
-function rta(args) {
+const repoRoot = new URL("..", import.meta.url);
+
+function rta(args, options = {}) {
   return execFileSync("node", ["scripts/rta.mjs", ...args], {
-    cwd: new URL("..", import.meta.url),
+    cwd: repoRoot,
     encoding: "utf8",
+    env: { ...process.env, ...(options.env ?? {}) },
   });
 }
 
@@ -119,4 +122,53 @@ test("rta generates an app cli that runs the integrated meeting digest", () => {
   assert.match(out, /ReviewableDigestJob.materialize.complete/);
   assert.match(out, /215 chars/);
   assert.match(out, /meeting-digest-integrated.json/);
+});
+
+test("runtime records unit-of-work state and replays run provenance", () => {
+  const now = "2026-01-02T03:04:05.000Z";
+  const out = rta([
+    "scenario",
+    "run",
+    "meeting-digest.integrated.fixture",
+    "--input",
+    "tests/fixtures/custom-transcript.txt",
+    "--high",
+  ], { env: { RTA_NOW: now } });
+  const runId = out.match(/^run=(.+)$/m)?.[1];
+  assert.equal(runId, "meeting-digest-integrated-fixture-2026-01-02T03-04-05-000Z");
+
+  const statePath = new URL(`../.rta/runs/${runId}/state.json`, import.meta.url);
+  const state = JSON.parse(readFileSync(statePath, "utf8"));
+  assert.ok(state.unitOfWorks.some((item) => item.name === "TopicSegmenter.segment" && item.status === "completed"));
+  assert.ok(state.unitOfWorks.some((item) => item.name === "DigestArtifact.write" && item.status === "completed"));
+  assert.equal(state.unitOfWorks[0].startedAt, now);
+
+  const replay = JSON.parse(rta(["scenario", "replay", runId]));
+  assert.equal(replay.runId, runId);
+  assert.ok(replay.unitOfWorks.length >= 6);
+  assert.ok(replay.logSteps.some((step) => step.step === "WorkItemExtractor.extract.complete"));
+  assert.ok(replay.provenance.stepNodes >= replay.logSteps.length);
+});
+
+test("scheduler start once runs a queued scenario and stores its run result", () => {
+  rmSync(new URL("../.rta/queue", import.meta.url), { recursive: true, force: true });
+  const now = "2026-01-02T03:04:06.000Z";
+  const job = JSON.parse(rta([
+    "queue",
+    "enqueue",
+    "meeting-digest.integrated.fixture",
+    "--input",
+    "tests/fixtures/custom-transcript.txt",
+    "--high",
+  ], { env: { RTA_NOW: now } }));
+  assert.equal(job.status, "queued");
+  assert.equal(job.createdAt, now);
+
+  const out = rta(["scheduler", "start", "--once"], { env: { RTA_NOW: "2026-01-02T03:04:07.000Z" } });
+  assert.match(out, new RegExp(`job=${job.id}`));
+
+  const queue = JSON.parse(rta(["queue", "list"]));
+  assert.equal(queue[0].status, "completed");
+  assert.ok(queue[0].result.runId);
+  assert.match(JSON.stringify(queue[0].result), /meeting-digest-integrated\.json/);
 });
