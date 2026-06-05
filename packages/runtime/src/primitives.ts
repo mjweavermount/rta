@@ -43,14 +43,14 @@ export class EnqueueScenarioJob extends InstrumentedScheduler<
     readonly verbosity?: "normal" | "high" | "trace"
     readonly high?: boolean
   }): Effect.Effect<QueueJob, DomainError> {
-    return Effect.sync(() => input.queue.enqueue(input))
+    return input.queue.enqueue(input)
   }
 }
 
 export class RunQueuedScenarioJob extends InstrumentedJob<
   {
     readonly job: QueueJob
-    readonly run: (job: QueueJob) => Promise<unknown>
+    readonly run: (job: QueueJob) => Effect.Effect<unknown, DomainError>
     readonly queue: FileQueue
   },
   QueueJob
@@ -73,38 +73,86 @@ export class RunQueuedScenarioJob extends InstrumentedJob<
   protected execute(
     input: {
       readonly job: QueueJob
+      readonly run: (job: QueueJob) => Effect.Effect<unknown, DomainError>
+      readonly queue: FileQueue
+    },
+    scope: OperationScope,
+  ): Effect.Effect<QueueJob, DomainError> {
+    return Effect.gen(function* () {
+      yield* input.queue.update(input.job.id, {
+        status: "running",
+        startedAt: scope.clock.now().toISOString(),
+      })
+      const result = yield* Effect.either(input.run(input.job))
+      if (result._tag === "Right") {
+        return yield* input.queue.update(input.job.id, {
+          status: "completed",
+          completedAt: scope.clock.now().toISOString(),
+          result: result.right,
+        })
+      }
+      const cause = result.left
+      return yield* input.queue.update(input.job.id, {
+        status: "failed",
+        completedAt: scope.clock.now().toISOString(),
+        error: cause.message,
+      })
+    }).pipe(
+      Effect.mapError((cause) =>
+        cause instanceof DomainError
+          ? cause
+          : new DomainError({
+            message: "queued job execution failed",
+            context: { cause: String(cause) },
+          })
+      ),
+    )
+  }
+}
+
+export class RunQueuedScenarioPromiseJob extends InstrumentedJob<
+  {
+    readonly job: QueueJob
+    readonly run: (job: QueueJob) => Promise<unknown>
+    readonly queue: FileQueue
+  },
+  QueueJob
+> {
+  constructor() {
+    super("RunQueuedScenarioPromiseJob", "Runtime")
+  }
+
+  protected summarize(input: { readonly job: QueueJob }): OperationSummary {
+    return {
+      action: `Run queued promise job ${input.job.id}`,
+      reason: "a legacy promise callback should still run through the persistent RTA queue",
+      with: [input.job.scenario],
+      input: input.job.id,
+      output: "completed or failed queue job",
+      lineage: ["primitive:job", "runtime:file-queue", "runtime:promise-compat"],
+    }
+  }
+
+  protected execute(
+    input: {
+      readonly job: QueueJob
       readonly run: (job: QueueJob) => Promise<unknown>
       readonly queue: FileQueue
     },
     scope: OperationScope,
   ): Effect.Effect<QueueJob, DomainError> {
-    return Effect.tryPromise({
-      try: async () => {
-        input.queue.update(input.job.id, {
-          status: "running",
-          startedAt: scope.clock.now().toISOString(),
-        })
-        try {
-          const result = await input.run(input.job)
-          return input.queue.update(input.job.id, {
-            status: "completed",
-            completedAt: scope.clock.now().toISOString(),
-            result,
-          })
-        } catch (cause) {
-          const error = cause instanceof Error ? cause : new Error(String(cause))
-          return input.queue.update(input.job.id, {
-            status: "failed",
-            completedAt: scope.clock.now().toISOString(),
-            error: error.message,
-          })
-        }
-      },
-      catch: (cause) => new DomainError({
-        message: "queued job execution failed",
-        context: { cause: String(cause) },
-      }),
-    })
+    return new RunQueuedScenarioJob().invoke({
+      job: input.job,
+      queue: input.queue,
+      run: (job) =>
+        Effect.tryPromise({
+          try: () => input.run(job),
+          catch: (cause) => new DomainError({
+            message: "queued promise job failed",
+            context: { cause: String(cause) },
+          }),
+        }),
+    }, scope)
   }
 }
 
@@ -140,6 +188,6 @@ export class CreateReviewItem extends InstrumentedPolicy<
     readonly artifactPath: string
     readonly summary: string
   }): Effect.Effect<ReviewItem, DomainError> {
-    return Effect.sync(() => input.queue.create(input))
+    return input.queue.create(input)
   }
 }

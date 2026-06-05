@@ -167,12 +167,14 @@ abstract class RuntimeRepository<A extends AggregateRoot<any, any, any>>
 
 export class InMemoryRepository<A extends AggregateRoot<any, any, any>>
   extends RuntimeRepository<A> {
-  private readonly store = new Map<string, A>()
+  private readonly store: Map<string, A>
 
   constructor(options: RuntimeRepositoryOptions<A> & {
     readonly initial?: ReadonlyArray<A>
+    readonly store?: Map<string, A>
   }) {
     super(options)
+    this.store = options.store ?? new Map<string, A>()
     for (const aggregate of options.initial ?? []) {
       this.store.set(String(aggregate.id), aggregate)
     }

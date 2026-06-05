@@ -152,12 +152,14 @@ describe("generateContext — @rta/core mode", () => {
     expect(files.find((f) => f.filename === "PlaceOrderHandler.ts")?.overwriteExisting).toBe(true)
   })
 
-  it("generates repository counters at module scope", () => {
+  it("generates primitive-backed repositories with exported local state", () => {
     const files = generateContext(fullContext, { strict: false })
     const repo = files.find((f) => f.filename === "OrderRepository.ts")!
-    expect(repo.content).toContain("let _orderCounter = 0")
-    expect(repo.content).not.toContain("let counter = 0")
-    expect(repo.content).toContain("nextId: () => Effect.sync(() => `order-${++_orderCounter}` as OrderId)")
+    expect(repo.content).toContain(`import { InMemoryRepository } from "@rta/runtime"`)
+    expect(repo.content).toContain("export const _orderStore = new Map<string, Order>()")
+    expect(repo.content).toContain("new InMemoryRepository<Order>({")
+    expect(repo.content).toContain(`idPrefix: "order"`)
+    expect(repo.content).toContain("store: _orderStore")
   })
 })
 
@@ -226,7 +228,9 @@ describe("generateContext — @rta/strict mode", () => {
     expect(registry).toContain(`"OrderManagement.ShipOrderOnPaymentCaptured"`)
     expect(registry).toContain(`kind: "event" as const`)
     expect(registry).toContain(`handle: handleShipOrderOnPaymentCaptured`)
-    expect(registry).toContain(`const createDispatchScope = (operation: string, kind: RegistryEntry["kind"], scope?: OperationScope): OperationScope => {`)
+    expect(registry).toContain(`type DispatchEntry = {`)
+    expect(registry).toContain(`const asDispatchEntry = (entry: RegistryEntry): DispatchEntry => entry as unknown as DispatchEntry`)
+    expect(registry).toContain(`const createDispatchScope = (operation: string, kind: DispatchEntry["kind"], scope?: OperationScope): OperationScope => {`)
     expect(registry).toContain(`if (entry.kind === "event")`)
     expect(registry).toContain(`const messageContext = commandOrQuery.kind === "command"`)
     expect(registry).toContain(`Effect.provide(handled, commandOrQuery.layer as any)`)

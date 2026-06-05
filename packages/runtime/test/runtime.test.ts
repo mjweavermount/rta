@@ -71,11 +71,11 @@ describe("@rta/runtime", () => {
     try {
       const clock = new SimulatedClock(new Date("2026-01-02T03:04:05.000Z"))
       const runId = createRunId("run", clock)
-      const runtime = new FileRuntime({ root, runId, clock })
-      const artifactPath = runtime.saveArtifact("digest.json", { ok: true })
-      runtime.recordStep({ step: "digest.created", actor: "codex" })
+      const runtime = await run(FileRuntime.create({ root, runId, clock }))
+      const artifactPath = await run(runtime.saveArtifact("digest.json", { ok: true }))
+      await run(runtime.recordStep({ step: "digest.created", actor: "codex" }))
 
-      const state = runtime.loadState()
+      const state = await run(runtime.loadState())
       expect(state.runId).toBe("run-2026-01-02T03-04-05-000Z")
       expect(state.artifacts[0]?.name).toBe("digest.json")
       expect(JSON.parse(await readFile(artifactPath, "utf8"))).toEqual({ ok: true })
@@ -113,7 +113,7 @@ describe("@rta/runtime", () => {
       const completed = await run(new RunQueuedScenarioJob().invoke({
         queue,
         job,
-        run: async () => ({ runId: "run-1" }),
+        run: () => Effect.succeed({ runId: "run-1" }),
       }, scope))
 
       const reviews = new ReviewQueue({ root, clock })

@@ -1,6 +1,7 @@
-import { mkdirSync, readFileSync, readdirSync, writeFileSync } from "node:fs"
+import { mkdir, readFile, readdir, writeFile } from "node:fs/promises"
 import { join } from "node:path"
-import type { RuntimeClock } from "./runtime.js"
+import { Effect } from "effect"
+import { RuntimeError, type RuntimeClock } from "./runtime.js"
 
 export type QueueJobStatus = "queued" | "running" | "completed" | "failed"
 
@@ -29,7 +30,13 @@ export class FileQueue {
     },
   ) {
     this.queueRoot = join(options.root, ".rta", "queue")
-    mkdirSync(this.queueRoot, { recursive: true })
+  }
+
+  ensure(): Effect.Effect<void, RuntimeError> {
+    return Effect.tryPromise({
+      try: () => mkdir(this.queueRoot, { recursive: true }),
+      catch: (cause) => new RuntimeError("failed to initialize queue", { cause }),
+    }).pipe(Effect.asVoid)
   }
 
   enqueue(options: {
@@ -38,7 +45,7 @@ export class FileQueue {
     readonly review?: boolean
     readonly verbosity?: "normal" | "high" | "trace"
     readonly high?: boolean
-  }): QueueJob {
+  }): Effect.Effect<QueueJob, RuntimeError> {
     const id = `job-${this.nowIso().replace(/[:.]/g, "-")}`
     const job: QueueJob = {
       id,
@@ -54,33 +61,67 @@ export class FileQueue {
       result: null,
       error: null,
     }
-    this.write(job)
-    return job
+    return this.write(job).pipe(Effect.as(job))
   }
 
-  list(): ReadonlyArray<QueueJob> {
-    return readdirSync(this.queueRoot)
-      .filter((name) => name.endsWith(".json"))
-      .map((name) => this.read(name.replace(/\.json$/, "")))
-      .sort((a, b) => a.createdAt.localeCompare(b.createdAt))
+  list(): Effect.Effect<ReadonlyArray<QueueJob>, RuntimeError> {
+    return this.ensure().pipe(
+      Effect.flatMap(() =>
+        Effect.tryPromise({
+          try: async () => {
+            const entries = await readdir(this.queueRoot)
+            const jobs = await Promise.all(
+              entries
+                .filter((name) => name.endsWith(".json"))
+                .map((name) => this.readUnsafe(name.replace(/\.json$/, ""))),
+            )
+            return jobs.sort((a, b) => a.createdAt.localeCompare(b.createdAt))
+          },
+          catch: (cause) => new RuntimeError("failed to list queue jobs", { cause }),
+        }),
+      ),
+    )
   }
 
-  next(): QueueJob | null {
-    return this.list().find((job) => job.status === "queued") ?? null
+  next(): Effect.Effect<QueueJob | null, RuntimeError> {
+    return this.list().pipe(
+      Effect.map((jobs) => jobs.find((job) => job.status === "queued") ?? null),
+    )
   }
 
-  read(id: string): QueueJob {
-    return JSON.parse(readFileSync(join(this.queueRoot, `${id}.json`), "utf8")) as QueueJob
+  read(id: string): Effect.Effect<QueueJob, RuntimeError> {
+    return this.ensure().pipe(
+      Effect.flatMap(() =>
+        Effect.tryPromise({
+          try: () => this.readUnsafe(id),
+          catch: (cause) => new RuntimeError("failed to read queue job", { id, cause }),
+        }),
+      ),
+    )
   }
 
-  update(id: string, patch: Partial<QueueJob>): QueueJob {
-    const job = { ...this.read(id), ...patch }
-    this.write(job)
-    return job
+  update(id: string, patch: Partial<QueueJob>): Effect.Effect<QueueJob, RuntimeError> {
+    return this.read(id).pipe(
+      Effect.flatMap((job) => {
+        const updated = { ...job, ...patch }
+        return this.write(updated).pipe(Effect.as(updated))
+      }),
+    )
   }
 
-  write(job: QueueJob): void {
-    writeFileSync(join(this.queueRoot, `${job.id}.json`), JSON.stringify(job, null, 2))
+  write(job: QueueJob): Effect.Effect<void, RuntimeError> {
+    return this.ensure().pipe(
+      Effect.flatMap(() =>
+        Effect.tryPromise({
+          try: () => writeFile(join(this.queueRoot, `${job.id}.json`), JSON.stringify(job, null, 2), "utf8"),
+          catch: (cause) => new RuntimeError("failed to write queue job", { id: job.id, cause }),
+        }),
+      ),
+    )
+  }
+
+  private async readUnsafe(id: string): Promise<QueueJob> {
+    return JSON.parse(await readFile(join(this.queueRoot, `${id}.json`), "utf8")) as QueueJob
   }
 
   private nowIso(): string {

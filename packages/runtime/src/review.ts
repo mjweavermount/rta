@@ -1,6 +1,7 @@
-import { mkdirSync, readFileSync, writeFileSync } from "node:fs"
+import { mkdir, readFile, writeFile } from "node:fs/promises"
 import { join } from "node:path"
-import type { RuntimeClock } from "./runtime.js"
+import { Effect } from "effect"
+import { RuntimeError, type RuntimeClock } from "./runtime.js"
 
 export type ReviewStatus = "pending" | "approved" | "rejected"
 
@@ -32,7 +33,13 @@ export class ReviewQueue {
     },
   ) {
     this.reviewRoot = join(options.root, ".rta", "reviews")
-    mkdirSync(this.reviewRoot, { recursive: true })
+  }
+
+  ensure(): Effect.Effect<void, RuntimeError> {
+    return Effect.tryPromise({
+      try: () => mkdir(this.reviewRoot, { recursive: true }),
+      catch: (cause) => new RuntimeError("failed to initialize review queue", { cause }),
+    }).pipe(Effect.asVoid)
   }
 
   create(options: {
@@ -40,7 +47,7 @@ export class ReviewQueue {
     readonly title: string
     readonly artifactPath: string
     readonly summary: string
-  }): ReviewItem {
+  }): Effect.Effect<ReviewItem, RuntimeError> {
     const item: ReviewItem = {
       id: `review-${options.runId}`,
       runId: options.runId,
@@ -52,32 +59,50 @@ export class ReviewQueue {
       decidedAt: null,
       audit: [{ at: this.nowIso(), actor: "system", action: "created" }],
     }
-    this.write(item)
-    return item
+    return this.write(item).pipe(Effect.as(item))
   }
 
-  show(id: string): ReviewItem {
-    return JSON.parse(readFileSync(join(this.reviewRoot, `${id}.json`), "utf8")) as ReviewItem
+  show(id: string): Effect.Effect<ReviewItem, RuntimeError> {
+    return this.ensure().pipe(
+      Effect.flatMap(() =>
+        Effect.tryPromise({
+          try: async () => JSON.parse(await readFile(join(this.reviewRoot, `${id}.json`), "utf8")) as ReviewItem,
+          catch: (cause) => new RuntimeError("failed to read review item", { id, cause }),
+        }),
+      ),
+    )
   }
 
-  decide(id: string, options: { readonly status: Exclude<ReviewStatus, "pending">; readonly actor: string }): ReviewItem {
-    const item = this.show(id)
-    const updated: ReviewItem = {
-      ...item,
-      status: options.status,
-      actor: options.actor,
-      decidedAt: this.nowIso(),
-      audit: [
-        ...item.audit,
-        { at: this.nowIso(), actor: options.actor, action: options.status },
-      ],
-    }
-    this.write(updated)
-    return updated
+  decide(id: string, options: {
+    readonly status: Exclude<ReviewStatus, "pending">
+    readonly actor: string
+  }): Effect.Effect<ReviewItem, RuntimeError> {
+    return this.show(id).pipe(
+      Effect.flatMap((item) => {
+        const updated: ReviewItem = {
+          ...item,
+          status: options.status,
+          actor: options.actor,
+          decidedAt: this.nowIso(),
+          audit: [
+            ...item.audit,
+            { at: this.nowIso(), actor: options.actor, action: options.status },
+          ],
+        }
+        return this.write(updated).pipe(Effect.as(updated))
+      }),
+    )
   }
 
-  write(item: ReviewItem): void {
-    writeFileSync(join(this.reviewRoot, `${item.id}.json`), JSON.stringify(item, null, 2))
+  write(item: ReviewItem): Effect.Effect<void, RuntimeError> {
+    return this.ensure().pipe(
+      Effect.flatMap(() =>
+        Effect.tryPromise({
+          try: () => writeFile(join(this.reviewRoot, `${item.id}.json`), JSON.stringify(item, null, 2), "utf8"),
+          catch: (cause) => new RuntimeError("failed to write review item", { id: item.id, cause }),
+        }),
+      ),
+    )
   }
 
   private nowIso(): string {
