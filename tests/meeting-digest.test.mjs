@@ -1,0 +1,22 @@
+import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
+import test from "node:test";
+import { digestTranscriptV1 } from "../examples/meeting-digest-seed/meeting-digest-v1.mjs";
+import { digestTranscriptV2 } from "../examples/meeting-digest-seed/meeting-digest-v2.mjs";
+
+const transcript = readFileSync(new URL("../examples/meeting-digest-seed/transcript.txt", import.meta.url), "utf8");
+
+test("meeting digest v1 extracts topics and tasks", () => {
+  const digest = digestTranscriptV1(transcript);
+  assert.equal(digest.version, "v1");
+  assert.ok(digest.topics.length >= 4);
+  assert.ok(digest.tasks.length >= 4);
+});
+
+test("meeting digest v2 merges loopback topics and preserves touchstones", () => {
+  const digest = digestTranscriptV2(`${transcript}\nVirgil: Back to logs, Grafana should show this later.`);
+  assert.equal(digest.version, "v2");
+  assert.ok(digest.topics.length >= 4);
+  assert.ok(digest.tasks.some((task) => task.systems.includes("Grafana")));
+  assert.ok(digest.provenance.taskCount === digest.tasks.length);
+});

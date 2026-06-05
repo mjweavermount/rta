@@ -3,11 +3,16 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
+  "bin": {
+    "rta": "scripts/rta.mjs"
+  },
   "scripts": {
-    "check": "pnpm -r check",
+    "check": "node scripts/check-work-ledger.mjs && node --test tests/*.test.mjs",
     "check:work-ledger": "node scripts/check-work-ledger.mjs",
-    "test": "pnpm -r test",
-    "lint": "pnpm -r lint"
+    "demo": "node scripts/rta.mjs demo run",
+    "rta": "node scripts/rta.mjs",
+    "test": "node --test tests/*.test.mjs",
+    "lint": "node scripts/check-work-ledger.mjs"
   },
   "devDependencies": {}
 }

@@ -20,6 +20,7 @@ source/doc acceptance
 ## Current Demo Walkthroughs
 
 - [LAB-34 Bootstrap Repo Demo](lab-34-bootstrap-repo-demo.md)
+- [Meeting Digest Local Demo](meeting-digest-local-demo.md)
 - [Demo Coverage Map](rta-demo-coverage-map.md)
 
 ## Human Review Rule
@@ -31,4 +32,3 @@ Demo coverage:
 - Direct demo: ...
 - Proved by: LAB-xx ...
 ```
-

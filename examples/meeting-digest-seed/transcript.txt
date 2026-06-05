@@ -1,0 +1,11 @@
+Virgil: We need RTA to build home lab apps from vocabulary, not just write scripts.
+Virgil: The CLI should generate app CLIs, run scenarios, and keep a work ledger.
+
+Jason: For meeting digest, Otter transcripts are useful, but we need topic segmentation and the ability to notice when a topic comes back.
+Virgil: Exactly. If we loop back to an earlier topic, append and enrich instead of making a duplicate.
+
+Virgil: Logs matter a lot. I want human-readable ceremony logs almost like a stack trace at high verbosity.
+Jason: Then every step should say what it consumed, what it produced, and where the artifact went.
+
+Virgil: Human review is more like QA and demo acceptance. The system should not create AFFiNE or Plane outputs until review passes.
+Jason: Publication adapters can be optional. Dry-run first, home lab later.
