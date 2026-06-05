@@ -45,16 +45,19 @@
     {
       "id": "meeting-digest.v1.fixture",
       "mode": "bulk",
+      "coversVocabulary": ["TranscriptInput"],
       "expectedArtifacts": ["meeting-digest-v1.json"]
     },
     {
       "id": "meeting-digest.v2.fixture",
       "mode": "bulk",
+      "coversVocabulary": ["TranscriptInput", "TopicSegmenter", "WorkItemExtractor", "ReviewableDigestJob", "DigestArtifact"],
       "expectedArtifacts": ["meeting-digest-v2.json", "logs.json", "provenance.json"]
     },
     {
       "id": "meeting-digest.integrated.fixture",
       "mode": "bulk",
+      "coversVocabulary": ["TranscriptInput", "TopicSegmenter", "WorkItemExtractor", "ReviewableDigestJob", "DigestArtifact"],
       "expectedArtifacts": ["meeting-digest-integrated.json", "meeting-digest-integrated.md", "logs.json", "provenance.json"]
     }
   ],

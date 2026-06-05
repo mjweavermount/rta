@@ -6,7 +6,7 @@ import { publishDryRun } from "../packages/connectors/index.mjs";
 import { explainMeetingDigestObligation } from "../packages/derivation/index.mjs";
 import { renderGrafanaDashboard } from "../packages/grafana/index.mjs";
 import { renderHomeLabDeploymentPackage, renderHomeLabIntent } from "../packages/hosting-adapters/index.mjs";
-import { checkApp, checkArchetypeBindings, checkArds, checkDerivation, checkExtensions, checkLogCeremony, checkPatternContracts, checkSecurity, checkTierContracts } from "../packages/checks/index.mjs";
+import { checkApp, checkArchetypeBindings, checkArds, checkBoundaryCoverage, checkDerivation, checkExtensions, checkIntegrationContracts, checkLogCeremony, checkPatternContracts, checkProduction, checkScenarioCoverage, checkSecurity, checkTierContracts, checkUseCases } from "../packages/checks/index.mjs";
 import { buildDerivationGraph } from "../packages/derivation/index.mjs";
 import { checkGeneratedSync, generateAppCli, generateAppScaffold, generateDerivationBundle } from "../packages/generators/index.mjs";
 import { CeremonyLogger } from "../packages/logging/index.mjs";
@@ -107,8 +107,13 @@ Commands:
   rta check --extensions-local
   rta check --extensions-upstreamable
   rta check --derived-obligations
+  rta check --use-cases
+  rta check --scenario-coverage
+  rta check --boundary-coverage
+  rta check --integration-contracts
   rta check --log-ceremony
   rta check --security
+  rta check --production
   rta check --all
   rta lint
   rta doctor
@@ -181,8 +186,13 @@ async function check(flag) {
   if (flag === "--extensions-local") return reportCheck("Local extensions", checkExtensions({ root, appDir: "examples/meeting-digest-seed" }));
   if (flag === "--extensions-upstreamable") return reportCheck("Upstreamable extensions", checkExtensions({ root, appDir: "examples/meeting-digest-seed", upstreamable: true }));
   if (flag === "--derived-obligations") return reportCheck("Derived obligations", checkDerivation({ root, appDir: "examples/meeting-digest-seed" }));
+  if (flag === "--use-cases") return reportCheck("Use cases", checkUseCases({ root, appDir: "examples/meeting-digest-seed" }));
+  if (flag === "--scenario-coverage") return reportCheck("Scenario coverage", checkScenarioCoverage({ root, appDir: "examples/meeting-digest-seed" }));
+  if (flag === "--boundary-coverage") return reportCheck("Boundary coverage", checkBoundaryCoverage({ root, appDir: "examples/meeting-digest-seed" }));
+  if (flag === "--integration-contracts") return reportCheck("Integration contracts", checkIntegrationContracts({ root, appDir: "examples/meeting-digest-seed" }));
   if (flag === "--log-ceremony") return reportCheck("Log ceremony", checkLogCeremony({ root, appDir: "examples/meeting-digest-seed" }));
   if (flag === "--security") return reportCheck("Security", checkSecurity({ root, appDir: "examples/meeting-digest-seed" }));
+  if (flag === "--production") return reportCheck("Production", checkProduction({ root, appDir: "examples/meeting-digest-seed" }));
   if (flag === "--app-cli") {
     const app = loadAppDeclaration(join(root, "examples/meeting-digest-seed/rta.app.json"));
     const generated = generateAppCli({ root, app });
@@ -210,7 +220,7 @@ async function check(flag) {
     console.log("All implemented RTA checks passed.");
     return;
   }
-  throw new Error("usage: rta check --work-ledger | --meeting-digest | --ard-meta | --generated-sync | --tier-contracts | --pattern-contracts | --archetype-bindings | --extensions-local | --extensions-upstreamable | --derived-obligations | --log-ceremony | --security | --app-cli | --all");
+  throw new Error("usage: rta check --work-ledger | --meeting-digest | --ard-meta | --generated-sync | --tier-contracts | --pattern-contracts | --archetype-bindings | --extensions-local | --extensions-upstreamable | --derived-obligations | --use-cases | --scenario-coverage | --boundary-coverage | --integration-contracts | --log-ceremony | --security | --production | --app-cli | --all");
 }
 
 function reportCheck(label, errors) {
@@ -300,12 +310,12 @@ async function dev(sub, rest) {
     console.log(JSON.stringify({
       mode: "dev",
       status: "warning",
-      warning: "rta dev is a local warning surface; rta check --production is ticketed but not implemented yet.",
-      nextTickets: ["rta-prod-06-check-production", "rta-prod-08-runtime-unit-of-work"],
+      warning: "rta dev is a local warning surface; production checks exist, while runtime replay/worker depth is still ticketed.",
+      nextTickets: ["rta-prod-08-runtime-unit-of-work"],
       checks: {
         workLedger: "available",
         implementedChecks: "available",
-        productionGate: "planned",
+        productionGate: "available",
       },
     }, null, 2));
     return;
@@ -376,8 +386,8 @@ async function doctor() {
   });
   checks.push({
     name: "production gate",
-    status: "planned",
-    ticket: "rta-prod-06-check-production",
+    status: "available",
+    command: "rta check --production",
   });
   console.log(JSON.stringify({ status: "pass-with-planned-work", checks }, null, 2));
 }

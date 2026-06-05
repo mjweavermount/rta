@@ -6,7 +6,7 @@ import test from "node:test";
 import { digestTranscriptV1 } from "../examples/meeting-digest-seed/meeting-digest-v1.mjs";
 import { digestTranscriptV2, formatDigestMarkdown } from "../examples/meeting-digest-seed/meeting-digest-v2.mjs";
 import { digestTranscriptIntegrated } from "../examples/meeting-digest-seed/meeting-digest-integrated.mjs";
-import { checkApp, checkLogCeremony } from "../packages/checks/index.mjs";
+import { checkApp, checkBoundaryCoverage, checkIntegrationContracts, checkLogCeremony, checkScenarioCoverage, checkUseCases } from "../packages/checks/index.mjs";
 
 const transcript = readFileSync(new URL("../examples/meeting-digest-seed/transcript.txt", import.meta.url), "utf8");
 
@@ -50,6 +50,29 @@ test("log ceremony check fails when declared vocabulary lacks operation ceremoni
     security: { inputPathPolicy: "repo-contained", redactSecrets: true, externalWritesRequireReview: true },
   }, null, 2));
   assert.match(checkLogCeremony({ root, appDir: "app" }).join("\n"), /logging\.ceremonies/);
+});
+
+test("coverage checks fail missing use case, scenario, boundary, and review contracts", () => {
+  const root = join(tmpdir(), `rta-bad-coverage-${Date.now()}`);
+  const appDir = join(root, "app");
+  mkdirSync(appDir, { recursive: true });
+  writeFileSync(join(appDir, "rta.app.json"), JSON.stringify({
+    name: "bad-coverage",
+    vocabulary: [{ id: "Input", extends: "T1.Input", description: "input" }],
+    useCases: [{ id: "UseIt", actor: "operator", goal: "use it", scenarios: ["missing.fixture"] }],
+    scenarios: [{ id: "bad.fixture", mode: "bulk", expectedArtifacts: [] }],
+    boundaries: [{ from: "review", to: "publication", coveredBy: ["missing.fixture"] }],
+    logging: {
+      humanReadableTemplate: "[{runId}] {step} actor={actor} input={input} output={output}",
+      ceremonies: [{ for: "Input", operation: "Input.read", requiredEvents: ["start", "complete", "failed"], summaries: ["input", "output"] }],
+    },
+    publication: { requiresReview: false, adapters: [] },
+    security: { inputPathPolicy: "repo-contained", redactSecrets: true, externalWritesRequireReview: true },
+  }, null, 2));
+  assert.match(checkUseCases({ root, appDir: "app" }).join("\n"), /unknown scenario/);
+  assert.match(checkScenarioCoverage({ root, appDir: "app" }).join("\n"), /missing expectedArtifacts|missing coversVocabulary/);
+  assert.match(checkBoundaryCoverage({ root, appDir: "app" }).join("\n"), /unknown scenario/);
+  assert.match(checkIntegrationContracts({ root, appDir: "app" }).join("\n"), /review-gated|dry-run-fixture/);
 });
 
 test("meeting digest v2 produces human-readable markdown", () => {

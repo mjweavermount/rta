@@ -1,7 +1,7 @@
 kind: Feature
 id: rta-prod-06-check-production
 name: RtaProd06CheckProduction
-status: planned
+status: demo-covered
 why: Local checks may warn, but production checks must fail on missing obligations, stale generation, unsafe connectors, missing review gates, and missing log ceremonies.
 ownedBy:
   internal: rta-platform
@@ -17,4 +17,3 @@ produces:
   - bad fixture suite
 selfAudit:
   - "@would rta check --production fail a plausible fake app that skips an obligation?"
-

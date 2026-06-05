@@ -2,6 +2,7 @@ import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { validateArds } from "../ards/index.mjs";
 import { buildDerivationGraph, deriveAll } from "../derivation/index.mjs";
+import { checkGeneratedSync } from "../generators/index.mjs";
 import { requiredCeremonyOperationsFor, validateArchetypeBindings, validateConcreteVocabulary, validatePatternContracts, validateTierContracts } from "../tiers/index.mjs";
 import { loadAppDeclaration, validateAppDeclaration } from "../vocab/index.mjs";
 
@@ -137,4 +138,87 @@ export function checkSecurity({ root, appDir }) {
   if (app.publication?.requiresReview !== true) errors.push("publication.requiresReview must be true");
   if (!Array.isArray(app.publication?.adapters) || app.publication.adapters.length === 0) errors.push("publication.adapters must declare allowed adapters");
   return errors;
+}
+
+export function checkUseCases({ root, appDir }) {
+  const app = loadAppDeclaration(join(root, appDir, "rta.app.json"));
+  const errors = [];
+  const scenarioIds = new Set((app.scenarios ?? []).map((scenario) => scenario.id));
+  if (!Array.isArray(app.useCases) || app.useCases.length === 0) errors.push("app must declare at least one use case");
+  for (const useCase of app.useCases ?? []) {
+    if (!useCase.id) errors.push("use case missing id");
+    if (!useCase.actor) errors.push(`${useCase.id ?? "(unknown)"} missing actor`);
+    if (!useCase.goal) errors.push(`${useCase.id ?? "(unknown)"} missing goal`);
+    if (!useCase.scenarios?.length) errors.push(`${useCase.id ?? "(unknown)"} missing scenarios`);
+    for (const scenario of useCase.scenarios ?? []) {
+      if (!scenarioIds.has(scenario)) errors.push(`${useCase.id} references unknown scenario ${scenario}`);
+    }
+  }
+  return errors;
+}
+
+export function checkScenarioCoverage({ root, appDir }) {
+  const app = loadAppDeclaration(join(root, appDir, "rta.app.json"));
+  const errors = [];
+  const vocabIds = new Set((app.vocabulary ?? []).map((item) => item.id));
+  const covered = new Set();
+  for (const scenario of app.scenarios ?? []) {
+    if (!scenario.id) errors.push("scenario missing id");
+    if (!scenario.mode) errors.push(`${scenario.id ?? "(unknown)"} missing mode`);
+    if (!scenario.expectedArtifacts?.length) errors.push(`${scenario.id ?? "(unknown)"} missing expectedArtifacts`);
+    if (!scenario.coversVocabulary?.length) errors.push(`${scenario.id ?? "(unknown)"} missing coversVocabulary`);
+    for (const vocab of scenario.coversVocabulary ?? []) {
+      if (!vocabIds.has(vocab)) errors.push(`${scenario.id} covers unknown vocabulary ${vocab}`);
+      covered.add(vocab);
+    }
+  }
+  for (const vocab of vocabIds) {
+    if (!covered.has(vocab)) errors.push(`vocabulary ${vocab} is not covered by any scenario`);
+  }
+  return errors;
+}
+
+export function checkBoundaryCoverage({ root, appDir }) {
+  const app = loadAppDeclaration(join(root, appDir, "rta.app.json"));
+  const errors = [];
+  const scenarioIds = new Set((app.scenarios ?? []).map((scenario) => scenario.id));
+  if (!Array.isArray(app.boundaries) || app.boundaries.length === 0) errors.push("app must declare bounded-context boundaries");
+  for (const boundary of app.boundaries ?? []) {
+    if (!boundary.from || !boundary.to) errors.push("boundary missing from/to");
+    if (!boundary.coveredBy?.length) errors.push(`boundary ${boundary.from ?? "?"}->${boundary.to ?? "?"} missing coveredBy`);
+    for (const scenario of boundary.coveredBy ?? []) {
+      if (!scenarioIds.has(scenario)) errors.push(`boundary ${boundary.from}->${boundary.to} references unknown scenario ${scenario}`);
+    }
+  }
+  return errors;
+}
+
+export function checkIntegrationContracts({ root, appDir }) {
+  const app = loadAppDeclaration(join(root, appDir, "rta.app.json"));
+  const errors = [];
+  const boundaries = new Set((app.boundaries ?? []).map((boundary) => `${boundary.from}->${boundary.to}`));
+  if (app.publication?.requiresReview !== true) errors.push("external write path must be review-gated");
+  if (!boundaries.has("review->publication")) errors.push("external publication must have review->publication boundary coverage");
+  if (!app.publication?.adapters?.includes("dry-run-fixture")) errors.push("production fixture must include dry-run-fixture adapter");
+  return errors;
+}
+
+export function checkProduction({ root, appDir }) {
+  const app = loadAppDeclaration(join(root, appDir, "rta.app.json"));
+  return [
+    ...checkApp({ root, appDir }),
+    ...checkArds({ root }),
+    ...checkTierContracts({ root, appDir }),
+    ...checkPatternContracts({ root }),
+    ...checkArchetypeBindings({ root }),
+    ...checkExtensions({ root, appDir }),
+    ...checkDerivation({ root, appDir }),
+    ...checkLogCeremony({ root, appDir }),
+    ...checkUseCases({ root, appDir }),
+    ...checkScenarioCoverage({ root, appDir }),
+    ...checkBoundaryCoverage({ root, appDir }),
+    ...checkIntegrationContracts({ root, appDir }),
+    ...checkSecurity({ root, appDir }),
+    ...checkGeneratedSync({ root, app }),
+  ];
 }

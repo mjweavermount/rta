@@ -45,6 +45,7 @@ test("generator writes derivation hashes and generated-sync catches drift", () =
   assert.throws(() => rta(["check", "--generated-sync"]), /generated file drifted: obligations.json/);
   rta(["generate"]);
   assert.match(rta(["check", "--generated-sync"]), /Generated sync passed/);
+  assert.match(rta(["check", "--production"]), /Production passed/);
 });
 
 test("grafana renderer writes a dashboard artifact", () => {

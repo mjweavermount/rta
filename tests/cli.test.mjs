@@ -23,6 +23,10 @@ test("cli lists work and explains meeting digest obligation", () => {
   assert.match(rta(["check", "--extensions-local"]), /passed/);
   assert.match(rta(["check", "--extensions-upstreamable"]), /passed/);
   assert.match(rta(["check", "--derived-obligations"]), /passed/);
+  assert.match(rta(["check", "--use-cases"]), /passed/);
+  assert.match(rta(["check", "--scenario-coverage"]), /passed/);
+  assert.match(rta(["check", "--boundary-coverage"]), /passed/);
+  assert.match(rta(["check", "--integration-contracts"]), /passed/);
   assert.match(rta(["check", "--log-ceremony"]), /passed/);
   assert.match(rta(["check", "--security"]), /passed/);
   assert.match(rta(["check", "--all"]), /All implemented RTA checks passed/);
