@@ -5,7 +5,7 @@ import { join } from "node:path";
 import test from "node:test";
 import { digestTranscriptV1 } from "../examples/meeting-digest-seed/meeting-digest-v1.mjs";
 import { digestTranscriptV2, formatDigestMarkdown } from "../examples/meeting-digest-seed/meeting-digest-v2.mjs";
-import { digestTranscriptIntegrated } from "../examples/meeting-digest-seed/meeting-digest-integrated.mjs";
+import { digestTranscriptIntegrated, integrateDigest, workItemSpecsFromDigest } from "../examples/meeting-digest-seed/meeting-digest-integrated.mjs";
 import { checkApp, checkBoundaryCoverage, checkConnectorSafety, checkIntegrationContracts, checkLogCeremony, checkReviewGates, checkScenarioCoverage, checkUseCases } from "../packages/checks/index.mjs";
 
 const transcript = readFileSync(new URL("../examples/meeting-digest-seed/transcript.txt", import.meta.url), "utf8");
@@ -100,4 +100,14 @@ test("integrated meeting digest rebuild adds RTA obligations without losing v2 t
   assert.ok(integrated.rta.obligations.includes("ReviewBeforePublication"));
   assert.ok(integrated.tasks.every((task) => task.rtaObligations.length > 0));
   assert.ok(integrated.provenance.derivationNodes > 0);
+});
+
+test("integrated meeting digest declares unavailable enrichment and work item specs", () => {
+  const base = digestTranscriptV2("Virgil: Build AFFiNE publication adapter but respect review gates.");
+  const digest = integrateDigest(base, { enrichmentAvailable: false, mode: "bulk-with-unavailable-enrichment" });
+  assert.equal(digest.rta.enrichment.status, "unavailable");
+  assert.equal(digest.rta.mode, "bulk-with-unavailable-enrichment");
+  const specs = workItemSpecsFromDigest(digest);
+  assert.ok(specs.every((item) => item.reviewRequired === true));
+  assert.ok(specs.some((item) => item.talksTo.includes("AFFiNE adapter")));
 });

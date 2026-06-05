@@ -136,6 +136,39 @@ test("rta generates an app cli that runs the integrated meeting digest", () => {
   assert.match(watch, /scenario\.meeting-digest\.integrated\.fixture\.start/);
 });
 
+test("meeting digest proving app runs reviewable work-item scenario through app cli", () => {
+  assert.match(rta(["scenario", "list"]), /approved-digest-publishes-work-items/);
+  assert.match(rta(["scenario", "list"]), /meeting-digest\.streaming\.fixture/);
+  assert.match(rta(["scenario", "list"]), /meeting-digest\.enrichment-unavailable\.fixture/);
+
+  const out = execFileSync("node", [
+    "examples/meeting-digest-seed/bin/meeting-digest.mjs",
+    "scenario",
+    "run",
+    "approved-digest-publishes-work-items",
+    "--review",
+    "--high",
+  ], {
+    cwd: repoRoot,
+    encoding: "utf8",
+  });
+  const reviewId = out.match(/^review=(.+)$/m)?.[1];
+  const runId = out.match(/^run=(.+)$/m)?.[1];
+  assert.ok(reviewId);
+  assert.ok(runId);
+
+  const statePath = new URL(`../.rta/runs/${runId}/state.json`, import.meta.url);
+  const state = JSON.parse(readFileSync(statePath, "utf8"));
+  assert.ok(state.artifacts.some((artifact) => artifact.name === "approved-digest-work-items.json"));
+  const workItemsPath = state.artifacts.find((artifact) => artifact.name === "approved-digest-work-items.json").path;
+  const workItems = JSON.parse(readFileSync(workItemsPath, "utf8"));
+  assert.ok(workItems.some((item) => item.reviewRequired === true && item.publication.allowedAdapter === "dry-run-fixture"));
+
+  rta(["review", "approve", reviewId, "--actor", "test-operator"]);
+  const publication = rta(["publish", "dry-run", reviewId, "--target", "fixture"]);
+  assert.match(publication, /dry-run-fixture/);
+});
+
 test("runtime records unit-of-work state and replays run provenance", () => {
   const now = "2026-01-02T03:04:05.000Z";
   const out = rta([

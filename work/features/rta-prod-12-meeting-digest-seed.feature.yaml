@@ -1,7 +1,7 @@
 kind: Feature
 id: rta-prod-12-meeting-digest-seed
 name: RtaProd12MeetingDigestSeed
-status: planned
+status: demo-covered
 why: Meeting digest is the proving app and must be rebuilt against finished RTA contracts, not handmade shortcuts.
 ownedBy:
   internal: rta-platform
@@ -17,4 +17,3 @@ produces:
   - reviewable digest and extracted work items
 selfAudit:
   - "@is meeting digest using RTA-generated contracts and leaves, or is it still a hand-built demo wearing RTA labels?"
-

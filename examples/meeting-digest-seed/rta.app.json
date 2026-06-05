@@ -39,6 +39,24 @@
       "actor": "operator",
       "goal": "Approve a review item and publish only to a dry-run adapter.",
       "scenarios": ["meeting-digest.v2.fixture"]
+    },
+    {
+      "id": "ProcessStreamingTopicBatch",
+      "actor": "operator in or just after a meeting",
+      "goal": "Process stream-like topic batches while preserving loopback context.",
+      "scenarios": ["meeting-digest.streaming.fixture", "meeting-digest.loopback.fixture"]
+    },
+    {
+      "id": "ExtractReviewableWorkItemSpecs",
+      "actor": "operator preparing work for QA",
+      "goal": "Produce reviewable task specs with goals, users, systems, integrations, and classification.",
+      "scenarios": ["approved-digest-publishes-work-items"]
+    },
+    {
+      "id": "RespectUnavailableEnrichment",
+      "actor": "operator relying on transcript-only context",
+      "goal": "Declare when AFFiNE/local enrichment is unavailable instead of hallucinating context.",
+      "scenarios": ["meeting-digest.enrichment-unavailable.fixture"]
     }
   ],
   "scenarios": [
@@ -59,6 +77,30 @@
       "mode": "bulk",
       "coversVocabulary": ["TranscriptInput", "TopicSegmenter", "WorkItemExtractor", "ReviewableDigestJob", "DigestArtifact"],
       "expectedArtifacts": ["meeting-digest-integrated.json", "meeting-digest-integrated.md", "logs.json", "provenance.json"]
+    },
+    {
+      "id": "meeting-digest.streaming.fixture",
+      "mode": "simulated-stream",
+      "coversVocabulary": ["TranscriptInput", "TopicSegmenter", "WorkItemExtractor", "ReviewableDigestJob", "DigestArtifact"],
+      "expectedArtifacts": ["meeting-digest-streaming.json", "meeting-digest-streaming.md", "logs.json", "provenance.json"]
+    },
+    {
+      "id": "meeting-digest.loopback.fixture",
+      "mode": "bulk",
+      "coversVocabulary": ["TranscriptInput", "TopicSegmenter", "WorkItemExtractor", "ReviewableDigestJob", "DigestArtifact"],
+      "expectedArtifacts": ["meeting-digest-loopback.json", "meeting-digest-loopback.md", "logs.json", "provenance.json"]
+    },
+    {
+      "id": "meeting-digest.enrichment-unavailable.fixture",
+      "mode": "bulk",
+      "coversVocabulary": ["TranscriptInput", "TopicSegmenter", "WorkItemExtractor", "ReviewableDigestJob", "DigestArtifact"],
+      "expectedArtifacts": ["meeting-digest-enrichment-unavailable.json", "meeting-digest-enrichment-unavailable.md", "logs.json", "provenance.json"]
+    },
+    {
+      "id": "approved-digest-publishes-work-items",
+      "mode": "bulk",
+      "coversVocabulary": ["TranscriptInput", "TopicSegmenter", "WorkItemExtractor", "ReviewableDigestJob", "DigestArtifact"],
+      "expectedArtifacts": ["approved-digest-publishes-work-items.json", "approved-digest-publishes-work-items.md", "approved-digest-work-items.json", "logs.json", "provenance.json"]
     }
   ],
   "boundaries": [
@@ -75,7 +117,17 @@
     {
       "from": "review",
       "to": "publication",
-      "coveredBy": ["meeting-digest.v2.fixture"]
+      "coveredBy": ["meeting-digest.v2.fixture", "approved-digest-publishes-work-items"]
+    },
+    {
+      "from": "topic-segmentation",
+      "to": "enrichment",
+      "coveredBy": ["meeting-digest.enrichment-unavailable.fixture"]
+    },
+    {
+      "from": "streaming-intake",
+      "to": "topic-segmentation",
+      "coveredBy": ["meeting-digest.streaming.fixture"]
     }
   ],
   "logging": {
