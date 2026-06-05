@@ -1,0 +1,75 @@
+{
+  "name": "meeting-digest",
+  "vocabulary": [
+    {
+      "id": "TranscriptInput",
+      "extends": "T1.Input",
+      "description": "Concrete meeting transcript input accepted by bulk or simulated streaming mode."
+    },
+    {
+      "id": "TopicSegmenter",
+      "extends": "T2.Pattern.TopicSegmentation",
+      "description": "Concrete topic accumulator that can append loopbacks instead of duplicating topics."
+    },
+    {
+      "id": "WorkItemExtractor",
+      "extends": "T2.Pattern.TaskExtraction",
+      "description": "Concrete extractor for feature, automation, and research work."
+    },
+    {
+      "id": "ReviewableDigestJob",
+      "extends": "T3.Archetype.JobProcessor",
+      "description": "Concrete job processor that produces digest artifacts and review queue items."
+    }
+  ],
+  "useCases": [
+    {
+      "id": "DigestTranscriptForReview",
+      "actor": "operator reviewing meeting output",
+      "goal": "Turn a transcript into topics and extracted work items for QA/demo review.",
+      "scenarios": ["meeting-digest.v2.fixture"]
+    },
+    {
+      "id": "ApproveAndDryRunPublishDigest",
+      "actor": "operator",
+      "goal": "Approve a review item and publish only to a dry-run adapter.",
+      "scenarios": ["meeting-digest.v2.fixture"]
+    }
+  ],
+  "scenarios": [
+    {
+      "id": "meeting-digest.v1.fixture",
+      "mode": "bulk",
+      "expectedArtifacts": ["meeting-digest-v1.json"]
+    },
+    {
+      "id": "meeting-digest.v2.fixture",
+      "mode": "bulk",
+      "expectedArtifacts": ["meeting-digest-v2.json", "logs.json", "provenance.json"]
+    }
+  ],
+  "boundaries": [
+    {
+      "from": "ingestion",
+      "to": "topic-segmentation",
+      "coveredBy": ["meeting-digest.v2.fixture"]
+    },
+    {
+      "from": "topic-segmentation",
+      "to": "task-extraction",
+      "coveredBy": ["meeting-digest.v2.fixture"]
+    },
+    {
+      "from": "review",
+      "to": "publication",
+      "coveredBy": ["meeting-digest.v2.fixture"]
+    }
+  ],
+  "logging": {
+    "humanReadableTemplate": "[{runId}] {step} actor={actor} input={input} output={output}"
+  },
+  "publication": {
+    "requiresReview": true,
+    "adapters": ["dry-run-fixture"]
+  }
+}

@@ -18,6 +18,13 @@ export class ReviewQueue {
       status: "pending",
       actor: null,
       decidedAt: null,
+      audit: [
+        {
+          at: new Date().toISOString(),
+          actor: "system",
+          action: "created",
+        },
+      ],
     };
     this.write(item);
     return item;
@@ -29,7 +36,20 @@ export class ReviewQueue {
 
   decide(id, { status, actor }) {
     const item = this.show(id);
-    const updated = { ...item, status, actor, decidedAt: new Date().toISOString() };
+    const updated = {
+      ...item,
+      status,
+      actor,
+      decidedAt: new Date().toISOString(),
+      audit: [
+        ...(item.audit ?? []),
+        {
+          at: new Date().toISOString(),
+          actor,
+          action: status,
+        },
+      ],
+    };
     this.write(updated);
     return updated;
   }

@@ -4,11 +4,13 @@ import { join, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { publishDryRun } from "../packages/connectors/index.mjs";
 import { explainMeetingDigestObligation } from "../packages/derivation/index.mjs";
+import { checkApp } from "../packages/checks/index.mjs";
 import { CeremonyLogger } from "../packages/logging/index.mjs";
 import { ReviewQueue } from "../packages/review/index.mjs";
 import { FileRuntime, createRunId } from "../packages/runtime/index.mjs";
 import { runScenario } from "../packages/use-cases/index.mjs";
 import { findWorkItem, loadWorkLedger, summarizeWorkItem } from "../packages/work-ledger/index.mjs";
+import { loadAppDeclaration, summarizeAppDeclaration } from "../packages/vocab/index.mjs";
 
 const root = resolve(fileURLToPath(new URL("..", import.meta.url)));
 const args = process.argv.slice(2);
@@ -37,6 +39,7 @@ Commands:
   rta work list
   rta work show <id>
   rta check --work-ledger
+  rta check --meeting-digest
   rta init [dir]
   rta context
   rta explain obligation meeting-digest
@@ -66,8 +69,20 @@ function work(sub, rest) {
 }
 
 async function check(flag) {
-  if (flag !== "--work-ledger") throw new Error("only --work-ledger is implemented in this spiral slice");
-  await import("./check-work-ledger.mjs");
+  if (flag === "--work-ledger") {
+    await import("./check-work-ledger.mjs");
+    return;
+  }
+  if (flag === "--meeting-digest") {
+    const errors = checkApp({ root, appDir: "examples/meeting-digest-seed" });
+    if (errors.length > 0) {
+      console.error(errors.map((error) => `- ${error}`).join("\n"));
+      process.exit(1);
+    }
+    console.log("Meeting digest app declaration passed.");
+    return;
+  }
+  throw new Error("usage: rta check --work-ledger | --meeting-digest");
 }
 
 function init(dir) {
@@ -86,11 +101,12 @@ function init(dir) {
 }
 
 function context() {
+  const app = loadAppDeclaration(join(root, "examples/meeting-digest-seed/rta.app.json"));
   console.log(JSON.stringify({
     project: "RTA",
     repo: root,
     workItems: loadWorkLedger(root).length,
-    provingApp: "examples/meeting-digest-seed",
+    provingApp: summarizeAppDeclaration(app),
     implementedCommands: ["work", "check", "init", "context", "explain", "scenario", "demo", "review", "publish"],
   }, null, 2));
 }

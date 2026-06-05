@@ -9,6 +9,7 @@ export class FileRuntime {
     mkdirSync(this.runRoot, { recursive: true });
     mkdirSync(join(this.runRoot, "artifacts"), { recursive: true });
     this.state = { runId, status: "running", artifacts: [], reviews: [] };
+    this.provenance = { nodes: [{ id: runId, type: "run" }], edges: [] };
     this.saveState();
   }
 
@@ -17,7 +18,17 @@ export class FileRuntime {
     const content = typeof data === "string" ? data : JSON.stringify(data, null, 2);
     writeFileSync(path, content);
     this.state.artifacts.push({ name, path });
+    this.provenance.nodes.push({ id: name, type: "artifact", path });
+    this.provenance.edges.push({ from: this.runId, to: name, type: "produced" });
+    this.saveArtifactRaw("provenance.json", this.provenance);
     this.saveState();
+    return path;
+  }
+
+  saveArtifactRaw(name, data) {
+    const path = join(this.runRoot, "artifacts", name);
+    const content = typeof data === "string" ? data : JSON.stringify(data, null, 2);
+    writeFileSync(path, content);
     return path;
   }
 

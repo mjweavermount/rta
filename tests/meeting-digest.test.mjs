@@ -1,8 +1,9 @@
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import test from "node:test";
 import { digestTranscriptV1 } from "../examples/meeting-digest-seed/meeting-digest-v1.mjs";
 import { digestTranscriptV2 } from "../examples/meeting-digest-seed/meeting-digest-v2.mjs";
+import { checkApp } from "../packages/checks/index.mjs";
 
 const transcript = readFileSync(new URL("../examples/meeting-digest-seed/transcript.txt", import.meta.url), "utf8");
 
@@ -19,4 +20,10 @@ test("meeting digest v2 merges loopback topics and preserves touchstones", () =>
   assert.ok(digest.topics.length >= 4);
   assert.ok(digest.tasks.some((task) => task.systems.includes("Grafana")));
   assert.ok(digest.provenance.taskCount === digest.tasks.length);
+});
+
+test("meeting digest app declaration is contract-valid", () => {
+  const root = new URL("..", import.meta.url).pathname;
+  assert.deepEqual(checkApp({ root, appDir: "examples/meeting-digest-seed" }), []);
+  assert.ok(existsSync(new URL("../examples/meeting-digest-seed/rta.app.json", import.meta.url)));
 });

@@ -14,6 +14,7 @@ test("cli lists work and explains meeting digest obligation", () => {
   assert.match(list, /meeting-digest-proving-app/);
   const explanation = rta(["explain", "obligation", "meeting-digest"]);
   assert.match(explanation, /ReviewGate/);
+  assert.match(rta(["check", "--meeting-digest"]), /passed/);
 });
 
 test("cli runs demo, review can approve, and dry-run publish is gated", () => {
@@ -27,4 +28,13 @@ test("cli runs demo, review can approve, and dry-run publish is gated", () => {
   assert.match(approved, /approved/);
   const publication = rta(["publish", "dry-run", reviewId, "--target", "fixture"]);
   assert.match(publication, /"externalWrites": \[\]/);
+});
+
+test("generated-style meeting digest cli runs v2 through rta", () => {
+  const out = execFileSync("node", ["examples/meeting-digest-seed/bin/meeting-digest.mjs", "--review"], {
+    cwd: new URL("..", import.meta.url),
+    encoding: "utf8",
+  });
+  assert.match(out, /meetingDigest.v2.digest/);
+  assert.match(out, /review=/);
 });
