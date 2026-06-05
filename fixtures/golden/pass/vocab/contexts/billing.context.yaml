@@ -4,6 +4,44 @@ classification: supporting
 description: Billing provides generic rules, classifier decisions, and reactions for the golden fixture.
 guidance: Use this context to exercise decision implementation shapes and reaction coverage with minimal domain noise.
 
+runtimeCapabilities:
+  - name: OperatorVault
+    kind: vault-secret-backend
+    description: Supplies operator-scoped credentials for the golden gateway surface.
+    configFields:
+      - { name: mount, type: NonEmptyString }
+    secretFields:
+      - { name: token, type: SecretRef }
+    appBindings: [local-demo, production-lab]
+  - name: AffineGraphqlClient
+    kind: graphql-client
+    description: Calls the external AFFiNE GraphQL API through an outbound adapter.
+    configFields:
+      - { name: endpoint, type: Url }
+      - { name: timeoutMs, type: PositiveInt }
+    appBindings: [local-demo, production-lab]
+
+toolSurfaces:
+  - name: AffineMcp
+    description: Minimal governed MCP-style surface used to prove tool safety and runtime capabilities.
+    service: affine
+    protocol: mcp
+    runtimeCapabilities: [OperatorVault, AffineGraphqlClient]
+    policy: AffineToolPolicy
+    tools:
+      - name: affine.current_user
+        description: Reads the current AFFiNE user through GraphQL.
+        safety: read
+        credentialMode: user-required
+        runtimeCapabilities: [AffineGraphqlClient]
+        returns: CurrentUser
+      - name: affine.doc_update
+        description: Document mutation is declared but intentionally unavailable in the golden fixture.
+        safety: fail-closed
+        credentialMode: user-required
+        runtimeCapabilities: [OperatorVault, AffineGraphqlClient]
+        failClosedReason: Golden fixture has not verified AFFiNE write semantics.
+
 aggregates:
   - name: Invoice
     description: A lightweight invoice aggregate used to trigger billing decisions and reactions.

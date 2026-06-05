@@ -2244,6 +2244,113 @@ The derivation engine should load vocabulary in this order:
 
 Later layers may specialize and bind earlier layers. They may not mutate earlier layers.
 
+### Runtime Capability Adapters
+
+RTA should treat access to production systems as a runtime capability, not as a
+hard-coded app leaf and not as a new T1 primitive.
+
+The core vocabulary should ship reusable capability kinds:
+
+```text
+vault-secret-backend
+file-secret-backend
+in-memory-secret-backend
+http-client
+graphql-client
+mcp-transport
+hosting-adapter
+```
+
+An app may bind one of those kinds to a concrete endpoint, token path, file
+path, workspace id, lab service, or local test double. The abstract capability
+belongs upstream; the exact binding belongs to the app.
+
+Example:
+
+```yaml
+runtimeCapabilities:
+  - name: OperatorVault
+    kind: vault-secret-backend
+    configFields:
+      - { name: mount, type: NonEmptyString }
+    secretFields:
+      - { name: token, type: SecretRef }
+    appBindings: [local-demo, production-lab]
+```
+
+This lets RTA say "this app can bind a Vault-backed secret provider" without
+saying "this app can talk to Virgil's production Vault." The latter is an app
+configuration and policy decision.
+
+### Governed Tool Surfaces
+
+An RTA app can expose a governed tool surface for CLI commands, HTTP routes,
+GraphQL operations, webhooks, MCP tools, or similar protocols.
+
+A tool surface blooms from existing primitives:
+
+```text
+inbound-adapter
+edge-boundary
+policy
+secret
+outbound-adapter
+operation receipt
+```
+
+Do not create a T1 `protocol-boundary` primitive unless those primitives cannot
+express a real implementation. Protocol-specific shape belongs in T2/T3 vocab.
+
+Core patterns should include:
+
+```text
+tool-surface
+credential-broker
+runtime-capability-adapter
+projection-mount
+external-schema-probe
+```
+
+Core archetypes should include:
+
+```text
+mcp-gateway
+```
+
+The `mcp-gateway` archetype is the RTA model for an AFFiNE MCP-style service:
+declare tools, classify safety, resolve credentials, validate edge input,
+invoke external services through outbound adapters, and return receipts.
+
+Example:
+
+```yaml
+toolSurfaces:
+  - name: AffineMcp
+    service: affine
+    protocol: mcp
+    runtimeCapabilities: [OperatorVault, AffineGraphqlClient]
+    policy: AffineToolPolicy
+    tools:
+      - name: affine.current_user
+        safety: read
+        credentialMode: user-required
+        returns: CurrentUser
+      - name: affine.doc_update
+        safety: fail-closed
+        credentialMode: user-required
+        failClosedReason: AFFiNE write semantics are not verified in this app yet.
+```
+
+Governed tool-surface checks should fail when:
+
+```text
+a tool has no safety class
+a tool has no credential mode
+a fail-closed tool has no failClosedReason
+a write/destructive/admin tool uses credentialMode: none
+a tool surface references an undeclared runtime capability
+```
+
 ### ARDs Across Core And App
 
 ARDs should exist at both levels.
@@ -2523,6 +2630,8 @@ scheduler
 job
 projector
 repository
+edge-boundary
+secret
 policy
 guardrail
 ```

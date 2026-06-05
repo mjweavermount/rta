@@ -6,6 +6,7 @@ import { ReadModelDeclaration } from "./read-model.js"
 import { DomainServiceDeclaration } from "./service.js"
 import { DecisionDeclaration } from "./decision.js"
 import { ProcessManagerDeclaration } from "./policy.js"
+import { RuntimeCapabilityDeclaration, ToolSurfaceDeclaration } from "./capability.js"
 
 // ---------------------------------------------------------------------------
 // Import declaration
@@ -48,6 +49,10 @@ export const BoundedContextDeclaration = Schema.Struct({
   decisions: Schema.optional(Schema.Array(DecisionDeclaration)),
   /** Stateful process managers (aggregate-variant) owned by this context. */
   processManagers: Schema.optional(Schema.Array(ProcessManagerDeclaration)),
+  /** External runtime capabilities this context can bind without hard-coding app leaves. */
+  runtimeCapabilities: Schema.optional(Schema.Array(RuntimeCapabilityDeclaration)),
+  /** Governed agent/UI/CLI/API tool surfaces owned by this context. */
+  toolSurfaces: Schema.optional(Schema.Array(ToolSurfaceDeclaration)),
   // Reserved vocab slot:
   // `projectors` likely belongs here if/when Projector is promoted to a
   // first-class primitive. Keep it adjacent to decisions / process managers,

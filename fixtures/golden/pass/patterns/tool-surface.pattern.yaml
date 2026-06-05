@@ -1,0 +1,12 @@
+kind: PatternSpec
+name: tool-surface
+requiredPrimitives: [InboundAdapter, EdgeBoundary, Policy, OutboundAdapter]
+testingContract:
+  extends: tool-surface-safety
+  adds:
+    - safety-classified: every exposed tool declares read, write, destructive, admin, or fail-closed safety
+    - credential-mode: every exposed tool declares how credentials are supplied
+    - fail-closed: blocked tools declare why the capability is intentionally unavailable
+vocabHint: Context declares toolSurfaces with protocol, service, tools, safety, credentialMode, and runtimeCapabilities.
+visualConcepts: [tools, policy, receipt, credential, boundary]
+narrativeLabel: "(tool-surface) {name} — exposes {protocol} tools for {service}"

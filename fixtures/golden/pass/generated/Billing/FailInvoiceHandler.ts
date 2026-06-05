@@ -1,6 +1,6 @@
-// @rta-generated vocab-hash:e80ee1788c51f106995f34feaa0656ec5b2c1a0f63b702c0ac4d6fcd55586c84
+// @rta-generated vocab-hash:52033c12594a5716e045dcb64a3c3c10f8f4950148c0f3aeeab5dcbd827b9319
 import { Effect } from "effect"
-import { NotFound } from "@rta/core"
+import { NotFound, RepositoryError } from "@rta/core"
 import { InstrumentedCommandHandler, type OperationSummary } from "@rta/strict"
 import { OperationScope } from "@rta/core"
 import type { FailInvoiceCommand } from "./commands.js"
@@ -10,7 +10,7 @@ import { InvoiceRepository } from "./InvoiceRepository.js"
 // FailInvoice handler
 // ---------------------------------------------------------------------------
 
-export class FailInvoiceHandler extends InstrumentedCommandHandler<FailInvoiceCommand, NotFound, InvoiceRepository> {
+export class FailInvoiceHandler extends InstrumentedCommandHandler<FailInvoiceCommand, NotFound | RepositoryError, InvoiceRepository> {
   constructor() {
     super("FailInvoiceHandler", "Billing")
   }
@@ -29,7 +29,7 @@ export class FailInvoiceHandler extends InstrumentedCommandHandler<FailInvoiceCo
   protected executeCommand(
     command: FailInvoiceCommand,
     _scope: OperationScope,
-  ): Effect.Effect<void, NotFound, InvoiceRepository> {
+  ): Effect.Effect<void, NotFound | RepositoryError, InvoiceRepository> {
     return Effect.gen(function* () {
       const repo = yield* InvoiceRepository
       void repo // TODO: load aggregate with repo.findById(...)
@@ -56,5 +56,5 @@ export const handleFailInvoice = (
     clock: { now: () => new Date(0) },
     random: { uuid: () => command._tag },
   }),
-): Effect.Effect<void, NotFound, InvoiceRepository> =>
+): Effect.Effect<void, NotFound | RepositoryError, InvoiceRepository> =>
   new FailInvoiceHandler().handle(command, scope)

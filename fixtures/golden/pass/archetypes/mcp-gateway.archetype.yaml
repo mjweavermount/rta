@@ -1,0 +1,27 @@
+kind: ArchetypeSpec
+name: mcp-gateway
+description: >
+  Exposes a governed tool surface over MCP or a related protocol, checks edge
+  input, resolves runtime credentials, invokes external services through
+  adapters, and returns operation receipts.
+requiredPatterns: [tool-surface, credential-broker, runtime-capability-adapter]
+inputRoles:
+  - name: tool-call
+    description: A user, agent, CLI, or client requests one declared tool.
+  - name: capability-binding
+    description: App config binds a runtime capability to a concrete transport, endpoint, mount, or credential source.
+outputRoles:
+  - name: operation-receipt
+    description: The canonical receipt describing policy, adapter, target, and result.
+  - name: readable-log
+    description: The operator-facing line describing what happened and why.
+testPlan:
+  - tool-surface: every tool has safety and credential mode coverage
+  - credential-deny: missing credentials produce policy receipts and no external call
+  - fail-closed: intentionally unavailable tools explain why they are blocked
+  - runtime-binding: configured capabilities call through their outbound adapter
+  - readable-log: normal and trace verbosity include human-readable operation context
+visualGuidance: >
+  Render instances as a small set of named tools connected to policy, credential,
+  and outbound adapter nodes. Show receipts as the visible result of each call.
+narrativeLabel: "(archetype: mcp-gateway) {context} — {protocol} tools for {service}"

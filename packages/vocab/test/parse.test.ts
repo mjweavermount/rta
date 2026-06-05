@@ -83,6 +83,79 @@ classification: supporting
     expect(result.aggregates).toBeUndefined()
     expect(result.imports).toBeUndefined()
   })
+
+  it("parses governed tool surfaces and runtime capabilities", async () => {
+    const yaml = `
+kind: BoundedContext
+name: AffineGateway
+classification: supporting
+runtimeCapabilities:
+  - name: OperatorVault
+    kind: vault-secret-backend
+    description: Reads operator-scoped AFFiNE credentials.
+    configFields:
+      - { name: mount, type: NonEmptyString }
+    secretFields:
+      - { name: token, type: SecretRef }
+toolSurfaces:
+  - name: AffineMcp
+    service: affine
+    protocol: mcp
+    runtimeCapabilities: [OperatorVault]
+    tools:
+      - name: affine.current_user
+        safety: read
+        credentialMode: user-required
+        returns: CurrentUser
+      - name: affine.doc_update
+        safety: fail-closed
+        credentialMode: user-required
+        failClosedReason: AFFiNE write API must be verified before document mutation is enabled.
+`
+    const result = await run(parseVocabContent(yaml))
+    expect(result.kind).toBe("BoundedContext")
+    if (result.kind !== "BoundedContext") return
+    expect(result.runtimeCapabilities?.[0]?.kind).toBe("vault-secret-backend")
+    expect(result.toolSurfaces?.[0]?.protocol).toBe("mcp")
+    expect(result.toolSurfaces?.[0]?.tools).toHaveLength(2)
+  })
+
+  it("rejects fail-closed tools without an explicit reason", async () => {
+    const yaml = `
+kind: BoundedContext
+name: AffineGateway
+classification: supporting
+toolSurfaces:
+  - name: AffineMcp
+    service: affine
+    protocol: mcp
+    tools:
+      - name: affine.doc_update
+        safety: fail-closed
+        credentialMode: user-required
+`
+    const err = await runFail(parseVocabContent(yaml))
+    expect(err._tag).toBe("VocabParseError")
+  })
+
+  it("rejects tool surfaces that reference unknown runtime capabilities", async () => {
+    const yaml = `
+kind: BoundedContext
+name: AffineGateway
+classification: supporting
+toolSurfaces:
+  - name: AffineMcp
+    service: affine
+    protocol: mcp
+    runtimeCapabilities: [MissingVault]
+    tools:
+      - name: affine.current_user
+        safety: read
+        credentialMode: user-required
+`
+    const err = await runFail(parseVocabContent(yaml))
+    expect(err._tag).toBe("VocabParseError")
+  })
 })
 
 // ---------------------------------------------------------------------------

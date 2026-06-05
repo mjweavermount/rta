@@ -106,9 +106,76 @@ export async function checkPatternSpecs(root: string): Promise<number> {
 }
 
 const VALID_T1_TESTING_CONTRACTS = new Set([
+  "adapter-operation-event",
+  "credential-redaction",
   "rule-two-case",
   "decision-outcome-coverage",
+  "external-schema-drift",
+  "policy-deny-coverage",
+  "projection-mount-coverage",
+  "runtime-capability-binding",
+  "tool-surface-safety",
 ])
+
+const PATTERN_PRIMITIVE_CONTRACTS: ReadonlyArray<{
+  readonly primitives: ReadonlyArray<string>
+  readonly contracts: ReadonlyArray<string>
+  readonly message: string
+}> = [
+  {
+    primitives: ["Rule"],
+    contracts: ["rule-two-case"],
+    message: "Rule patterns must extend rule-two-case",
+  },
+  {
+    primitives: ["Decision", "Reaction"],
+    contracts: ["decision-outcome-coverage"],
+    message: "Decision/Reaction patterns must extend decision-outcome-coverage",
+  },
+  {
+    primitives: ["InboundAdapter", "OutboundAdapter", "EdgeBoundary"],
+    contracts: [
+      "adapter-operation-event",
+      "external-schema-drift",
+      "projection-mount-coverage",
+      "runtime-capability-binding",
+      "tool-surface-safety",
+    ],
+    message:
+      "Adapter/EdgeBoundary patterns must extend adapter-operation-event or tool-surface-safety",
+  },
+  {
+    primitives: ["Policy", "Guardrail"],
+    contracts: [
+      "credential-redaction",
+      "policy-deny-coverage",
+      "runtime-capability-binding",
+      "tool-surface-safety",
+    ],
+    message:
+      "Policy/Guardrail patterns must extend credential-redaction, policy-deny-coverage, or tool-surface-safety",
+  },
+  {
+    primitives: ["Secret"],
+    contracts: ["credential-redaction"],
+    message: "Secret patterns must extend credential-redaction",
+  },
+  {
+    primitives: ["Projector"],
+    contracts: ["projection-mount-coverage"],
+    message: "Projector patterns must extend projection-mount-coverage",
+  },
+  {
+    primitives: ["RuntimeCapability"],
+    contracts: ["runtime-capability-binding"],
+    message: "RuntimeCapability patterns must extend runtime-capability-binding",
+  },
+  {
+    primitives: ["ExternalSchemaProbe"],
+    contracts: ["external-schema-drift"],
+    message: "ExternalSchemaProbe patterns must extend external-schema-drift",
+  },
+]
 
 export async function checkPatternContracts(root: string): Promise<number> {
   const cwd = resolve(root)
@@ -144,15 +211,13 @@ export async function checkPatternContracts(root: string): Promise<number> {
       continue
     }
 
-    if (primitives.includes("Rule") && extendsName !== "rule-two-case") {
-      errors.push(`  ${label}: Rule patterns must extend rule-two-case`)
-    }
-
-    if (
-      (primitives.includes("Decision") || primitives.includes("Reaction")) &&
-      extendsName !== "decision-outcome-coverage"
-    ) {
-      errors.push(`  ${label}: Decision/Reaction patterns must extend decision-outcome-coverage`)
+    for (const constraint of PATTERN_PRIMITIVE_CONTRACTS) {
+      if (
+        constraint.primitives.some((primitive) => primitives.includes(primitive)) &&
+        !constraint.contracts.includes(extendsName)
+      ) {
+        errors.push(`  ${label}: ${constraint.message}`)
+      }
     }
   }
 

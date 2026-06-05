@@ -1,0 +1,12 @@
+kind: PatternSpec
+name: runtime-capability-adapter
+requiredPrimitives: [RuntimeCapability, OutboundAdapter, Policy]
+testingContract:
+  extends: runtime-capability-binding
+  adds:
+    - configured-binding: app config supplies the concrete endpoint, mount, file path, or transport
+    - missing-binding: missing required config fails before the external call
+    - receipt: successful and failed calls emit an operation receipt with adapter, target, and policy outcome
+vocabHint: Context declares runtimeCapabilities and tool surfaces reference them by name.
+visualConcepts: [adapter, runtime, endpoint, binding, receipt]
+narrativeLabel: "(runtime-capability-adapter) {name} — binds {kind} at runtime"

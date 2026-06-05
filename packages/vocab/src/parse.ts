@@ -138,6 +138,45 @@ const validateAggregateDeclaration = (
   ),
 ]
 
+const validateToolSurfaces = (
+  context: BoundedContextDeclaration,
+): ReadonlyArray<string> => {
+  const declaredCapabilities = new Set(
+    (context.runtimeCapabilities ?? []).map((capability) => capability.name),
+  )
+  const requiresCredential = new Set(["write", "destructive", "admin"])
+
+  return (context.toolSurfaces ?? []).flatMap((surface) => {
+    const surfaceLabel = `${context.name}.toolSurface.${surface.name}`
+    const surfaceCapabilityIssues = (surface.runtimeCapabilities ?? [])
+      .filter((name) => !declaredCapabilities.has(name))
+      .map((name) => `${surfaceLabel}: references unknown runtime capability "${name}"`)
+
+    const toolIssues = surface.tools.flatMap((tool) => {
+      const toolLabel = `${surfaceLabel}.tool.${tool.name}`
+      const referencedCapabilities = [
+        ...(surface.runtimeCapabilities ?? []),
+        ...(tool.runtimeCapabilities ?? []),
+      ]
+      const capabilityIssues = referencedCapabilities
+        .filter((name) => !declaredCapabilities.has(name))
+        .map((name) => `${toolLabel}: references unknown runtime capability "${name}"`)
+      const failClosedIssues =
+        tool.safety === "fail-closed" && !tool.failClosedReason
+          ? [`${toolLabel}: fail-closed tools must declare failClosedReason`]
+          : []
+      const credentialIssues =
+        requiresCredential.has(tool.safety) && tool.credentialMode === "none"
+          ? [`${toolLabel}: ${tool.safety} tools must not use credentialMode "none"`]
+          : []
+
+      return [...capabilityIssues, ...failClosedIssues, ...credentialIssues]
+    })
+
+    return [...surfaceCapabilityIssues, ...toolIssues]
+  })
+}
+
 const validateContextDeclaration = (
   context: BoundedContextDeclaration,
 ): ReadonlyArray<string> => [
@@ -156,6 +195,7 @@ const validateContextDeclaration = (
       `${context.name}.processManager.${processManager.name}`,
     ),
   ),
+  ...validateToolSurfaces(context),
 ]
 
 const validateConnectionsDeclaration = (

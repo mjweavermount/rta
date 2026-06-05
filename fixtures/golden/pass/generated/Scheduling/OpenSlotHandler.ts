@@ -1,6 +1,6 @@
-// @rta-generated vocab-hash:e80ee1788c51f106995f34feaa0656ec5b2c1a0f63b702c0ac4d6fcd55586c84
+// @rta-generated vocab-hash:52033c12594a5716e045dcb64a3c3c10f8f4950148c0f3aeeab5dcbd827b9319
 import { Effect } from "effect"
-import { NotFound } from "@rta/core"
+import { NotFound, RepositoryError } from "@rta/core"
 import { InstrumentedCommandHandler, type OperationSummary } from "@rta/strict"
 import { OperationScope } from "@rta/core"
 import type { OpenSlotCommand } from "./commands.js"
@@ -10,7 +10,7 @@ import { SlotRepository } from "./SlotRepository.js"
 // OpenSlot handler
 // ---------------------------------------------------------------------------
 
-export class OpenSlotHandler extends InstrumentedCommandHandler<OpenSlotCommand, NotFound, SlotRepository> {
+export class OpenSlotHandler extends InstrumentedCommandHandler<OpenSlotCommand, NotFound | RepositoryError, SlotRepository> {
   constructor() {
     super("OpenSlotHandler", "Scheduling")
   }
@@ -29,7 +29,7 @@ export class OpenSlotHandler extends InstrumentedCommandHandler<OpenSlotCommand,
   protected executeCommand(
     command: OpenSlotCommand,
     _scope: OperationScope,
-  ): Effect.Effect<void, NotFound, SlotRepository> {
+  ): Effect.Effect<void, NotFound | RepositoryError, SlotRepository> {
     return Effect.gen(function* () {
       const repo = yield* SlotRepository
       void repo // TODO: load aggregate with repo.findById(...)
@@ -56,5 +56,5 @@ export const handleOpenSlot = (
     clock: { now: () => new Date(0) },
     random: { uuid: () => command._tag },
   }),
-): Effect.Effect<void, NotFound, SlotRepository> =>
+): Effect.Effect<void, NotFound | RepositoryError, SlotRepository> =>
   new OpenSlotHandler().handle(command, scope)

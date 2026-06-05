@@ -1,0 +1,12 @@
+kind: PatternSpec
+name: projection-mount
+requiredPrimitives: [Projector, Repository, EdgeBoundary]
+testingContract:
+  extends: projection-mount-coverage
+  adds:
+    - plan: projection can explain what it will create, update, skip, or revoke
+    - verify: projection can verify derived state against the source manifest
+    - repair: projection can produce a bounded repair plan without silently rewriting source data
+vocabHint: Projector-like contexts declare derived outputs and repository-backed manifests.
+visualConcepts: [projection, source, manifest, verify, repair]
+narrativeLabel: "(projection-mount) {name} — derives {target} from {source}"
