@@ -1,11 +1,14 @@
 kind: Capability
+id: work-ledger
 name: WorkLedger
 status: planned
 why: RTA needs a vocab-aware registry for capabilities, features, decisions, research, upstream candidates, and demo coverage.
 ownedBy:
+  internal: rta-platform
   plane: LAB-49
 demonstratedBy:
   - doc: docs/demos/rta-demo-coverage-map.md
+  - command: pnpm check:work-ledger
   - futureCommand: rta work list
 requires:
   - UseCases
@@ -14,6 +17,6 @@ requires:
 produces:
   - packages/work-ledger
   - work/
+  - scripts/check-work-ledger.mjs
   - rta check --work-ledger
   - rta check --demo-coverage
-

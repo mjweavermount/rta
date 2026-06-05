@@ -1,0 +1,19 @@
+kind: Capability
+id: local-extensions-upstreaming
+name: LocalExtensionsUpstreaming
+status: planned
+why: App authors need low-friction local vocabulary and pattern extensions without losing a clean upstreaming path.
+ownedBy:
+  internal: rta-platform
+  plane: LAB-37
+demonstratedBy:
+  - command: rta extensions list
+  - command: rta check --extensions-local
+  - command: rta check --extensions-upstreamable
+requires:
+  - VocabArdCliSkeleton
+  - TierContracts
+produces:
+  - ExtensionSpec
+  - UpstreamCandidate
+  - packages/vocab

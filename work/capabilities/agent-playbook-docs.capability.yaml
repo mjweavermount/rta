@@ -1,0 +1,19 @@
+kind: Capability
+id: agent-playbook-docs
+name: AgentPlaybookDocs
+status: planned
+why: Agents need the right information at the right level so they can author apps through RTA without rediscovering the philosophy or rules every time.
+ownedBy:
+  internal: rta-platform
+  plane: LAB-46
+demonstratedBy:
+  - doc: AGENTS.md
+  - doc: docs/README.md
+  - doc: docs/demos/README.md
+requires:
+  - RepoBootstrap
+  - WorkLedger
+produces:
+  - AGENTS.md
+  - docs agent playbook
+  - demo loop instructions

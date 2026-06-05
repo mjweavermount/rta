@@ -1,0 +1,19 @@
+kind: Capability
+id: observability-log-qa-grafana
+name: ObservabilityLogQaGrafana
+status: planned
+why: Operators should be able to watch RTA apps through ceremonial human-readable logs and later Grafana-backed views.
+ownedBy:
+  internal: rta-platform
+  plane: LAB-42
+demonstratedBy:
+  - integration: end-to-end-demo-harness
+  - log: human-readable run trace
+  - dashboard: Grafana adapter check
+requires:
+  - RuntimePorts
+  - LogCeremony
+produces:
+  - packages/logging
+  - rta check --log-ceremony
+  - dashboard contract

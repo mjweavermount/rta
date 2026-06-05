@@ -36,3 +36,11 @@ Authored apps should also receive an operational app CLI generated from their vo
 ## Demo Coverage
 
 Every nontrivial RTA capability should be tied to a direct demo or proof-through-integration path. Start with the [demo coverage map](docs/demos/rta-demo-coverage-map.md).
+
+## Work Ledger
+
+RTA tracks work in repo-local ledger files under `work/`. External tools such as Plane or GitHub may mirror those items, but they are not required to validate the repo.
+
+```bash
+node scripts/check-work-ledger.mjs
+```

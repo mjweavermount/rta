@@ -5,9 +5,9 @@
   "type": "module",
   "scripts": {
     "check": "pnpm -r check",
+    "check:work-ledger": "node scripts/check-work-ledger.mjs",
     "test": "pnpm -r test",
     "lint": "pnpm -r lint"
   },
   "devDependencies": {}
 }
-

@@ -1,0 +1,18 @@
+kind: Capability
+id: home-lab-hosting-adapter
+name: HomeLabHostingAdapter
+status: planned
+why: RTA apps should be easy to run in Virgil's home lab without making home-lab deployment mandatory.
+ownedBy:
+  internal: rta-platform
+  plane: LAB-41
+demonstratedBy:
+  - artifact: generated WorkloadApp intent
+  - optionalDemo: approved home-lab deployment
+requires:
+  - GeneratedAppCliRuntimeWiring
+  - HostingAdapterContract
+produces:
+  - packages/hosting-adapters
+  - home-lab adapter
+  - WorkloadApp generation path

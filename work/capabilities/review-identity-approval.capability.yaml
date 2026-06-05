@@ -1,0 +1,19 @@
+kind: Capability
+id: review-identity-approval
+name: ReviewIdentityApproval
+status: planned
+why: Human review should be an internal QA/demo/approval gate with actor identity and audit trail, not a mandatory external board dependency.
+ownedBy:
+  internal: rta-platform
+  plane: LAB-44
+demonstratedBy:
+  - integration: review action records actor and audit trail
+  - command: rta review approve
+requires:
+  - RuntimePorts
+  - WorkLedger
+produces:
+  - packages/review
+  - ReviewGate
+  - ApprovalActor
+  - audit trail event

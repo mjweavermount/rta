@@ -1,0 +1,20 @@
+kind: Capability
+id: vocab-ard-cli-skeleton
+name: VocabArdCliSkeleton
+status: planned
+why: RTA needs the first authoring surface for declaring vocabulary, generating ARD scaffolds, and running checks.
+ownedBy:
+  internal: rta-platform
+  plane: LAB-35
+demonstratedBy:
+  - command: rta init
+  - command: rta context
+  - command: rta check --ard-meta
+requires:
+  - RepoBootstrap
+  - Vocab
+  - ArdMetadata
+produces:
+  - packages/vocab
+  - packages/ards
+  - packages/cli

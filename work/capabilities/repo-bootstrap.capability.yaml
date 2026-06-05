@@ -1,0 +1,19 @@
+kind: Capability
+id: repo-bootstrap
+name: RepoBootstrap
+status: demo-covered
+why: RTA needs a clean monorepo seed that agents and humans can use as the durable home for the platform.
+ownedBy:
+  internal: rta-platform
+  plane: LAB-34
+demonstratedBy:
+  - doc: docs/demos/lab-34-bootstrap-repo-demo.md
+  - doc: docs/demos/rta-demo-coverage-map.md
+requires:
+  - ProductionSpec
+produces:
+  - README.md
+  - AGENTS.md
+  - docs/
+  - packages/
+  - work/

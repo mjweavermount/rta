@@ -1,0 +1,19 @@
+kind: Capability
+id: generated-app-cli-runtime-wiring
+name: GeneratedAppCliRuntimeWiring
+status: planned
+why: Authored apps need their own operational CLI backed by the same runtime wiring used in scenarios and production.
+ownedBy:
+  internal: rta-platform
+  plane: LAB-39
+demonstratedBy:
+  - integration: end-to-end-demo-harness
+  - command: app-cli run
+  - command: rta check --app-cli
+requires:
+  - UseCaseScenarioCoverage
+  - RuntimePorts
+produces:
+  - packages/app-cli
+  - packages/app-wiring
+  - generated app command surface

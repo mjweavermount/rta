@@ -1,0 +1,18 @@
+kind: Capability
+id: ci-package-release-hygiene
+name: CiPackageReleaseHygiene
+status: planned
+why: RTA needs repeatable checks, package boundaries, and release hygiene before it becomes the base for production app authoring.
+ownedBy:
+  internal: rta-platform
+  plane: LAB-45
+demonstratedBy:
+  - command: pnpm check
+  - command: pnpm check:work-ledger
+  - ci: pull request check
+requires:
+  - WorkLedger
+produces:
+  - CI workflow
+  - package check scripts
+  - release hygiene docs

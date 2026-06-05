@@ -1,0 +1,19 @@
+kind: Capability
+id: meeting-digest-proving-app
+name: MeetingDigestProvingApp
+status: planned
+why: The first proving app should exercise RTA against a real workflow without becoming part of RTA core.
+ownedBy:
+  internal: rta-platform
+  plane: LAB-40
+demonstratedBy:
+  - app: meeting digest scenario
+  - artifact: review-ready digest output
+requires:
+  - GeneratedAppCliRuntimeWiring
+  - ReviewIdentityApproval
+  - ObservabilityLogQaGrafana
+produces:
+  - proving-apps/meeting-digest
+  - transcript topic digest
+  - extracted feature automation research tasks

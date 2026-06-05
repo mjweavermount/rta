@@ -6,7 +6,7 @@ Read this before changing the repo.
 
 1. Read [docs/rta-production-authoring-platform-spec.md](docs/rta-production-authoring-platform-spec.md).
 2. Check `git status --short`.
-3. Keep changes scoped to the active Plane card.
+3. Keep changes scoped to the active work-ledger item. Plane cards are optional mirrors, not the source of truth.
 4. Do not reintroduce Rita naming in user-facing code or docs.
 
 ## Project Shape
@@ -50,6 +50,14 @@ Do not hand-edit always-regenerated files.
 ## Required Checks
 
 The target production check surface is defined in the spec. During bootstrap, add checks incrementally and keep placeholders honest.
+
+Run the repo-native work check before claiming a capability is ready:
+
+```bash
+node scripts/check-work-ledger.mjs
+```
+
+The check must not require Plane, GitHub, or any other external work tracker.
 
 ## Demo Coverage
 
