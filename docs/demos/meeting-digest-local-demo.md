@@ -11,6 +11,25 @@ node scripts/rta.mjs demo run --high
 The command runs the second meeting digest implementation through the RTA
 scenario/runtime/log/review path.
 
+## Watch The Run
+
+Use `scenario watch` when the terminal trace is the thing you are inspecting:
+
+```bash
+node scripts/rta.mjs scenario watch meeting-digest.integrated.fixture --input tests/fixtures/custom-transcript.txt
+```
+
+`watch` defaults to trace verbosity. It prints each ceremony event with a stable
+step number, timestamp, actor, input summary, output summary, parent, detail,
+and structured event identity. The same events are saved as `logs.json` under
+the run artifacts.
+
+To use the app CLI as the doorway:
+
+```bash
+node examples/meeting-digest-seed/bin/meeting-digest.mjs --integrated --watch --input tests/fixtures/custom-transcript.txt
+```
+
 To use a different transcript:
 
 ```bash

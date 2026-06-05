@@ -68,6 +68,7 @@ Commands:
   rta explain obligation meeting-digest
   rta scenario list
   rta scenario run <name> [--input transcript.txt] [--high] [--review]
+  rta scenario watch <name> [--input transcript.txt] [--high|--trace] [--review]
   rta demo run [--input transcript.txt] [--high]
   rta review show <id>
   rta review approve <id> --actor <name>
@@ -210,7 +211,10 @@ async function scenarioCommand(sub, rest) {
   if (sub === "run") {
     return runNamedScenario(rest[0], optionsFrom(rest));
   }
-  throw new Error("usage: rta scenario list | run <name>");
+  if (sub === "watch") {
+    return runNamedScenario(rest[0], optionsFrom(rest, { verbosity: "trace" }));
+  }
+  throw new Error("usage: rta scenario list | run <name> | watch <name>");
 }
 
 async function loadMeetingDigestScenarios() {
@@ -222,7 +226,7 @@ function optionsFrom(rest, defaults = {}) {
   const inputIndex = rest.indexOf("--input");
   return {
     review: defaults.review ?? rest.includes("--review"),
-    verbosity: rest.includes("--high") ? "high" : "normal",
+    verbosity: rest.includes("--trace") ? "trace" : rest.includes("--high") ? "high" : defaults.verbosity ?? "normal",
     input: inputIndex >= 0 ? { transcriptPath: assertInsideRoot(root, rest[inputIndex + 1]) } : {},
   };
 }

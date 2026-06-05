@@ -3,8 +3,12 @@ import { buildDerivationGraph } from "../../packages/derivation/index.mjs";
 import { digestTranscriptV2 } from "./meeting-digest-v2.mjs";
 
 export function digestTranscriptIntegrated(text) {
-  const app = loadAppDeclaration(new URL("./rta.app.json", import.meta.url));
   const base = digestTranscriptV2(text);
+  return integrateDigest(base);
+}
+
+export function integrateDigest(base) {
+  const app = loadAppDeclaration(new URL("./rta.app.json", import.meta.url));
   const graph = buildDerivationGraph(app);
   const obligations = graph.nodes.filter((node) => node.type === "obligation").map((node) => node.id);
 

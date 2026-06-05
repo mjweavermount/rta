@@ -30,6 +30,42 @@ export class FileRuntime {
     this.saveArtifactRaw("provenance.json", this.provenance);
   }
 
+  async operation({ logger, name, actor = "system", input, detail = null, parent = null, run }) {
+    logger.step({
+      runId: this.runId,
+      actor,
+      step: `${name}.start`,
+      input,
+      output: "starting",
+      parent,
+      detail,
+    });
+    try {
+      const output = await run();
+      logger.step({
+        runId: this.runId,
+        actor,
+        step: `${name}.complete`,
+        input,
+        output,
+        parent,
+        detail,
+      });
+      return output;
+    } catch (error) {
+      logger.step({
+        runId: this.runId,
+        actor,
+        step: `${name}.failed`,
+        input,
+        output: error.message,
+        parent,
+        detail: { ...detail, name: error.name, stack: error.stack },
+      });
+      throw error;
+    }
+  }
+
   saveArtifact(name, data) {
     const path = join(this.runRoot, "artifacts", name);
     const content = typeof data === "string" ? data : JSON.stringify(data, null, 2);

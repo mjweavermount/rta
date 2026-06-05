@@ -1,16 +1,31 @@
 const touchstones = ["RTA", "AFFiNE", "Plane", "Otter", "home lab", "Grafana"];
 
 export function digestTranscriptV2(text) {
-  const utterances = text
+  const utterances = parseTranscript(text);
+  const topics = segmentTopics(utterances);
+  const tasks = extractWorkItems(topics);
+
+  return assembleDigestV2({ utterances, topics, tasks });
+}
+
+export function parseTranscript(text) {
+  return text
     .split("\n")
     .map(parseUtterance)
     .filter((u) => u.text.length > 0);
+}
 
+export function segmentTopics(utterances) {
   const accumulator = new TopicAccumulator();
   for (const utterance of utterances) accumulator.add(utterance);
-  const topics = accumulator.topics();
-  const tasks = topics.flatMap(extractTasks);
+  return accumulator.topics();
+}
 
+export function extractWorkItems(topics) {
+  return topics.flatMap(extractTasks);
+}
+
+export function assembleDigestV2({ utterances, topics, tasks, strategy = "keyword topic accumulator with loopback merge" }) {
   return {
     version: "v2",
     topics,
@@ -19,7 +34,7 @@ export function digestTranscriptV2(text) {
       utteranceCount: utterances.length,
       topicCount: topics.length,
       taskCount: tasks.length,
-      strategy: "keyword topic accumulator with loopback merge",
+      strategy,
     },
   };
 }

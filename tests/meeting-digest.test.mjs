@@ -1,10 +1,12 @@
 import assert from "node:assert/strict";
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import test from "node:test";
 import { digestTranscriptV1 } from "../examples/meeting-digest-seed/meeting-digest-v1.mjs";
 import { digestTranscriptV2, formatDigestMarkdown } from "../examples/meeting-digest-seed/meeting-digest-v2.mjs";
 import { digestTranscriptIntegrated } from "../examples/meeting-digest-seed/meeting-digest-integrated.mjs";
-import { checkApp } from "../packages/checks/index.mjs";
+import { checkApp, checkLogCeremony } from "../packages/checks/index.mjs";
 
 const transcript = readFileSync(new URL("../examples/meeting-digest-seed/transcript.txt", import.meta.url), "utf8");
 
@@ -26,7 +28,28 @@ test("meeting digest v2 merges loopback topics and preserves touchstones", () =>
 test("meeting digest app declaration is contract-valid", () => {
   const root = new URL("..", import.meta.url).pathname;
   assert.deepEqual(checkApp({ root, appDir: "examples/meeting-digest-seed" }), []);
+  assert.deepEqual(checkLogCeremony({ root, appDir: "examples/meeting-digest-seed" }), []);
   assert.ok(existsSync(new URL("../examples/meeting-digest-seed/rta.app.json", import.meta.url)));
+});
+
+test("log ceremony check fails when declared vocabulary lacks operation ceremonies", () => {
+  const root = join(tmpdir(), `rta-log-ceremony-${Date.now()}`);
+  const appDir = join(root, "app");
+  mkdirSync(appDir, { recursive: true });
+  writeFileSync(join(appDir, "rta.app.json"), JSON.stringify({
+    name: "bad-logs",
+    vocabulary: [{ id: "TranscriptInput", extends: "T1.Input", description: "input" }],
+    useCases: [],
+    scenarios: [],
+    boundaries: [],
+    logging: {
+      humanReadableTemplate: "[{runId}] {step} actor={actor} input={input} output={output}",
+      ceremonies: [],
+    },
+    publication: { requiresReview: true, adapters: ["dry-run-fixture"] },
+    security: { inputPathPolicy: "repo-contained", redactSecrets: true, externalWritesRequireReview: true },
+  }, null, 2));
+  assert.match(checkLogCeremony({ root, appDir: "app" }).join("\n"), /logging\.ceremonies/);
 });
 
 test("meeting digest v2 produces human-readable markdown", () => {

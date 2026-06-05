@@ -71,7 +71,44 @@
     }
   ],
   "logging": {
-    "humanReadableTemplate": "[{runId}] {step} actor={actor} input={input} output={output}"
+    "humanReadableTemplate": "[{runId}] {step} actor={actor} input={input} output={output}",
+    "ceremonies": [
+      {
+        "for": "TranscriptInput",
+        "operation": "TranscriptInput.read",
+        "requiredEvents": ["start", "complete", "failed"],
+        "summaries": ["input", "output"],
+        "detailAt": ["high", "trace"]
+      },
+      {
+        "for": "TranscriptInput",
+        "operation": "TranscriptInput.parse",
+        "requiredEvents": ["start", "complete", "failed"],
+        "summaries": ["input", "output"],
+        "detailAt": ["high", "trace"]
+      },
+      {
+        "for": "TopicSegmenter",
+        "operation": "TopicSegmenter.segment",
+        "requiredEvents": ["start", "complete", "failed"],
+        "summaries": ["input", "output"],
+        "detailAt": ["high", "trace"]
+      },
+      {
+        "for": "WorkItemExtractor",
+        "operation": "WorkItemExtractor.extract",
+        "requiredEvents": ["start", "complete", "failed"],
+        "summaries": ["input", "output"],
+        "detailAt": ["high", "trace"]
+      },
+      {
+        "for": "ReviewableDigestJob",
+        "operation": "ReviewableDigestJob.materialize",
+        "requiredEvents": ["start", "complete", "failed"],
+        "summaries": ["input", "output"],
+        "detailAt": ["high", "trace"]
+      }
+    ]
   },
   "publication": {
     "requiresReview": true,

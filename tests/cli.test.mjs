@@ -43,8 +43,23 @@ test("generated-style meeting digest cli runs v2 through rta", () => {
     cwd: new URL("..", import.meta.url),
     encoding: "utf8",
   });
-  assert.match(out, /meetingDigest.v2.digest/);
+  assert.match(out, /TopicSegmenter.segment.complete/);
+  assert.match(out, /WorkItemExtractor.extract.complete/);
   assert.match(out, /review=/);
+});
+
+test("scenario watch streams trace ceremony logs in the terminal", () => {
+  const out = rta(["scenario", "watch", "meeting-digest.integrated.fixture", "--input", "tests/fixtures/custom-transcript.txt"]);
+  assert.match(out, /#1 scenario\.meeting-digest\.integrated\.fixture\.start/);
+  assert.match(out, /at=/);
+  assert.match(out, /parent=/);
+  assert.match(out, /event=/);
+  assert.match(out, /TranscriptInput\.read\.complete/);
+  assert.match(out, /TranscriptInput\.parse\.complete/);
+  assert.match(out, /TopicSegmenter\.segment\.complete/);
+  assert.match(out, /WorkItemExtractor\.extract\.complete/);
+  assert.match(out, /ReviewableDigestJob\.materialize\.complete/);
+  assert.match(out, /run=/);
 });
 
 test("generated-style meeting digest cli accepts custom transcript and emits markdown plus step provenance", () => {
@@ -82,7 +97,7 @@ test("rta generates an app cli that runs the integrated meeting digest", () => {
     cwd: new URL("..", import.meta.url),
     encoding: "utf8",
   });
-  assert.match(out, /meetingDigest.integrated.digest/);
+  assert.match(out, /ReviewableDigestJob.materialize.complete/);
   assert.match(out, /215 chars/);
   assert.match(out, /meeting-digest-integrated.json/);
 });

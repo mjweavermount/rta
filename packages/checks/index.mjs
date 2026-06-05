@@ -68,9 +68,36 @@ export function checkDerivation({ root, appDir }) {
 export function checkLogCeremony({ root, appDir }) {
   const app = loadAppDeclaration(join(root, appDir, "rta.app.json"));
   const template = app.logging?.humanReadableTemplate ?? "";
-  return ["{runId}", "{step}", "{actor}", "{input}", "{output}"]
+  const errors = ["{runId}", "{step}", "{actor}", "{input}", "{output}"]
     .filter((token) => !template.includes(token))
     .map((token) => `logging template missing ${token}`);
+  const ceremonies = app.logging?.ceremonies ?? [];
+  if (!Array.isArray(ceremonies) || ceremonies.length === 0) {
+    errors.push("logging.ceremonies must declare required operation ceremonies");
+    return errors;
+  }
+
+  for (const vocab of app.vocabulary ?? []) {
+    if (!ceremonies.some((ceremony) => ceremony.for === vocab.id)) {
+      errors.push(`vocabulary ${vocab.id} has no required log ceremony`);
+    }
+  }
+
+  for (const ceremony of ceremonies) {
+    if (!ceremony.for) errors.push("log ceremony missing for");
+    if (!ceremony.operation) errors.push(`log ceremony ${ceremony.for ?? "(unknown)"} missing operation`);
+    for (const event of ["start", "complete", "failed"]) {
+      if (!ceremony.requiredEvents?.includes(event)) {
+        errors.push(`log ceremony ${ceremony.operation ?? ceremony.for ?? "(unknown)"} missing ${event} event`);
+      }
+    }
+    for (const summary of ["input", "output"]) {
+      if (!ceremony.summaries?.includes(summary)) {
+        errors.push(`log ceremony ${ceremony.operation ?? ceremony.for ?? "(unknown)"} missing ${summary} summary`);
+      }
+    }
+  }
+  return errors;
 }
 
 export function checkSecurity({ root, appDir }) {
