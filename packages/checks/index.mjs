@@ -3,6 +3,7 @@ import { join } from "node:path";
 import { validateArds } from "../ards/index.mjs";
 import { buildDerivationGraph, deriveAll } from "../derivation/index.mjs";
 import { checkGeneratedSync } from "../generators/index.mjs";
+import { renderGrafanaDashboard } from "../grafana/index.mjs";
 import { requiredCeremonyOperationsFor, validateArchetypeBindings, validateConcreteVocabulary, validatePatternContracts, validateTierContracts } from "../tiers/index.mjs";
 import { loadAppDeclaration, validateAppDeclaration } from "../vocab/index.mjs";
 
@@ -203,6 +204,42 @@ export function checkIntegrationContracts({ root, appDir }) {
   return errors;
 }
 
+export function checkTelemetryCoverage({ root, appDir }) {
+  const app = loadAppDeclaration(join(root, appDir, "rta.app.json"));
+  const all = deriveAll(app);
+  const errors = [];
+  if (all.telemetry.length === 0) errors.push("missing derived telemetry expectations");
+
+  for (const item of all.telemetry) {
+    if (item.requiredCheck !== "rta check --telemetry-coverage") {
+      errors.push(`${item.id} must require rta check --telemetry-coverage`);
+    }
+    if (!item.explanation?.includes("run status") || !item.explanation?.includes("artifact count") || !item.explanation?.includes("review state")) {
+      errors.push(`${item.id} must explain run status, artifact count, and review state`);
+    }
+  }
+
+  const dashboardPath = renderGrafanaDashboard({ root, appName: app.name });
+  const dashboard = JSON.parse(readFileSync(dashboardPath, "utf8"));
+  const derivedTelemetryIds = new Set(all.telemetry.map((item) => item.id));
+  const dashboardTelemetryIds = new Set((dashboard.rta?.telemetry ?? []).map((item) => item.id));
+  for (const id of derivedTelemetryIds) {
+    if (!dashboardTelemetryIds.has(id)) errors.push(`dashboard missing derived telemetry ${id}`);
+  }
+
+  const panelText = JSON.stringify(dashboard.panels ?? []);
+  for (const required of ["rta_run_status", "rta_run_duration_seconds", "rta_run_artifact_count", "rta_review_state", "provenance"]) {
+    if (!panelText.includes(required)) errors.push(`dashboard missing ${required}`);
+  }
+
+  for (const scenario of app.scenarios ?? []) {
+    const templatingText = JSON.stringify(dashboard.templating ?? {});
+    if (!templatingText.includes(scenario.id)) errors.push(`dashboard scenario selector missing ${scenario.id}`);
+  }
+
+  return errors;
+}
+
 export function checkProduction({ root, appDir }) {
   const app = loadAppDeclaration(join(root, appDir, "rta.app.json"));
   return [
@@ -218,6 +255,7 @@ export function checkProduction({ root, appDir }) {
     ...checkScenarioCoverage({ root, appDir }),
     ...checkBoundaryCoverage({ root, appDir }),
     ...checkIntegrationContracts({ root, appDir }),
+    ...checkTelemetryCoverage({ root, appDir }),
     ...checkSecurity({ root, appDir }),
     ...checkGeneratedSync({ root, app }),
   ];

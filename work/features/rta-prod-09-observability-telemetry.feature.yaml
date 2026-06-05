@@ -1,7 +1,7 @@
 kind: Feature
 id: rta-prod-09-observability-telemetry
 name: RtaProd09ObservabilityTelemetry
-status: planned
+status: demo-covered
 why: Logs, telemetry, trace verbosity, provenance edges, and dashboard artifacts must derive from declared vocab and runtime contracts.
 ownedBy:
   internal: rta-platform
@@ -17,4 +17,3 @@ produces:
   - dashboard provisioning contract
 selfAudit:
   - "@are logs and telemetry generated from obligations, or did I hand-author one happy path?"
-

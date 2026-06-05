@@ -53,6 +53,12 @@ test("grafana renderer writes a dashboard artifact", () => {
   const dashboard = JSON.parse(readFileSync(out, "utf8"));
   assert.equal(dashboard.title, "RTA meeting-digest Run Monitor");
   assert.ok(dashboard.panels.some((panel) => panel.title.includes("provenance")));
+  assert.ok(dashboard.rta.telemetry.some((item) => item.id === "telemetry:meeting-digest.integrated.fixture:run-status"));
+  assert.match(JSON.stringify(dashboard), /rta_run_status/);
+  assert.match(JSON.stringify(dashboard), /rta_run_duration_seconds/);
+  assert.match(JSON.stringify(dashboard), /rta_run_artifact_count/);
+  assert.match(JSON.stringify(dashboard), /rta_review_state/);
+  assert.match(rta(["check", "--telemetry-coverage"]), /Telemetry coverage passed/);
 });
 
 test("home-lab deployment package renders WorkloadApp draft", () => {
