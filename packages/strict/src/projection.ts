@@ -145,6 +145,8 @@ export const projectExecutionEventToOtelSpanEvent = (
     case "job":
     case "projector":
     case "repository":
+    case "edge-boundary":
+    case "secret":
     case "policy":
     case "guardrail":
       base["rta.context"] = event.context
@@ -250,6 +252,10 @@ function humanSentence(event: PrimitiveExecutionEvent): string {
       return summarySentence(event.summary, `${capitalize(event.phase)} projector`, event.context)
     case "repository":
       return summarySentence(event.summary, `${capitalize(event.phase)} repository`, event.context)
+    case "edge-boundary":
+      return summarySentence(event.summary, `${capitalize(event.phase)} edge boundary`, event.context)
+    case "secret":
+      return summarySentence(event.summary, `${capitalize(event.phase)} secret`, event.context)
     case "policy":
       return summarySentence(event.summary, `${capitalize(event.phase)} policy`, event.context)
     case "guardrail":

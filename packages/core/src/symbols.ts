@@ -10,6 +10,7 @@ import type {
   DecisionTypeId as _DecisionTypeId,
   DomainEventTypeId as _DomainEventTypeId,
   DomainServiceTypeId as _DomainServiceTypeId,
+  EdgeBoundaryTypeId as _EdgeBoundaryTypeId,
   EntityTypeId as _EntityTypeId,
   EventHandlerTypeId as _EventHandlerTypeId,
   ProcessManagerTypeId as _ProcessManagerTypeId,
@@ -18,6 +19,7 @@ import type {
   ReactionTypeId as _ReactionTypeId,
   RepositoryTypeId as _RepositoryTypeId,
   RuleTypeId as _RuleTypeId,
+  SecretTypeId as _SecretTypeId,
   ValueObjectTypeId as _ValueObjectTypeId,
 } from "./typeids.js"
 
@@ -34,6 +36,8 @@ export const QueryHandlerTypeId: _QueryHandlerTypeId = sym("@rta/core/QueryHandl
 export const EventHandlerTypeId: _EventHandlerTypeId = sym("@rta/core/EventHandler")
 export const RepositoryTypeId: _RepositoryTypeId = sym("@rta/core/Repository")
 export const DomainServiceTypeId: _DomainServiceTypeId = sym("@rta/core/DomainService")
+export const EdgeBoundaryTypeId: _EdgeBoundaryTypeId = sym("@rta/core/EdgeBoundary")
+export const SecretTypeId: _SecretTypeId = sym("@rta/core/Secret")
 export const RuleTypeId: _RuleTypeId = sym("@rta/core/Rule")
 export const DecisionTypeId: _DecisionTypeId = sym("@rta/core/Decision")
 export const ReactionTypeId: _ReactionTypeId = sym("@rta/core/Reaction")

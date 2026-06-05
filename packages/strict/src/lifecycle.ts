@@ -126,6 +126,8 @@ export interface GenericPrimitiveLifecycleEvent {
     | "job"
     | "projector"
     | "repository"
+    | "edge-boundary"
+    | "secret"
     | "policy"
     | "guardrail"
   readonly primitiveName: string

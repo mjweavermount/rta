@@ -145,6 +145,20 @@ export abstract class InstrumentedRepository<I, O, E = DomainError>
   }
 }
 
+export abstract class InstrumentedEdgeBoundary<I, O, E = DomainError>
+  extends InstrumentedPrimitive<I, O, E> {
+  protected constructor(primitiveName: string, context: string) {
+    super("edge-boundary", primitiveName, context)
+  }
+}
+
+export abstract class InstrumentedSecret<I, O, E = DomainError>
+  extends InstrumentedPrimitive<I, O, E> {
+  protected constructor(primitiveName: string, context: string) {
+    super("secret", primitiveName, context)
+  }
+}
+
 export abstract class InstrumentedPolicy<I, O, E = DomainError>
   extends InstrumentedPrimitive<I, O, E> {
   protected constructor(primitiveName: string, context: string) {

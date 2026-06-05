@@ -6,6 +6,7 @@ export type {
   DecisionTypeId,
   DomainEventTypeId,
   DomainServiceTypeId,
+  EdgeBoundaryTypeId,
   EntityTypeId,
   EventHandlerTypeId,
   ProcessManagerTypeId,
@@ -14,6 +15,7 @@ export type {
   ReactionTypeId,
   RepositoryTypeId,
   RuleTypeId,
+  SecretTypeId,
   ValueObjectTypeId,
 } from "./typeids.js"
 
@@ -36,6 +38,8 @@ export * from "./query.js"
 // Handlers + Repository
 export * from "./handlers.js"
 export * from "./repository.js"
+export * from "./edge-boundary.js"
+export * from "./secret.js"
 
 // Domain logic primitives
 export * from "./rule.js"

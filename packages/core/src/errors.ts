@@ -27,6 +27,20 @@ export class RepositoryError extends Data.TaggedError("RepositoryError")<{
   readonly cause: unknown
 }> {}
 
+/** Data crossed an untrusted edge and could not be promoted safely. */
+export class EdgeBoundaryError extends Data.TaggedError("EdgeBoundaryError")<{
+  readonly message: string
+  readonly boundary: string
+  readonly cause?: unknown
+}> {}
+
+/** Secret access, storage, or reveal failed. */
+export class SecretError extends Data.TaggedError("SecretError")<{
+  readonly message: string
+  readonly secret: string
+  readonly cause?: unknown
+}> {}
+
 /** One or more invariants on a domain object were violated. */
 export class DomainValidationError extends Data.TaggedError("DomainValidationError")<{
   readonly message: string

@@ -61,6 +61,12 @@ export type RepositoryTypeId = typeof RepositoryTypeId
 export declare const DomainServiceTypeId: unique symbol
 export type DomainServiceTypeId = typeof DomainServiceTypeId
 
+export declare const EdgeBoundaryTypeId: unique symbol
+export type EdgeBoundaryTypeId = typeof EdgeBoundaryTypeId
+
+export declare const SecretTypeId: unique symbol
+export type SecretTypeId = typeof SecretTypeId
+
 // ---------------------------------------------------------------------------
 // Domain logic primitives
 // ---------------------------------------------------------------------------

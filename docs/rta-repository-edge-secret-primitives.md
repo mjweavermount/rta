@@ -1,6 +1,25 @@
 # RTA Repository, Edge Boundary, And Secret Primitives
 
-Status: design source for upcoming vocab/runtime work
+Status: initial runtime implementation landed; vocab blooming still pending
+
+Implemented in this slice:
+
+- `@rta/core`: nominal `Repository`, `RepositoryCodec`, `EdgeBoundary`, and
+  `SecretRef` contracts plus typed `RepositoryError`, `EdgeBoundaryError`, and
+  `SecretError`.
+- `@rta/strict`: sealed instrumented primitive classes for repository,
+  edge-boundary, and secret operations. Descendants call public methods that
+  invoke the protected hook through the shared lifecycle logger.
+- `@rta/runtime`: `InMemoryRepository`, `FileBackedRepository`,
+  `SchemaEdgeBoundary`, `FileReadBoundary`, and `InMemorySecretStore`.
+
+Still pending:
+
+- vocab-tier declarations and blooming checks for these primitives
+- generator support that emits concrete repositories through the new runtime
+  implementations instead of ad hoc app-local repository layers
+- SQL boundary implementation
+- atomic file writes and versioned snapshot envelopes
 
 ## Repository Primitive
 
@@ -31,6 +50,8 @@ Required operation events:
 It is for tests, local scenarios, and deterministic demos. It does not cross an
 external edge by default, but it must avoid fake confidence.
 
+Initial implementation: `InMemoryRepository` in `@rta/runtime`.
+
 Obligations:
 
 - `InMemoryStoreIsScenarioScoped`
@@ -50,6 +71,9 @@ Obligations:
 `T2.Pattern.FileSystemBoundary`.
 
 File reads are edge input. Local disk is not trusted domain data.
+
+Initial implementation: `FileBackedRepository` in `@rta/runtime`, using a
+`RepositoryCodec` for decode/encode validation.
 
 Obligations:
 
@@ -101,6 +125,9 @@ Baseline obligations:
 - `EdgeRawInputDoesNotReachDomainUnchecked`
 - `EdgeSourceIsIdentified`
 - `EdgePayloadMayBeRedacted`
+
+Initial implementations: `SchemaEdgeBoundary` and `FileReadBoundary` in
+`@rta/runtime`.
 
 Required operation events:
 
@@ -160,3 +187,6 @@ Effect services to introduce:
 - `RevealSecretCapability`
 
 Readable logs should show values as `[REDACTED:<SecretName>]`.
+
+Initial implementation: `InMemorySecretStore` in `@rta/runtime`; readable logs
+emit `[secret]` and do not include cleartext values.

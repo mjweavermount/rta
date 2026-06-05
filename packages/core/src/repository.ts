@@ -22,7 +22,12 @@ export interface Repository<A extends AggregateRoot<any, any, any>> {
   readonly nextId: () => Effect.Effect<GetId<A>, RepositoryError>
 }
 
+export interface RepositoryCodec<A extends AggregateRoot<any, any, any>> {
+  readonly entityType: string
+  readonly encode: (aggregate: A) => unknown
+  readonly decode: (stored: unknown) => Effect.Effect<A, RepositoryError>
+}
+
 /** Create an Effect Context.Tag for a specific Repository. */
 export const makeRepositoryTag = <A extends AggregateRoot<any, any, any>>(id: string) =>
   Context.GenericTag<Repository<A>>(id)
-
