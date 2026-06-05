@@ -17,6 +17,9 @@ test("cli lists work and explains meeting digest obligation", () => {
   assert.match(explanation, /ReviewGate/);
   assert.match(rta(["check", "--meeting-digest"]), /passed/);
   assert.match(rta(["check", "--ard-meta"]), /passed/);
+  assert.match(rta(["check", "--tier-contracts"]), /passed/);
+  assert.match(rta(["check", "--pattern-contracts"]), /passed/);
+  assert.match(rta(["check", "--archetype-bindings"]), /passed/);
   assert.match(rta(["check", "--extensions-local"]), /passed/);
   assert.match(rta(["check", "--extensions-upstreamable"]), /passed/);
   assert.match(rta(["check", "--derived-obligations"]), /passed/);

@@ -6,7 +6,7 @@ import { publishDryRun } from "../packages/connectors/index.mjs";
 import { explainMeetingDigestObligation } from "../packages/derivation/index.mjs";
 import { renderGrafanaDashboard } from "../packages/grafana/index.mjs";
 import { renderHomeLabDeploymentPackage, renderHomeLabIntent } from "../packages/hosting-adapters/index.mjs";
-import { checkApp, checkArds, checkDerivation, checkExtensions, checkLogCeremony, checkSecurity } from "../packages/checks/index.mjs";
+import { checkApp, checkArchetypeBindings, checkArds, checkDerivation, checkExtensions, checkLogCeremony, checkPatternContracts, checkSecurity, checkTierContracts } from "../packages/checks/index.mjs";
 import { buildDerivationGraph } from "../packages/derivation/index.mjs";
 import { generateAppCli, generateAppScaffold } from "../packages/generators/index.mjs";
 import { CeremonyLogger } from "../packages/logging/index.mjs";
@@ -100,6 +100,9 @@ Commands:
   rta check --work-ledger
   rta check --meeting-digest
   rta check --ard-meta
+  rta check --tier-contracts
+  rta check --pattern-contracts
+  rta check --archetype-bindings
   rta check --extensions-local
   rta check --extensions-upstreamable
   rta check --derived-obligations
@@ -167,6 +170,9 @@ async function check(flag) {
     return;
   }
   if (flag === "--ard-meta") return reportCheck("ARD metadata", checkArds({ root }));
+  if (flag === "--tier-contracts") return reportCheck("Tier contracts", checkTierContracts({ root, appDir: "examples/meeting-digest-seed" }));
+  if (flag === "--pattern-contracts") return reportCheck("Pattern contracts", checkPatternContracts({ root }));
+  if (flag === "--archetype-bindings") return reportCheck("Archetype bindings", checkArchetypeBindings({ root }));
   if (flag === "--extensions-local") return reportCheck("Local extensions", checkExtensions({ root, appDir: "examples/meeting-digest-seed" }));
   if (flag === "--extensions-upstreamable") return reportCheck("Upstreamable extensions", checkExtensions({ root, appDir: "examples/meeting-digest-seed", upstreamable: true }));
   if (flag === "--derived-obligations") return reportCheck("Derived obligations", checkDerivation({ root, appDir: "examples/meeting-digest-seed" }));
@@ -183,6 +189,9 @@ async function check(flag) {
     const errors = [
       ...checkApp({ root, appDir: "examples/meeting-digest-seed" }),
       ...checkArds({ root }),
+      ...checkTierContracts({ root, appDir: "examples/meeting-digest-seed" }),
+      ...checkPatternContracts({ root }),
+      ...checkArchetypeBindings({ root }),
       ...checkExtensions({ root, appDir: "examples/meeting-digest-seed" }),
       ...checkExtensions({ root, appDir: "examples/meeting-digest-seed", upstreamable: true }),
       ...checkDerivation({ root, appDir: "examples/meeting-digest-seed" }),
@@ -196,7 +205,7 @@ async function check(flag) {
     console.log("All implemented RTA checks passed.");
     return;
   }
-  throw new Error("usage: rta check --work-ledger | --meeting-digest | --ard-meta | --extensions-local | --extensions-upstreamable | --derived-obligations | --log-ceremony | --security | --app-cli | --all");
+  throw new Error("usage: rta check --work-ledger | --meeting-digest | --ard-meta | --tier-contracts | --pattern-contracts | --archetype-bindings | --extensions-local | --extensions-upstreamable | --derived-obligations | --log-ceremony | --security | --app-cli | --all");
 }
 
 function reportCheck(label, errors) {

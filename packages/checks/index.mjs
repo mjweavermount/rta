@@ -2,6 +2,7 @@ import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { validateArds } from "../ards/index.mjs";
 import { buildDerivationGraph } from "../derivation/index.mjs";
+import { requiredCeremonyOperationsFor, validateArchetypeBindings, validateConcreteVocabulary, validatePatternContracts, validateTierContracts } from "../tiers/index.mjs";
 import { loadAppDeclaration, validateAppDeclaration } from "../vocab/index.mjs";
 
 export function checkApp({ root, appDir }) {
@@ -10,6 +11,7 @@ export function checkApp({ root, appDir }) {
 
   const app = loadAppDeclaration(appPath);
   const errors = validateAppDeclaration(app);
+  errors.push(...validateConcreteVocabulary({ app }));
 
   const scenarioIds = new Set((app.scenarios ?? []).map((scenario) => scenario.id));
   for (const useCase of app.useCases ?? []) {
@@ -65,6 +67,22 @@ export function checkDerivation({ root, appDir }) {
     .map((id) => `missing derived obligation ${id}`);
 }
 
+export function checkTierContracts({ root, appDir }) {
+  const app = loadAppDeclaration(join(root, appDir, "rta.app.json"));
+  return [
+    ...validateTierContracts(),
+    ...validateConcreteVocabulary({ app }),
+  ];
+}
+
+export function checkPatternContracts() {
+  return validatePatternContracts();
+}
+
+export function checkArchetypeBindings() {
+  return validateArchetypeBindings();
+}
+
 export function checkLogCeremony({ root, appDir }) {
   const app = loadAppDeclaration(join(root, appDir, "rta.app.json"));
   const template = app.logging?.humanReadableTemplate ?? "";
@@ -77,9 +95,9 @@ export function checkLogCeremony({ root, appDir }) {
     return errors;
   }
 
-  for (const vocab of app.vocabulary ?? []) {
-    if (!ceremonies.some((ceremony) => ceremony.for === vocab.id)) {
-      errors.push(`vocabulary ${vocab.id} has no required log ceremony`);
+  for (const requirement of requiredCeremonyOperationsFor(app)) {
+    if (!ceremonies.some((ceremony) => ceremony.for === requirement.vocabularyId && ceremony.operation === requirement.operation)) {
+      errors.push(`vocabulary ${requirement.vocabularyId} missing required log ceremony ${requirement.operation} from ${requirement.sourceContract}`);
     }
   }
 

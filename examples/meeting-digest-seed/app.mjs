@@ -50,14 +50,14 @@ export const scenarios = [
       });
       const artifactPath = await runtime.operation({
         logger,
-        name: "DigestArtifact.writeJson",
-        input: "meeting-digest-v2.json",
+        name: "DigestArtifact.write",
+        input: { format: "json", name: "meeting-digest-v2.json" },
         run: () => runtime.saveArtifact("meeting-digest-v2.json", digest),
       });
       const markdownPath = await runtime.operation({
         logger,
-        name: "DigestArtifact.writeMarkdown",
-        input: "meeting-digest-v2.md",
+        name: "DigestArtifact.write",
+        input: { format: "markdown", name: "meeting-digest-v2.md" },
         run: () => runtime.saveArtifact("meeting-digest-v2.md", formatDigestMarkdown(digest)),
       });
       return { artifactPath, markdownPath, ...digest };
@@ -98,14 +98,14 @@ export const scenarios = [
       });
       const artifactPath = await runtime.operation({
         logger,
-        name: "DigestArtifact.writeJson",
-        input: "meeting-digest-integrated.json",
+        name: "DigestArtifact.write",
+        input: { format: "json", name: "meeting-digest-integrated.json" },
         run: () => runtime.saveArtifact("meeting-digest-integrated.json", digest),
       });
       const markdownPath = await runtime.operation({
         logger,
-        name: "DigestArtifact.writeMarkdown",
-        input: "meeting-digest-integrated.md",
+        name: "DigestArtifact.write",
+        input: { format: "markdown", name: "meeting-digest-integrated.md" },
         run: () => runtime.saveArtifact("meeting-digest-integrated.md", formatDigestMarkdown(digest)),
       });
       return { artifactPath, markdownPath, ...digest };

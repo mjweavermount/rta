@@ -20,6 +20,11 @@
       "id": "ReviewableDigestJob",
       "extends": "T3.Archetype.JobProcessor",
       "description": "Concrete job processor that produces digest artifacts and review queue items."
+    },
+    {
+      "id": "DigestArtifact",
+      "extends": "T1.Artifact",
+      "description": "Concrete JSON and Markdown digest artifacts written for review."
     }
   ],
   "useCases": [
@@ -104,6 +109,13 @@
       {
         "for": "ReviewableDigestJob",
         "operation": "ReviewableDigestJob.materialize",
+        "requiredEvents": ["start", "complete", "failed"],
+        "summaries": ["input", "output"],
+        "detailAt": ["high", "trace"]
+      },
+      {
+        "for": "DigestArtifact",
+        "operation": "DigestArtifact.write",
         "requiredEvents": ["start", "complete", "failed"],
         "summaries": ["input", "output"],
         "detailAt": ["high", "trace"]
