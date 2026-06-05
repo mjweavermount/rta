@@ -1,7 +1,7 @@
 kind: Capability
 id: local-extensions-upstreaming
 name: LocalExtensionsUpstreaming
-status: in-progress
+status: demo-covered
 why: App authors need low-friction local vocabulary and pattern extensions without losing a clean upstreaming path.
 ownedBy:
   internal: rta-platform
@@ -10,6 +10,11 @@ demonstratedBy:
   - command: rta extensions list
   - command: rta check --extensions-local
   - command: rta check --extensions-upstreamable
+qaSteps:
+  - do: run node scripts/rta.mjs extensions list
+  - do: run node scripts/rta.mjs check --extensions-local
+  - do: run node scripts/rta.mjs check --extensions-upstreamable
+  - see: local extensions are concrete and upstream candidates declare upstream requirements
 requires:
   - VocabArdCliSkeleton
   - TierContracts

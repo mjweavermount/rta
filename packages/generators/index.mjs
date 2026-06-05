@@ -89,7 +89,7 @@ export function generateDerivationBundle({ root, app }) {
     "derivation-manifest.json": generatedJson({ policy: "always-regenerated", hash, source: "deriveAll", content: { app: app.name, files: [] } }),
     "obligations.json": generatedJson({ policy: "always-regenerated", hash, source: "deriveObligations", content: all.obligations }),
     "telemetry.json": generatedJson({ policy: "always-regenerated", hash, source: "deriveTelemetry", content: all.telemetry }),
-    "log-ceremonies.json": generatedJson({ policy: "always-regenerated", hash, source: "deriveLogCeremonies", content: all.logCeremonies }),
+    "operation-logs.json": generatedJson({ policy: "always-regenerated", hash, source: "deriveOperationLogs", content: all.operationLogs }),
     "review-gates.json": generatedJson({ policy: "always-regenerated", hash, source: "deriveReviewGates", content: all.reviewGates }),
     "use-case-obligations.json": generatedJson({ policy: "always-regenerated", hash, source: "deriveUseCaseObligations", content: all.useCaseObligations }),
     "scenario-coverage.json": generatedJson({ policy: "always-regenerated", hash, source: "deriveScenarioCoverage", content: all.scenarioCoverage }),
@@ -132,7 +132,7 @@ export function expectedGeneratedBundle(app) {
   const files = {
     "obligations.json": generatedJson({ policy: "always-regenerated", hash, source: "deriveObligations", content: all.obligations }),
     "telemetry.json": generatedJson({ policy: "always-regenerated", hash, source: "deriveTelemetry", content: all.telemetry }),
-    "log-ceremonies.json": generatedJson({ policy: "always-regenerated", hash, source: "deriveLogCeremonies", content: all.logCeremonies }),
+    "operation-logs.json": generatedJson({ policy: "always-regenerated", hash, source: "deriveOperationLogs", content: all.operationLogs }),
     "review-gates.json": generatedJson({ policy: "always-regenerated", hash, source: "deriveReviewGates", content: all.reviewGates }),
     "use-case-obligations.json": generatedJson({ policy: "always-regenerated", hash, source: "deriveUseCaseObligations", content: all.useCaseObligations }),
     "scenario-coverage.json": generatedJson({ policy: "always-regenerated", hash, source: "deriveScenarioCoverage", content: all.scenarioCoverage }),

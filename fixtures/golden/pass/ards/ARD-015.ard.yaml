@@ -1,0 +1,10 @@
+id: GOLDEN-ARD-015
+kind: letter
+family: fixture
+name: Golden fixture execution telemetry coverage
+spirit: [GOLDEN-ARD-000]
+severity: error
+checks:
+  - description: execution telemetry markers covered
+    command: node ../../../packages/cli/dist/rta.js check --execution-telemetry --root .
+

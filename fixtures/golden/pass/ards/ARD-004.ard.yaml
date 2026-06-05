@@ -1,0 +1,9 @@
+id: GOLDEN-ARD-004
+kind: letter
+family: fixture
+name: Golden fixture reaction coverage
+spirit: [GOLDEN-ARD-000]
+severity: error
+checks:
+  - description: reactions coverage
+    command: node ../../../packages/cli/dist/rta.js coverage --kind reactions --root .

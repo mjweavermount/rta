@@ -1,0 +1,24 @@
+kind: BoundedContext
+name: Example
+classification: supporting
+description: Minimal context for obligation coverage failure.
+
+aggregates:
+  - name: Thing
+    description: Tiny aggregate for obligation checks.
+    id: { name: ThingId, backing: UUID }
+    rules:
+      - name: ThingMustBeReady
+        description: Thing must be ready.
+        violation: ThingNotReady
+        pattern: guard
+        implementation:
+          shape: state-precondition
+
+decisions:
+  - name: ThingStateDecision
+    description: Classifies thing state.
+    outcomes: [Ready, Blocked]
+    pattern: lifecycle
+    implementation:
+      shape: predicate-chain

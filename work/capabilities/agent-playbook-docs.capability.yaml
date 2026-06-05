@@ -1,7 +1,7 @@
 kind: Capability
 id: agent-playbook-docs
 name: AgentPlaybookDocs
-status: in-progress
+status: demo-covered
 why: Agents need the right information at the right level so they can author apps through RTA without rediscovering the philosophy or rules every time.
 ownedBy:
   internal: rta-platform
@@ -10,6 +10,11 @@ demonstratedBy:
   - doc: AGENTS.md
   - doc: docs/README.md
   - doc: docs/demos/README.md
+qaSteps:
+  - do: read AGENTS.md
+  - do: read docs/README.md
+  - do: read docs/demos/README.md
+  - see: agent entry points describe repo orientation, checks, demo paths, and current RTA rules
 requires:
   - RepoBootstrap
   - WorkLedger

@@ -1,0 +1,10 @@
+kind: BoundedContext
+name: Example
+classification: supporting
+description: Minimal context missing a decision shape.
+
+decisions:
+  - name: MissingShapeDecision
+    description: Decision without implementation shape.
+    outcomes: [Allowed, Denied]
+    pattern: classifier

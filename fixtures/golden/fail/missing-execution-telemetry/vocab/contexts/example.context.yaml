@@ -1,0 +1,15 @@
+kind: BoundedContext
+name: Example
+classification: supporting
+
+aggregates:
+  - name: Order
+    id: { name: OrderId, backing: UUID }
+    rules:
+      - name: OrderMustBeOpen
+        description: Order must be open
+        violation: OrderNotOpen
+        pattern: guard
+        implementation:
+          shape: state-precondition
+

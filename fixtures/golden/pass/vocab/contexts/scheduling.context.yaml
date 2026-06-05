@@ -1,0 +1,106 @@
+kind: BoundedContext
+name: Scheduling
+classification: core-domain
+description: Scheduling tracks slot availability and booking flow state for the golden fixture.
+guidance: Use this context to exercise guard rules, availability rules, lifecycle decisions, and process manager coverage in one bounded context.
+
+aggregates:
+  - name: Slot
+    description: A bookable slot that can be opened, booked, and released.
+    guidance: Commands in this aggregate drive the scheduler archetype binding and provide guard plus availability examples.
+    id: { name: SlotId, backing: UUID }
+    rules:
+      - name: SlotMustBeOpen
+        description: BookSlot is only valid when the slot is open.
+        violation: SlotNotOpen
+        pattern: guard
+        implementation:
+          shape: state-precondition
+      - name: SlotNotAlreadyBooked
+        description: BookSlot is only valid when no booking currently owns the slot.
+        violation: SlotAlreadyBooked
+        pattern: availability
+        implementation:
+          shape: exclusivity
+    commands:
+      - name: OpenSlot
+        description: Open a new slot for booking.
+        guidance: Used by fixture setup and generated code typecheck coverage.
+        payload:
+          - { name: startTime, type: String }
+        emits: [SlotOpened]
+      - name: BookSlot
+        description: Claim an open slot for a booking.
+        guidance: Exercises guard and availability rules and feeds Billing reactions.
+        payload:
+          - { name: slotId, type: SlotId }
+          - { name: bookingId, type: String }
+        emits: [SlotBooked]
+      - name: ReleaseSlot
+        description: Return a claimed slot to open state.
+        guidance: Used by the process manager and reaction fixtures when billing fails.
+        payload:
+          - { name: slotId, type: SlotId }
+        emits: [SlotReleased]
+    events:
+      - name: SlotOpened
+        description: A slot has entered the open state.
+        guidance: Used by read models and as a basic generated event example.
+        payload:
+          - { name: slotId, type: SlotId }
+      - name: SlotBooked
+        description: A slot has been claimed by a booking.
+        guidance: Triggers billing reactions and starts the process manager flow.
+        payload:
+          - { name: slotId, type: SlotId }
+          - { name: bookingId, type: String }
+      - name: SlotReleased
+        description: A previously claimed slot has been released.
+        guidance: Used as the scheduler archetype release event and as a lifecycle edge.
+        payload:
+          - { name: slotId, type: SlotId }
+
+decisions:
+  - name: SlotLifecycleDecision
+    description: Classifies a slot into its lifecycle phase for routing and UI state.
+    input:
+      - { name: status, type: String }
+    outcomes: [open, booked, released]
+    pattern: lifecycle
+    implementation:
+      shape: predicate-chain
+
+processManagers:
+  - name: BookingFlowManager
+    description: Coordinates billing follow-up for booked slots.
+    pattern: saga
+    implementation:
+      shape: linear-flow
+    id: { name: BookingFlowManagerId, backing: UUID }
+    trigger:
+      event: SlotBooked
+      from: Scheduling
+    state:
+      - { name: slotId, type: SlotId }
+      - { name: invoiceCreated, type: Boolean }
+    transitions:
+      - on: InvoiceCreated
+        emits: []
+      - on: InvoiceFailed
+        emits: [ReleaseSlot]
+        terminal: true
+
+queries:
+  - name: GetSlot
+    description: Retrieve the current slot projection.
+    guidance: Used to exercise query generation and lint metadata coverage.
+    parameters:
+      - { name: slotId, type: SlotId }
+    returns: SlotReadModel
+
+readModels:
+  - name: SlotReadModel
+    description: Read model representation of a slot for UI and query use.
+    fields:
+      - { name: slotId, type: SlotId }
+      - { name: status, type: String }

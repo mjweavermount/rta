@@ -1,0 +1,79 @@
+kind: BoundedContext
+name: Billing
+classification: supporting
+description: Billing provides generic rules, classifier decisions, and reactions for the golden fixture.
+guidance: Use this context to exercise decision implementation shapes and reaction coverage with minimal domain noise.
+
+aggregates:
+  - name: Invoice
+    description: A lightweight invoice aggregate used to trigger billing decisions and reactions.
+    guidance: The aggregate is intentionally tiny; its job is to keep the fixture focused on correctness mechanics.
+    id: { name: InvoiceId, backing: UUID }
+    rules:
+      - name: InvoiceAmountMustBePositive
+        description: Invoice creation requires a strictly positive amount.
+        violation: InvoiceAmountInvalid
+        implementation:
+          shape: predicate
+    commands:
+      - name: CreateInvoice
+        description: Create an invoice for a booked slot.
+        guidance: Triggered by the Billing connection reactions when Scheduling emits SlotBooked.
+        payload:
+          - { name: slotId, type: String }
+          - { name: amountCents, type: Int }
+        emits: [InvoiceCreated]
+      - name: FailInvoice
+        description: Mark an invoice as failed.
+        guidance: Used to exercise reaction wiring back to Scheduling via ReleaseSlot.
+        payload:
+          - { name: invoiceId, type: InvoiceId }
+          - { name: reason, type: String }
+        emits: [InvoiceFailed]
+    events:
+      - name: InvoiceCreated
+        description: An invoice has been created.
+        guidance: Used by the BookingFlowManager transition and as a reaction source.
+        payload:
+          - { name: invoiceId, type: InvoiceId }
+          - { name: slotId, type: String }
+          - { name: amountCents, type: Int }
+      - name: InvoiceFailed
+        description: An invoice has failed.
+        guidance: Triggers the release-slot reaction and closes the process manager flow.
+        payload:
+          - { name: invoiceId, type: InvoiceId }
+          - { name: reason, type: String }
+
+decisions:
+  - name: InvoiceRiskBandDecision
+    description: Classifies invoice risk using amount buckets.
+    input:
+      - { name: amountCents, type: Int }
+    outcomes: [Low, Medium, High]
+    pattern: classifier
+    implementation:
+      shape: numeric-buckets
+  - name: InvoiceChannelDecision
+    description: Chooses a fulfillment channel based on a billing mode label.
+    input:
+      - { name: billingMode, type: String }
+    outcomes: [Email, Sms, Manual]
+    pattern: classifier
+    implementation:
+      shape: lookup-table
+
+queries:
+  - name: GetInvoice
+    description: Retrieve the current invoice projection.
+    guidance: Used to exercise query generation and lint metadata coverage for Billing.
+    parameters:
+      - { name: invoiceId, type: InvoiceId }
+    returns: InvoiceReadModel
+
+readModels:
+  - name: InvoiceReadModel
+    description: Read model representation of an invoice for UI and query use.
+    fields:
+      - { name: invoiceId, type: InvoiceId }
+      - { name: status, type: String }

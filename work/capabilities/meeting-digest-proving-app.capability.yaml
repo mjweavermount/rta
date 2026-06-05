@@ -1,19 +1,25 @@
 kind: Capability
 id: meeting-digest-proving-app
 name: MeetingDigestProvingApp
-status: in-progress
+status: demo-covered
 why: The first proving app should exercise RTA against a real workflow without becoming part of RTA core.
 ownedBy:
   internal: rta-platform
   plane: LAB-40
 demonstratedBy:
-  - app: meeting digest scenario
+  - app: meeting digest proving fixture
+  - command: node examples/meeting-digest-seed/bin/meeting-digest.mjs scenario run approved-digest-publishes-work-items --review --high
   - artifact: review-ready digest output
+qaSteps:
+  - do: run node examples/meeting-digest-seed/bin/meeting-digest.mjs scenario run approved-digest-publishes-work-items --review --high
+  - see: the proving app emits a reviewable digest, extracted work items, logs, and provenance artifacts
+  - see: this proves the local fixture app, not a live Otter/AFFiNE/Plane pipeline
 requires:
   - GeneratedAppCliRuntimeWiring
   - ReviewIdentityApproval
   - ObservabilityLogQaGrafana
 produces:
-  - proving-apps/meeting-digest
+  - examples/meeting-digest
+  - examples/meeting-digest-seed
   - transcript topic digest
   - extracted feature automation research tasks

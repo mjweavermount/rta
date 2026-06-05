@@ -1,0 +1,10 @@
+id: GOLDEN-ARD-000
+kind: spirit
+family: fixture
+name: Broken fixture ARD metadata
+spirit:
+  - docs/golden-fixture-spec.md#required-check-matrix
+severity: error
+checks: []
+letters:
+  - GOLDEN-ARD-001

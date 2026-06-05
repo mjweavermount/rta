@@ -2,16 +2,17 @@ kind: Feature
 id: rta-prod-05-generators-generated-sync
 name: RtaProd05GeneratorsGeneratedSync
 status: demo-covered
-why: RTA must generate scaffolds, tests, telemetry expectations, log ceremonies, review gates, and app docs with derivation hashes and drift checks.
+why: RTA must generate scaffolds, tests, telemetry expectations, operation event contracts, review gates, and app docs with derivation hashes and drift checks.
 ownedBy:
   internal: rta-platform
 demonstratedBy:
   - command: rta generate
   - command: rta check --generated-sync
 qaSteps:
-  - run: node scripts/rta.mjs generate
-  - run: node scripts/rta.mjs check --generated-sync
-  - run: npm run check -- --test-name-pattern generated-sync
+  - do: node scripts/rta.mjs generate
+  - do: node scripts/rta.mjs check --generated-sync
+  - do: run node --test tests/platform.test.mjs
+  - see: RtaProd05GeneratorsGeneratedSync produces visible evidence or a successful check result
 requires:
   - RtaProd04DerivationEngine
 produces:

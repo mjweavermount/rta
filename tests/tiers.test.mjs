@@ -1,8 +1,10 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import {
+  bloomContract,
+  bloomVocabulary,
   coreTierContracts,
-  requiredCeremonyOperationsFor,
+  requiredOperationEventsFor,
   validateArchetypeBindings,
   validateConcreteVocabulary,
   validatePatternContracts,
@@ -25,10 +27,10 @@ test("tier checks reject unknown parent contracts and weak concrete vocabulary",
       description: "bad pattern",
       obligations: ["BadObligation"],
       requiredConcreteFields: ["id"],
-      requiredCeremonyOperations: [],
+      requiredOperationEvents: [],
     },
   ];
-  assert.match(validateTierContracts(badContracts).join("\n"), /unknown contract|ceremony operations|concrete descriptions/);
+  assert.match(validateTierContracts(badContracts).join("\n"), /unknown contract|operation events|concrete descriptions/);
 
   const errors = validateConcreteVocabulary({
     app: { vocabulary: [{ id: "BadConcrete", extends: "T2.Pattern.TopicSegmentation" }] },
@@ -47,7 +49,7 @@ test("pattern and archetype checks reject invalid bindings", () => {
       description: "invalid pattern",
       obligations: ["Invalid"],
       requiredConcreteFields: ["id", "extends", "description"],
-      requiredCeremonyOperations: ["run"],
+      requiredOperationEvents: ["run"],
     },
   ]);
   assert.match(patternErrors.join("\n"), /can only extend primitives/);
@@ -62,13 +64,13 @@ test("pattern and archetype checks reject invalid bindings", () => {
       description: "invalid archetype",
       obligations: ["GenericOnly"],
       requiredConcreteFields: ["id", "extends", "description"],
-      requiredCeremonyOperations: ["run"],
+      requiredOperationEvents: ["run"],
     },
   ]);
   assert.match(archetypeErrors.join("\n"), /role-specific obligations/);
 });
 
-test("tier contracts derive required ceremony operation names for app vocabulary", () => {
+test("tier contracts derive required operation event names for app vocabulary", () => {
   const app = {
     vocabulary: [
       { id: "TranscriptInput", extends: "T1.Input", description: "input" },
@@ -76,9 +78,50 @@ test("tier contracts derive required ceremony operation names for app vocabulary
       { id: "DigestArtifact", extends: "T1.Artifact", description: "artifact" },
     ],
   };
-  assert.deepEqual(requiredCeremonyOperationsFor(app).map((item) => item.operation), [
+  assert.deepEqual(requiredOperationEventsFor(app).map((item) => item.operation), [
     "TranscriptInput.read",
+    "TopicSegmenter.read",
     "TopicSegmenter.segment",
     "DigestArtifact.write",
   ]);
+});
+
+test("tier blooming carries inherited obligations, fields, and operations", () => {
+  const bloom = bloomContract("T2.Pattern.TopicSegmentation");
+  assert.deepEqual(bloom.chain.map((item) => item.id), ["T1.Input", "T2.Pattern.TopicSegmentation"]);
+  assert.ok(bloom.obligations.includes("InputIsValidated"));
+  assert.ok(bloom.obligations.includes("TopicLoopbacksAreHandled"));
+  assert.deepEqual(bloom.requiredOperationEvents, ["read", "segment"]);
+
+  const [entry] = bloomVocabulary({
+    vocabulary: [{ id: "TopicSegmenter", extends: "T2.Pattern.TopicSegmentation", description: "topic segmenter" }],
+  });
+  assert.equal(entry.vocabularyId, "TopicSegmenter");
+  assert.deepEqual(entry.bloom.requiredConcreteFields, ["id", "extends", "description"]);
+});
+
+test("tier checks reject circular tier blooms", () => {
+  const errors = validateTierContracts([
+    {
+      id: "T1.A",
+      tier: "T1",
+      kind: "primitive",
+      extends: ["T1.B"],
+      description: "cycle a",
+      obligations: ["A"],
+      requiredConcreteFields: ["id", "description"],
+      requiredOperationEvents: ["a"],
+    },
+    {
+      id: "T1.B",
+      tier: "T1",
+      kind: "primitive",
+      extends: ["T1.A"],
+      description: "cycle b",
+      obligations: ["B"],
+      requiredConcreteFields: ["id", "description"],
+      requiredOperationEvents: ["b"],
+    },
+  ]);
+  assert.match(errors.join("\n"), /cycle detected/);
 });

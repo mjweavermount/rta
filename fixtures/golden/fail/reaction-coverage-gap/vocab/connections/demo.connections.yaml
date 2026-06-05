@@ -1,0 +1,8 @@
+kind: Connections
+context: Demo
+
+reactions:
+  - name: MissingReactionImplementation
+    trigger: { event: SomethingHappened }
+    emits:
+      - { command: DoSomething, to: Demo }

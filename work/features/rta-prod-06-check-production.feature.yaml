@@ -2,16 +2,17 @@ kind: Feature
 id: rta-prod-06-check-production
 name: RtaProd06CheckProduction
 status: demo-covered
-why: Local checks may warn, but production checks must fail on missing obligations, stale generation, unsafe connectors, missing review gates, and missing log ceremonies.
+why: Local checks may warn, but production checks must fail on missing obligations, stale generation, unsafe connectors, missing review gates, and missing operation event contracts.
 ownedBy:
   internal: rta-platform
 demonstratedBy:
   - command: rta check --production
   - fixture: bad production app fails
 qaSteps:
-  - run: node scripts/rta.mjs generate
-  - run: node scripts/rta.mjs check --production
-  - run: npm run check
+  - do: node scripts/rta.mjs generate
+  - do: node scripts/rta.mjs check --production
+  - do: run pnpm check
+  - see: RtaProd06CheckProduction produces visible evidence or a successful check result
 requires:
   - RtaProd04DerivationEngine
   - RtaProd05GeneratorsGeneratedSync

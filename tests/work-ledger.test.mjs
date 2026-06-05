@@ -9,6 +9,8 @@ test("work ledger loads current capabilities", () => {
   const items = loadWorkLedger(root);
   assert.ok(items.length >= 16);
   assert.ok(items.every((item) => item.id));
+  assert.ok(items.every((item) => item.qaSteps?.some((step) => step.startsWith("do:"))));
+  assert.ok(items.every((item) => item.qaSteps?.some((step) => step.startsWith("see:"))));
   assert.ok(items.some((item) => item.id === "meeting-digest-proving-app"));
 });
 

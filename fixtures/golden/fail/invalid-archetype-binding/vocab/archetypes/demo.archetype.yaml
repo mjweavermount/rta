@@ -1,0 +1,7 @@
+kind: ArchetypeInstance
+archetype: simple
+context: Demo
+bindings:
+  - role: claim-event
+    event: MissingEvent
+    from: Demo

@@ -1,7 +1,7 @@
 kind: Capability
 id: runtime-ports
 name: RuntimePorts
-status: in-progress
+status: demo-covered
 why: RTA needs storage, queue, artifact, clock, and run-state ports so local, scenario, and production execution share one wiring model.
 ownedBy:
   internal: rta-platform
@@ -9,11 +9,16 @@ ownedBy:
 demonstratedBy:
   - integration: scenario replay stores and reloads a run
   - command: rta check --runtime-wiring
+  - command: generated app status
+  - command: generated app graph run
+qaSteps:
+  - do: run node --test tests/cli.test.mjs
+  - do: run pnpm check:sample-app-loop
+  - see: run state, artifacts, logs, provenance graph, and review records are stored and replayed through the same runtime surface
 requires:
   - UseCaseScenarioCoverage
 produces:
   - packages/runtime
-  - packages/scheduler
   - storage port
   - queue port
   - artifact port

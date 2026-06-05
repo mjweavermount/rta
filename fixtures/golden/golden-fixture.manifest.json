@@ -1,0 +1,38 @@
+{
+  "version": 1,
+  "required_cli_commands": [
+    "init",
+    "context",
+    "check",
+    "generate",
+    "lint",
+    "coverage",
+    "test-policy"
+  ],
+  "required_coverage_kinds": [
+    "rules",
+    "decisions",
+    "reactions",
+    "pm"
+  ],
+  "required_check_modes": [
+    "ard-meta",
+    "generated-sync",
+    "telemetry-sync",
+    "decision-shapes",
+    "rule-shapes",
+    "obligation-coverage",
+    "execution-telemetry",
+    "operation-event",
+    "primitive-boundaries",
+    "production",
+    "pattern-specs",
+    "pattern-contracts",
+    "archetype-specs",
+    "archetype-bindings"
+  ],
+  "future_cli_checks": [
+    "dep-cruise",
+    "eslint-architecture"
+  ]
+}

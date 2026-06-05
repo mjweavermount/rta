@@ -1,14 +1,18 @@
 kind: Capability
 id: end-to-end-demo-harness
 name: EndToEndDemoHarness
-status: in-progress
+status: demo-covered
 why: RTA needs a single experiential proof that generated app pieces work together rather than only existing as isolated modules.
 ownedBy:
   internal: rta-platform
   plane: LAB-47
 demonstratedBy:
-  - command: rta demo run
-  - app: smallest full RTA-authored app loop
+  - command: pnpm check:sample-app-loop
+  - app: generated RTA-authored app loop
+  - integration: generated app install, generate, build, watch, status, logs, graph, review
+qaSteps:
+  - do: run pnpm check:sample-app-loop
+  - see: the generated app installs, generates, builds, watches a scenario, tails logs, renders a graph, and approves review
 requires:
   - GeneratedAppCliRuntimeWiring
   - RuntimePorts

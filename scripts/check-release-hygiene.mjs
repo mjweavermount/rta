@@ -15,7 +15,7 @@ if (!pkg.exports?.["."]) errors.push("package must expose root export");
 for (const requiredScript of ["check", "check:production", "check:release", "audit", "doctor"]) {
   if (!pkg.scripts?.[requiredScript]) errors.push(`package missing script ${requiredScript}`);
 }
-for (const requiredFile of ["package-lock.json", ".github/workflows/checks.yml", "packages/index.mjs"]) {
+for (const requiredFile of ["pnpm-lock.yaml", ".github/workflows/checks.yml", "packages/index.mjs"]) {
   if (!existsSync(join(root, requiredFile))) errors.push(`missing ${requiredFile}`);
 }
 

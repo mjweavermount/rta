@@ -9,6 +9,9 @@ ownedBy:
 demonstratedBy:
   - doc: docs/demos/lab-34-bootstrap-repo-demo.md
   - doc: docs/demos/rta-demo-coverage-map.md
+qaSteps:
+  - do: run or inspect the demonstrated evidence for RepoBootstrap
+  - see: RepoBootstrap has visible command, doc, artifact, or integration evidence
 requires:
   - ProductionSpec
 produces:

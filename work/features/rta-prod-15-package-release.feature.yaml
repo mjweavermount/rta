@@ -6,13 +6,14 @@ why: RTA needs credible package, CI, release, dependency, and vulnerability hygi
 ownedBy:
   internal: rta-platform
 demonstratedBy:
-  - command: npm audit
+  - command: pnpm audit --audit-level high
   - command: rta doctor
 qaSteps:
-  - run: npm run check:release
-  - run: npm run doctor
-  - run: npm run audit
-  - run: npm run check:production
+  - do: run pnpm check:release
+  - do: run pnpm doctor
+  - do: run pnpm audit
+  - do: run pnpm check:production
+  - see: RtaProd15PackageRelease produces visible evidence or a successful check result
 requires:
   - CiPackageReleaseHygiene
 produces:

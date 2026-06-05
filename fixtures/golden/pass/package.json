@@ -1,0 +1,8 @@
+{
+  "name": "@rta-fixtures/golden-pass",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  }
+}

@@ -36,7 +36,7 @@ test("cli lists work and explains meeting digest obligation", () => {
   assert.match(rta(["check", "--scenario-runtime-parity"]), /passed/);
   assert.match(rta(["check", "--hosting-package"]), /passed/);
   assert.match(rta(["check", "--telemetry-coverage"]), /passed/);
-  assert.match(rta(["check", "--log-ceremony"]), /passed/);
+  assert.match(rta(["check", "--operation-logging"]), /passed/);
   assert.match(rta(["check", "--security"]), /passed/);
   assert.match(rta(["check", "--all"]), /All implemented RTA checks passed/);
 });
@@ -78,7 +78,7 @@ test("generated-style meeting digest cli runs v2 through rta", () => {
   assert.match(out, /review=/);
 });
 
-test("scenario watch streams trace ceremony logs in the terminal", () => {
+test("scenario watch streams trace operation logs in the terminal", () => {
   const out = rta(["scenario", "watch", "meeting-digest.integrated.fixture", "--input", "tests/fixtures/custom-transcript.txt"]);
   assert.match(out, /#1 scenario\.meeting-digest\.integrated\.fixture\.start/);
   assert.match(out, /at=/);

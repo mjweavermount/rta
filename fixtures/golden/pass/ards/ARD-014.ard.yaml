@@ -1,0 +1,9 @@
+id: GOLDEN-ARD-014
+kind: letter
+family: fixture
+name: Golden fixture obligation coverage
+spirit: [GOLDEN-ARD-000]
+severity: error
+checks:
+  - description: rule and decision obligations covered
+    command: node ../../../packages/cli/dist/rta.js check --obligation-coverage --root .

@@ -134,7 +134,7 @@ function topicTitle(key) {
   return {
     "rta-authoring": "RTA authoring platform",
     "meeting-digest": "Meeting digest workflow",
-    logging: "Logging ceremony and run visibility",
+    logging: "Operation logging and run visibility",
     "monitoring-provenance": "Monitoring and provenance UI",
     "review-publication": "Review gates and publication adapters",
     general: "General discussion",

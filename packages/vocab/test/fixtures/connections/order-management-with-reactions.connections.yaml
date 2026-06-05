@@ -1,0 +1,33 @@
+kind: Connections
+context: OrderManagement
+
+publishes:
+  - event: OrderPlaced
+    to: [ShippingContext, InventoryContext]
+  - event: OrderCancelled
+    to: [InventoryContext]
+
+subscribes:
+  - { event: PaymentConfirmed,  from: PaymentContext }
+  - { event: InventoryReserved, from: InventoryContext }
+
+reactions:
+  - name: ReserveInventoryOnOrderPlaced
+    description: When an order is placed, immediately request inventory reservation
+    pattern: command-emitter
+    trigger:
+      event: OrderPlaced
+    implementation:
+      shape: single-dispatch
+    emits:
+      - { command: ReserveInventory, to: InventoryContext }
+
+  - name: NotifyOnOrderCancelled
+    pattern: notification
+    trigger:
+      event: OrderCancelled
+    implementation:
+      shape: fan-out
+    emits:
+      - { command: SendCancellationEmail, to: NotificationsContext }
+      - { command: ReleaseInventory,      to: InventoryContext }

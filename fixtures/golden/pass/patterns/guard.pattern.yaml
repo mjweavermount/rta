@@ -1,0 +1,11 @@
+kind: PatternSpec
+name: guard
+requiredPrimitives: [Rule]
+testingContract:
+  extends: rule-two-case
+  adds:
+    - valid-pre-state: construct aggregate in the required pre-state — rule passes
+    - wrong-state: construct aggregate outside the pre-state — fails with declared violation tag
+vocabHint: Rule name follows {Aggregate}Must{Be|Have|...} shape
+visualConcepts: [precondition, gate, state-check, permit, block]
+narrativeLabel: "(guard) {name} — permits when {description}"

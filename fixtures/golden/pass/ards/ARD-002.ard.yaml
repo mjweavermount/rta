@@ -1,0 +1,9 @@
+id: GOLDEN-ARD-002
+kind: letter
+family: fixture
+name: Golden fixture rule coverage
+spirit: [GOLDEN-ARD-000]
+severity: error
+checks:
+  - description: rules coverage
+    command: node ../../../packages/cli/dist/rta.js coverage --kind rules --root .

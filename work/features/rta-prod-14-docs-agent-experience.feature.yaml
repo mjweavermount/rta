@@ -9,10 +9,11 @@ demonstratedBy:
   - doc: docs/spec-to-ticket-backlog.md
   - source/doc acceptance: future root and generated app AGENTS.md
 qaSteps:
-  - read AGENTS.md
-  - read examples/meeting-digest-seed/AGENTS.md
-  - read docs/rta-production-achievements-and-qa.md
-  - run: npm run check -- --test-name-pattern "agent docs"
+  - do: read AGENTS.md
+  - do: read examples/meeting-digest-seed/AGENTS.md
+  - do: read docs/rta-production-achievements-and-qa.md
+  - do: run node --test tests/platform.test.mjs
+  - see: RtaProd14DocsAgentExperience produces visible evidence or a successful check result
 requires:
   - AgentPlaybookDocs
 produces:

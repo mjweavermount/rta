@@ -1,0 +1,9 @@
+id: GOLDEN-ARD-010
+kind: letter
+family: fixture
+name: Golden fixture pattern contracts
+spirit: [GOLDEN-ARD-000]
+severity: error
+checks:
+  - description: pattern contracts valid
+    command: node ../../../packages/cli/dist/rta.js check --pattern-contracts --root .

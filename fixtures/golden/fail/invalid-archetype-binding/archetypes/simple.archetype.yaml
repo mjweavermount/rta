@@ -1,0 +1,12 @@
+kind: ArchetypeSpec
+name: simple
+description: Minimal archetype spec for failure testing.
+requiredPatterns: []
+inputRoles:
+  - name: claim-event
+    description: Required input role
+outputRoles: []
+testPlan:
+  - claim: claim role is bound
+visualGuidance: Minimal guidance
+narrativeLabel: "(archetype: simple) {context}"

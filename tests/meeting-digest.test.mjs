@@ -6,7 +6,7 @@ import test from "node:test";
 import { digestTranscriptV1 } from "../examples/meeting-digest-seed/meeting-digest-v1.mjs";
 import { digestTranscriptV2, formatDigestMarkdown } from "../examples/meeting-digest-seed/meeting-digest-v2.mjs";
 import { digestTranscriptIntegrated, integrateDigest, workItemSpecsFromDigest } from "../examples/meeting-digest-seed/meeting-digest-integrated.mjs";
-import { checkApp, checkBoundaryCoverage, checkConnectorSafety, checkIntegrationContracts, checkLogCeremony, checkReviewGates, checkScenarioCoverage, checkUseCases } from "../packages/checks/index.mjs";
+import { checkApp, checkBoundaryCoverage, checkConnectorSafety, checkIntegrationContracts, checkOperationLogging, checkReviewGates, checkScenarioCoverage, checkUseCases } from "../packages/checks/index.mjs";
 
 const transcript = readFileSync(new URL("../examples/meeting-digest-seed/transcript.txt", import.meta.url), "utf8");
 
@@ -28,12 +28,12 @@ test("meeting digest v2 merges loopback topics and preserves touchstones", () =>
 test("meeting digest app declaration is contract-valid", () => {
   const root = new URL("..", import.meta.url).pathname;
   assert.deepEqual(checkApp({ root, appDir: "examples/meeting-digest-seed" }), []);
-  assert.deepEqual(checkLogCeremony({ root, appDir: "examples/meeting-digest-seed" }), []);
+  assert.deepEqual(checkOperationLogging({ root, appDir: "examples/meeting-digest-seed" }), []);
   assert.ok(existsSync(new URL("../examples/meeting-digest-seed/rta.app.json", import.meta.url)));
 });
 
-test("log ceremony check fails when declared vocabulary lacks operation ceremonies", () => {
-  const root = join(tmpdir(), `rta-log-ceremony-${Date.now()}`);
+test("operation logging check fails when declared vocabulary lacks operation events", () => {
+  const root = join(tmpdir(), `rta-operation-log-${Date.now()}`);
   const appDir = join(root, "app");
   mkdirSync(appDir, { recursive: true });
   writeFileSync(join(appDir, "rta.app.json"), JSON.stringify({
@@ -44,12 +44,12 @@ test("log ceremony check fails when declared vocabulary lacks operation ceremoni
     boundaries: [],
     logging: {
       humanReadableTemplate: "[{runId}] {step} actor={actor} input={input} output={output}",
-      ceremonies: [],
+      operationLogs: [],
     },
     publication: { requiresReview: true, adapters: ["dry-run-fixture"] },
     security: { inputPathPolicy: "repo-contained", redactSecrets: true, externalWritesRequireReview: true },
   }, null, 2));
-  assert.match(checkLogCeremony({ root, appDir: "app" }).join("\n"), /logging\.ceremonies/);
+  assert.match(checkOperationLogging({ root, appDir: "app" }).join("\n"), /logging\.operationLogs/);
 });
 
 test("coverage checks fail missing use case, scenario, boundary, and review contracts", () => {
@@ -64,7 +64,7 @@ test("coverage checks fail missing use case, scenario, boundary, and review cont
     boundaries: [{ from: "review", to: "publication", coveredBy: ["missing.fixture"] }],
     logging: {
       humanReadableTemplate: "[{runId}] {step} actor={actor} input={input} output={output}",
-      ceremonies: [{ for: "Input", operation: "Input.read", requiredEvents: ["start", "complete", "failed"], summaries: ["input", "output"] }],
+      operationLogs: [{ for: "Input", operation: "Input.read", requiredEvents: ["start", "complete", "failed"], summaries: ["input", "output"] }],
     },
     publication: { requiresReview: false, adapters: [] },
     security: { inputPathPolicy: "repo-contained", redactSecrets: true, externalWritesRequireReview: true },

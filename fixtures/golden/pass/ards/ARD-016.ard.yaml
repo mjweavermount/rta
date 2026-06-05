@@ -1,0 +1,10 @@
+id: GOLDEN-ARD-016
+kind: letter
+family: fixture
+name: Golden fixture telemetry sync
+spirit: [GOLDEN-ARD-000]
+severity: warn
+checks:
+  - description: generated telemetry files carry current vocab hash
+    command: node ../../../packages/cli/dist/rta.js check --telemetry-sync --root .
+

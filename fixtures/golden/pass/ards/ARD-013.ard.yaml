@@ -1,0 +1,9 @@
+id: GOLDEN-ARD-013
+kind: letter
+family: fixture
+name: Golden fixture rule shapes
+spirit: [GOLDEN-ARD-000]
+severity: error
+checks:
+  - description: rule shapes declared
+    command: node ../../../packages/cli/dist/rta.js check --rule-shapes --root .

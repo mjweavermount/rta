@@ -1,4 +1,4 @@
-import { contractById, coreTierContracts, requiredCeremonyOperationsFor } from "../tiers/index.mjs";
+import { bloomContract, coreTierContracts, requiredOperationEventsFor } from "../tiers/index.mjs";
 
 export function explainMeetingDigestObligation() {
   return explainDerivation("obligation:ReviewBeforePublication");
@@ -8,7 +8,7 @@ export function deriveAll(app, contracts = coreTierContracts) {
   return {
     obligations: deriveObligations(app, contracts),
     telemetry: deriveTelemetry(app),
-    logCeremonies: deriveLogCeremonies(app, contracts),
+    operationLogs: deriveOperationLogs(app, contracts),
     reviewGates: deriveReviewGates(app),
     useCaseObligations: deriveUseCaseObligations(app),
     scenarioCoverage: deriveScenarioCoverage(app),
@@ -19,21 +19,22 @@ export function deriveAll(app, contracts = coreTierContracts) {
 }
 
 export function deriveObligations(app, contracts = coreTierContracts) {
-  const byId = contractById(contracts);
   const derived = [];
   for (const vocab of app.vocabulary ?? []) {
-    const contract = byId.get(vocab.extends);
-    for (const obligation of contract?.obligations ?? []) {
-      derived.push(derivedItem({
-        id: `obligation:${vocab.id}:${obligation}`,
-        kind: "obligation",
-        sourceTier: contract.tier,
-        source: contract.id,
-        binding: vocab.id,
-        expectedGeneratedArtifact: `generated/obligations/${vocab.id}.${obligation}.test.mjs`,
-        requiredCheck: "rta check --obligation-coverage",
-        explanation: `${vocab.id} inherits ${obligation} from ${contract.id}.`,
-      }));
+    const inherited = bloomContract(vocab.extends, contracts);
+    for (const contract of inherited?.chain ?? []) {
+      for (const obligation of contract.obligations ?? []) {
+        derived.push(derivedItem({
+          id: `obligation:${vocab.id}:${obligation}`,
+          kind: "obligation",
+          sourceTier: contract.tier,
+          source: contract.id,
+          binding: vocab.id,
+          expectedGeneratedArtifact: `generated/obligations/${vocab.id}.${obligation}.test.mjs`,
+          requiredCheck: "rta check --obligation-coverage",
+          explanation: `${vocab.id} inherits ${obligation} from ${contract.id}.`,
+        }));
+      }
     }
   }
   if (app.publication?.requiresReview) {
@@ -54,9 +55,9 @@ export function deriveObligations(app, contracts = coreTierContracts) {
     sourceTier: "runtime",
     source: "logging.humanReadableTemplate",
     binding: app.name,
-    expectedGeneratedArtifact: "generated/logging/log-ceremonies.mjs",
-    requiredCheck: "rta check --log-ceremony",
-    explanation: "Runs must produce human-readable and structured ceremony logs.",
+    expectedGeneratedArtifact: "generated/logging/operation-logs.mjs",
+    requiredCheck: "rta check --operation-logging",
+    explanation: "Runs must produce human-readable and structured operation logs.",
   }));
   return uniqueById(derived);
 }
@@ -74,16 +75,16 @@ export function deriveTelemetry(app) {
   }));
 }
 
-export function deriveLogCeremonies(app, contracts = coreTierContracts) {
-  return requiredCeremonyOperationsFor(app, contracts).map((requirement) => derivedItem({
+export function deriveOperationLogs(app, contracts = coreTierContracts) {
+  return requiredOperationEventsFor(app, contracts).map((requirement) => derivedItem({
     id: `log:${requirement.operation}`,
-    kind: "log-ceremony",
+    kind: "operation-log",
     sourceTier: requirement.sourceContract.split(".")[0],
     source: requirement.sourceContract,
     binding: requirement.vocabularyId,
     operation: requirement.operation,
-    expectedGeneratedArtifact: `generated/logging/${requirement.operation}.ceremony.json`,
-    requiredCheck: "rta check --log-ceremony",
+    expectedGeneratedArtifact: `generated/logging/${requirement.operation}.operation-log.json`,
+    requiredCheck: "rta check --operation-logging",
     explanation: `${requirement.operation} must log start, complete, failed, input summary, and output summary.`,
   }));
 }
@@ -143,7 +144,7 @@ export function deriveBoundaryCoverage(app) {
 
 export function deriveProvenance(app) {
   return [
-    ...deriveLogCeremonies(app).map((item) => derivedItem({
+    ...deriveOperationLogs(app).map((item) => derivedItem({
       id: `provenance:${item.operation}`,
       kind: "provenance",
       sourceTier: item.sourceTier,
@@ -174,7 +175,7 @@ export function buildDerivationGraph(app) {
   const derived = [
     ...all.obligations,
     ...all.telemetry,
-    ...all.logCeremonies,
+    ...all.operationLogs,
     ...all.reviewGates,
     ...all.useCaseObligations,
     ...all.scenarioCoverage,

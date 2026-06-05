@@ -1,0 +1,11 @@
+kind: PatternSpec
+name: availability
+requiredPrimitives: [Rule]
+testingContract:
+  extends: rule-two-case
+  adds:
+    - unclaimed: resource is unclaimed — rule passes
+    - already-claimed: resource is already held — fails with declared violation tag
+vocabHint: Rule name follows {Resource}Not{Already|Currently}... shape
+visualConcepts: [exclusivity, claim, lock, contention, ownership]
+narrativeLabel: "(availability) {name} — exclusive on {description}"

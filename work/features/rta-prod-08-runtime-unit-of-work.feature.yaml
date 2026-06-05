@@ -10,10 +10,11 @@ demonstratedBy:
   - command: rta scenario replay
   - command: rta scheduler start --once
 qaSteps:
-  - run: node scripts/rta.mjs scenario run meeting-digest.integrated.fixture --input tests/fixtures/custom-transcript.txt --high
-  - run: node scripts/rta.mjs scenario replay <run-id>
-  - run: node scripts/rta.mjs queue enqueue meeting-digest.integrated.fixture --input tests/fixtures/custom-transcript.txt --review
-  - run: node scripts/rta.mjs scheduler start --once
+  - do: node scripts/rta.mjs scenario run meeting-digest.integrated.fixture --input tests/fixtures/custom-transcript.txt --high
+  - do: node scripts/rta.mjs scenario replay <run-id>
+  - do: node scripts/rta.mjs queue enqueue meeting-digest.integrated.fixture --input tests/fixtures/custom-transcript.txt --review
+  - do: node scripts/rta.mjs scheduler start --once
+  - see: RtaProd08RuntimeUnitOfWork produces visible evidence or a successful check result
 requires:
   - RuntimePorts
   - SchedulerQueue

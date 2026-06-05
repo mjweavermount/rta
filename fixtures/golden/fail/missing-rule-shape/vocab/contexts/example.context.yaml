@@ -1,0 +1,14 @@
+kind: BoundedContext
+name: Example
+classification: supporting
+description: Minimal context missing a rule shape.
+
+aggregates:
+  - name: Thing
+    description: Tiny aggregate missing a rule shape.
+    id: { name: ThingId, backing: UUID }
+    rules:
+      - name: ThingMustBeReady
+        description: Rule without implementation shape.
+        violation: ThingNotReady
+        pattern: guard

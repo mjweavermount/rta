@@ -9,11 +9,11 @@ demonstratedBy:
   - command: rta check --review-gates
   - command: rta check --connector-safety
 qaSteps:
-  - run: node scripts/rta.mjs check --review-gates
-  - run: node scripts/rta.mjs check --connector-safety
-  - run: node scripts/rta.mjs demo run --high
-  - run: node scripts/rta.mjs publish dry-run <pending-review-id>
-  - expect: pending review publication fails until approved
+  - do: node scripts/rta.mjs check --review-gates
+  - do: node scripts/rta.mjs check --connector-safety
+  - do: node scripts/rta.mjs demo run --high
+  - do: node scripts/rta.mjs publish dry-run <pending-review-id>
+  - see: pending review publication fails until approved
 requires:
   - ReviewIdentityApproval
   - SecurityHardening

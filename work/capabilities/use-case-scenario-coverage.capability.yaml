@@ -1,7 +1,7 @@
 kind: Capability
 id: use-case-scenario-coverage
 name: UseCaseScenarioCoverage
-status: in-progress
+status: demo-covered
 why: RTA needs user stories, executable scenarios, bounded-context coverage, and integration contracts as first-class work products.
 ownedBy:
   internal: rta-platform
@@ -10,6 +10,11 @@ demonstratedBy:
   - command: rta scenario run
   - command: rta check --use-cases
   - command: rta check --scenario-coverage
+qaSteps:
+  - do: run node scripts/rta.mjs check --use-cases
+  - do: run node scripts/rta.mjs check --scenario-coverage
+  - do: run node scripts/rta.mjs check --boundary-coverage
+  - see: every use case and bounded-context boundary is backed by a declared scenario
 requires:
   - VocabArdCliSkeleton
   - DerivationGraph

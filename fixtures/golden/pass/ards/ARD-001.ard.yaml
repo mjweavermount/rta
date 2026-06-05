@@ -1,0 +1,9 @@
+id: GOLDEN-ARD-001
+kind: letter
+family: fixture
+name: Golden fixture vocab is documented
+spirit: [GOLDEN-ARD-000]
+severity: error
+checks:
+  - description: lint metadata
+    command: node ../../../packages/cli/dist/rta.js lint --root .

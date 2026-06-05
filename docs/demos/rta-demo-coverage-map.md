@@ -33,7 +33,7 @@ This map links RTA work to the demo surface that should prove it.
 | `rta-prod-06-check-production` | local | Production check gate | Direct negative fixture demo: `rta check --production` fails missing obligations, stale generation, unsafe connectors, and missing review gates |
 | `rta-prod-07-usecase-scenario-boundary` | local | Use-case/scenario/boundary coverage | Direct fixture demo: executable scenarios prove use cases and declared bounded-context edges |
 | `rta-prod-08-runtime-unit-of-work` | local | Runtime unit of work | Direct CLI demo: run, replay, simulated time, queue/worker, artifacts, and provenance all use one runtime contract |
-| `rta-prod-09-observability-telemetry` | local | Observability and telemetry | Direct CLI/dashboard demo: derived log ceremonies, telemetry coverage, and watch mode correlate with provenance |
+| `rta-prod-09-observability-telemetry` | local | Observability and telemetry | Direct CLI/dashboard demo: derived operation event contracts, telemetry coverage, and watch mode correlate with provenance |
 | `rta-prod-10-review-connector-safety` | local | Review and connector safety | Direct negative fixture demo: external writes fail without declared connector policy and approved review artifact |
 | `rta-prod-11-generated-app-runtime-wiring` | local | Generated app runtime wiring | Proof-through-integration: generated app CLI, scenario runner, worker, and production process use the same AppRuntime contract |
 | `rta-prod-12-meeting-digest-seed` | local | Meeting digest seed rebuild | Direct app demo: generated meeting digest app turns transcript into reviewable digest and extracted work without handmade bypasses |

@@ -1,0 +1,25 @@
+kind: BoundedContext
+name: BadLint
+classification: core-domain
+
+aggregates:
+  - name: Thing
+    id: { name: ThingId, backing: UUID }
+    commands:
+      - name: DoThing
+        payload: []
+        emits: [ThingDone]
+    events:
+      - name: ThingDone
+        payload: []
+
+queries:
+  - name: GetThing
+    parameters: []
+    returns: ThingReadModel
+
+readModels:
+  - name: ThingReadModel
+    description: Read model included so lint focuses on missing context-level metadata.
+    fields:
+      - { name: thingId, type: String }

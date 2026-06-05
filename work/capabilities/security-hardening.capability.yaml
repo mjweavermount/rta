@@ -1,13 +1,17 @@
 kind: Capability
 id: security-hardening
 name: SecurityHardening
-status: in-progress
+status: demo-covered
 why: RTA apps need generic security guardrails beyond review gates, including input containment and secret redaction.
 ownedBy:
   internal: rta-platform
 demonstratedBy:
   - command: rta check --security
   - test: security rejects escaping input paths and redacts secret-like logs
+qaSteps:
+  - do: run node scripts/rta.mjs check --security
+  - do: run node --test tests/platform.test.mjs
+  - see: escaping input paths are rejected and secret-like log values are redacted
 requires:
   - ReviewIdentityApproval
   - RuntimePorts

@@ -1,0 +1,10 @@
+id: GOLDEN-ARD-001
+kind: letter
+family: fixture
+name: Broken fixture letter
+spirit:
+  - TIERS.md#tier-1--primitives
+severity: error
+checks:
+  - description: placeholder
+    command: echo ok

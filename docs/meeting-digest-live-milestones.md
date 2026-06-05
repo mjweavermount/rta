@@ -189,7 +189,7 @@ Mirrors:
 Outcome:
 
 RTA runs are watchable. Every significant runtime step emits structured logs and
-human-readable ceremony logs with enough detail to debug by reading the trace.
+human-readable operation logs with enough detail to debug by reading the trace.
 
 Feasible subtasks:
 
@@ -197,7 +197,7 @@ Feasible subtasks:
 - Require log calls to name actor, run id, step, input summary, output summary,
   timing, and causal parent where available.
 - Implement verbosity levels up to near-stack-trace detail.
-- Implement `rta check --log-ceremony`.
+- Implement `rta check --operation-event`.
 - Add tests that fail when required log events are missing.
 - Define Grafana dashboard contract without requiring a live Grafana instance.
 

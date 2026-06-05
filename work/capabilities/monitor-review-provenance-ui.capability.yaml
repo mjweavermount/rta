@@ -10,6 +10,9 @@ demonstratedBy:
   - ui: monitor/review/provenance prototype
   - artifact: UX scope artifact before implementation
   - dashboard: .rta/grafana/meeting-digest.dashboard.json
+qaSteps:
+  - do: run or inspect the demonstrated evidence for MonitorReviewProvenanceUi
+  - see: MonitorReviewProvenanceUi has visible command, doc, artifact, or integration evidence
 requires:
   - RuntimePorts
   - ReviewIdentityApproval

@@ -1,0 +1,9 @@
+id: GOLDEN-ARD-008
+kind: letter
+family: fixture
+name: Golden fixture archetype specs
+spirit: [GOLDEN-ARD-000]
+severity: error
+checks:
+  - description: archetype specs valid
+    command: node ../../../packages/cli/dist/rta.js check --archetype-specs --root .

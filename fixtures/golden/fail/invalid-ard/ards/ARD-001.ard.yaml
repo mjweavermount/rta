@@ -1,0 +1,6 @@
+id: BAD-ARD-001
+name: Invalid ARD severity
+severity: warning
+checks:
+  - description: placeholder
+    command: echo ok

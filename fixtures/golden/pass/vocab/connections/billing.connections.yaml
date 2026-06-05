@@ -1,0 +1,27 @@
+kind: Connections
+context: Billing
+
+publishes:
+  - { event: InvoiceCreated, to: [Scheduling] }
+  - { event: InvoiceFailed, to: [Scheduling] }
+
+subscribes:
+  - { event: SlotBooked, from: Scheduling }
+
+reactions:
+  - name: CreateInvoiceOnSlotBooked
+    description: Create an invoice whenever Scheduling emits SlotBooked.
+    pattern: command-emitter
+    trigger: { event: SlotBooked }
+    implementation:
+      shape: single-dispatch
+    emits:
+      - { command: CreateInvoice, to: Billing }
+  - name: ReleaseSlotOnInvoiceFailed
+    description: Release the slot when an invoice fails.
+    pattern: integration-bridge
+    trigger: { event: InvoiceFailed }
+    implementation:
+      shape: single-dispatch
+    emits:
+      - { command: ReleaseSlot, to: Scheduling }

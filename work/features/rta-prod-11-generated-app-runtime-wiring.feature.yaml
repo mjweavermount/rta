@@ -10,10 +10,11 @@ demonstratedBy:
   - command: rta check --runtime-wiring
   - command: rta check --scenario-runtime-parity
 qaSteps:
-  - run: node scripts/rta.mjs generate app-cli
-  - run: node scripts/rta.mjs check --runtime-wiring
-  - run: node scripts/rta.mjs check --scenario-runtime-parity
-  - run: node .rta/generated/meeting-digest/meeting-digest.mjs watch --input tests/fixtures/custom-transcript.txt
+  - do: node scripts/rta.mjs generate app-cli
+  - do: node scripts/rta.mjs check --runtime-wiring
+  - do: node scripts/rta.mjs check --scenario-runtime-parity
+  - do: node .rta/generated/meeting-digest/meeting-digest.mjs watch --input tests/fixtures/custom-transcript.txt
+  - see: RtaProd11GeneratedAppRuntimeWiring produces visible evidence or a successful check result
 requires:
   - GeneratedAppCliRuntimeWiring
   - RtaProd08RuntimeUnitOfWork

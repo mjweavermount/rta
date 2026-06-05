@@ -19,7 +19,7 @@ Use `scenario watch` when the terminal trace is the thing you are inspecting:
 node scripts/rta.mjs scenario watch meeting-digest.integrated.fixture --input tests/fixtures/custom-transcript.txt
 ```
 
-`watch` defaults to trace verbosity. It prints each ceremony event with a stable
+`watch` defaults to trace verbosity. It prints each operation event with a stable
 step number, timestamp, actor, input summary, output summary, parent, detail,
 and structured event identity. The same events are saved as `logs.json` under
 the run artifacts.
@@ -167,7 +167,7 @@ node scripts/rta.mjs check --security
 ```
 
 The current security layer enforces repo-contained transcript input paths and
-redacts secret-like values from ceremony logs.
+redacts secret-like values from operation logs.
 
 ## Artifacts
 

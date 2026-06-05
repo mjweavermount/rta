@@ -1,0 +1,9 @@
+id: GOLDEN-ARD-005
+kind: letter
+family: fixture
+name: Golden fixture process manager coverage
+spirit: [GOLDEN-ARD-000]
+severity: error
+checks:
+  - description: pm coverage
+    command: node ../../../packages/cli/dist/rta.js coverage --kind pm --root .

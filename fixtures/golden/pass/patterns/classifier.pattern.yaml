@@ -1,0 +1,10 @@
+kind: PatternSpec
+name: classifier
+requiredPrimitives: [Decision]
+testingContract:
+  extends: decision-outcome-coverage
+  adds:
+    - all-outcomes-required: every declared outcome must have a test — partial coverage fails
+vocabHint: Decision has 3+ outcomes, name ends in Decision
+visualConcepts: [branching, routing, categorization, multi-path, fork]
+narrativeLabel: "(classifier) {name} → {outcomes joined by |}"

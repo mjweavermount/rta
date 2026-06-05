@@ -10,10 +10,11 @@ demonstratedBy:
   - command: rta check --scenario-coverage
   - command: rta check --boundary-coverage
 qaSteps:
-  - run: node scripts/rta.mjs check --use-cases
-  - run: node scripts/rta.mjs check --scenario-coverage
-  - run: node scripts/rta.mjs check --boundary-coverage
-  - run: node scripts/rta.mjs scenario list
+  - do: node scripts/rta.mjs check --use-cases
+  - do: node scripts/rta.mjs check --scenario-coverage
+  - do: node scripts/rta.mjs check --boundary-coverage
+  - do: node scripts/rta.mjs scenario list
+  - see: RtaProd07UsecaseScenarioBoundary produces visible evidence or a successful check result
 requires:
   - UseCaseScenarioCoverage
 produces:

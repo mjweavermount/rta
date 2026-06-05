@@ -51,7 +51,7 @@ function inferTitle(text, index) {
   const lower = text.toLowerCase();
   if (lower.includes("ledger") || lower.includes("cli")) return "RTA authoring CLI and work ledger";
   if (lower.includes("topic") || lower.includes("otter")) return "Meeting digest topic segmentation";
-  if (lower.includes("logs")) return "Human-readable logging ceremony";
+  if (lower.includes("logs")) return "Human-readable operation logging";
   if (lower.includes("review") || lower.includes("publication")) return "Review gate and publication adapters";
   return `Meeting topic ${index + 1}`;
 }

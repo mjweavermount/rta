@@ -1,18 +1,27 @@
 kind: Capability
 id: ci-package-release-hygiene
 name: CiPackageReleaseHygiene
-status: in-progress
+status: demo-covered
 why: RTA needs repeatable checks, package boundaries, and release hygiene before it becomes the base for production app authoring.
 ownedBy:
   internal: rta-platform
   plane: LAB-45
 demonstratedBy:
   - command: pnpm check
+  - command: pnpm check:release
   - command: pnpm check:work-ledger
-  - ci: pull request check
+  - command: pnpm audit --audit-level high
+  - ci: pull request check workflow
+qaSteps:
+  - do: run pnpm check
+  - do: run pnpm check:release
+  - do: run pnpm audit --audit-level high
+  - see: build, typecheck, tests, golden fixtures, sample app loop, release hygiene, and high-severity audit pass
+  - see: generated apps still use local file dependencies; npm publishing is not claimed by this capability
 requires:
   - WorkLedger
 produces:
   - CI workflow
   - package check scripts
   - release hygiene docs
+  - local file dependency app-authoring bridge

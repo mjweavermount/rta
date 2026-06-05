@@ -1,7 +1,7 @@
 kind: Capability
 id: vocab-ard-cli-skeleton
 name: VocabArdCliSkeleton
-status: in-progress
+status: demo-covered
 why: RTA needs the first authoring surface for declaring vocabulary, generating ARD scaffolds, and running checks.
 ownedBy:
   internal: rta-platform
@@ -10,6 +10,11 @@ demonstratedBy:
   - command: rta init
   - command: rta context
   - command: rta check --ard-meta
+qaSteps:
+  - do: run node scripts/rta.mjs context
+  - do: run node scripts/rta.mjs check --ard-meta
+  - do: run node scripts/rta.mjs check --tier-contracts
+  - see: CLI exposes app context, ARD metadata validation, and tier/vocab contract checks
 requires:
   - RepoBootstrap
   - Vocab

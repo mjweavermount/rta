@@ -1,7 +1,7 @@
 kind: Capability
 id: derivation-graph
 name: DerivationGraph
-status: in-progress
+status: demo-covered
 why: RTA should explain why generated files, checks, tests, logs, and review gates exist.
 ownedBy:
   internal: rta-platform
@@ -9,6 +9,10 @@ ownedBy:
 demonstratedBy:
   - command: rta explain
   - artifact: derivation graph fixture
+qaSteps:
+  - do: run node scripts/rta.mjs explain graph
+  - do: run node --test tests/derivation.test.mjs
+  - see: the derivation graph links concrete vocabulary to obligations, logs, review gates, provenance, and runtime contracts
 requires:
   - VocabArdCliSkeleton
   - TierContracts

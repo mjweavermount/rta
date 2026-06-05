@@ -1,0 +1,12 @@
+kind: Connections
+context: OrderManagement
+
+publishes:
+  - event: OrderPlaced
+    to: [ShippingContext, InventoryContext]
+  - event: OrderCancelled
+    to: [InventoryContext]
+
+subscribes:
+  - { event: PaymentConfirmed,  from: PaymentContext }
+  - { event: InventoryReserved, from: InventoryContext }

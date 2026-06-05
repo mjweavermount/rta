@@ -1,0 +1,9 @@
+id: GOLDEN-ARD-012
+kind: letter
+family: fixture
+name: Golden fixture decision shapes
+spirit: [GOLDEN-ARD-000]
+severity: error
+checks:
+  - description: decision shapes declared
+    command: node ../../../packages/cli/dist/rta.js check --decision-shapes --root .

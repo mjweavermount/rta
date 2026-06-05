@@ -1,0 +1,26 @@
+id: GOLDEN-ARD-000
+kind: spirit
+family: fixture
+name: Golden fixture architecture gates
+description: Golden fixture spirit ARD for the mandatory CLI exercise matrix.
+spirit:
+  - docs/golden-fixture-spec.md#required-check-matrix
+severity: error
+checks: []
+letters:
+  - GOLDEN-ARD-001
+  - GOLDEN-ARD-002
+  - GOLDEN-ARD-003
+  - GOLDEN-ARD-004
+  - GOLDEN-ARD-005
+  - GOLDEN-ARD-006
+  - GOLDEN-ARD-007
+  - GOLDEN-ARD-008
+  - GOLDEN-ARD-009
+  - GOLDEN-ARD-010
+  - GOLDEN-ARD-011
+  - GOLDEN-ARD-012
+  - GOLDEN-ARD-013
+  - GOLDEN-ARD-014
+  - GOLDEN-ARD-015
+  - GOLDEN-ARD-016

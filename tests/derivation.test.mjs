@@ -9,7 +9,10 @@ test("derivation engine produces stable obligations and source chains", () => {
   const all = deriveAll(app);
   assert.ok(all.obligations.some((item) => item.id === "obligation:ReviewBeforePublication"));
   assert.ok(all.obligations.some((item) => item.id === "obligation:WorkItemExtractor:TaskHasGoal"));
-  assert.ok(all.logCeremonies.some((item) => item.id === "log:TopicSegmenter.segment"));
+  assert.ok(all.obligations.some((item) => item.id === "obligation:WorkItemExtractor:InputIsValidated"));
+  assert.ok(all.operationLogs.some((item) => item.id === "log:TopicSegmenter.read"));
+  assert.ok(all.operationLogs.some((item) => item.id === "log:TopicSegmenter.segment"));
+  assert.ok(all.operationLogs.some((item) => item.id === "log:ReviewableDigestJob.write"));
   assert.ok(all.reviewGates.some((item) => item.id === "review-gate:meeting-digest:publication"));
   assert.ok(all.telemetry.some((item) => item.requiredCheck === "rta check --telemetry-coverage"));
   assert.ok(all.boundaryCoverage.some((item) => item.requiredCheck === "rta check --boundary-coverage"));
@@ -18,7 +21,9 @@ test("derivation engine produces stable obligations and source chains", () => {
 
 test("derivation graph links concrete bindings to derived items", () => {
   const graph = buildDerivationGraph(app);
+  assert.ok(graph.nodes.some((node) => node.id === "log:TopicSegmenter.read"));
   assert.ok(graph.nodes.some((node) => node.id === "log:TopicSegmenter.segment"));
+  assert.ok(graph.edges.some((edge) => edge.from === "T1.Input" && edge.to === "log:TopicSegmenter.read" && edge.type === "derives"));
   assert.ok(graph.edges.some((edge) => edge.from === "TopicSegmenter" && edge.to === "log:TopicSegmenter.segment" && edge.type === "binds"));
   assert.ok(graph.edges.some((edge) => edge.from === "T2.Pattern.TopicSegmentation" && edge.to === "TopicSegmenter"));
 });

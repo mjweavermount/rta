@@ -1,0 +1,9 @@
+id: GOLDEN-ARD-011
+kind: letter
+family: fixture
+name: Golden fixture generated sync
+spirit: [GOLDEN-ARD-000]
+severity: warn
+checks:
+  - description: generated files carry current vocab hash
+    command: node ../../../packages/cli/dist/rta.js check --generated-sync --root .

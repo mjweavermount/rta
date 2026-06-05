@@ -5,7 +5,7 @@ import { buildDerivationGraph, deriveAll } from "../derivation/index.mjs";
 import { checkGeneratedSync } from "../generators/index.mjs";
 import { renderGrafanaDashboard } from "../grafana/index.mjs";
 import { renderHomeLabDeploymentPackage, validateHomeLabDeploymentPackage } from "../hosting-adapters/index.mjs";
-import { requiredCeremonyOperationsFor, validateArchetypeBindings, validateConcreteVocabulary, validatePatternContracts, validateTierContracts } from "../tiers/index.mjs";
+import { requiredOperationEventsFor, validateArchetypeBindings, validateConcreteVocabulary, validatePatternContracts, validateTierContracts } from "../tiers/index.mjs";
 import { loadAppDeclaration, validateAppDeclaration } from "../vocab/index.mjs";
 
 export function checkApp({ root, appDir }) {
@@ -75,7 +75,7 @@ export function checkDerivation({ root, appDir }) {
   const errors = required
     .filter((id) => !ids.has(id))
     .map((id) => `missing derived item ${id}`);
-  if (all.logCeremonies.length === 0) errors.push("missing derived log ceremonies");
+  if (all.operationLogs.length === 0) errors.push("missing derived log operationLogs");
   if (all.telemetry.length === 0) errors.push("missing derived telemetry expectations");
   if (all.boundaryCoverage.length === 0) errors.push("missing derived boundary coverage");
   return errors;
@@ -97,35 +97,35 @@ export function checkArchetypeBindings() {
   return validateArchetypeBindings();
 }
 
-export function checkLogCeremony({ root, appDir }) {
+export function checkOperationLogging({ root, appDir }) {
   const app = loadAppDeclaration(join(root, appDir, "rta.app.json"));
   const template = app.logging?.humanReadableTemplate ?? "";
   const errors = ["{runId}", "{step}", "{actor}", "{input}", "{output}"]
     .filter((token) => !template.includes(token))
     .map((token) => `logging template missing ${token}`);
-  const ceremonies = app.logging?.ceremonies ?? [];
-  if (!Array.isArray(ceremonies) || ceremonies.length === 0) {
-    errors.push("logging.ceremonies must declare required operation ceremonies");
+  const operationLogs = app.logging?.operationLogs ?? [];
+  if (!Array.isArray(operationLogs) || operationLogs.length === 0) {
+    errors.push("logging.operationLogs must declare required operation events");
     return errors;
   }
 
-  for (const requirement of requiredCeremonyOperationsFor(app)) {
-    if (!ceremonies.some((ceremony) => ceremony.for === requirement.vocabularyId && ceremony.operation === requirement.operation)) {
-      errors.push(`vocabulary ${requirement.vocabularyId} missing required log ceremony ${requirement.operation} from ${requirement.sourceContract}`);
+  for (const requirement of requiredOperationEventsFor(app)) {
+    if (!operationLogs.some((operationLog) => operationLog.for === requirement.vocabularyId && operationLog.operation === requirement.operation)) {
+      errors.push(`vocabulary ${requirement.vocabularyId} missing required operation logging ${requirement.operation} from ${requirement.sourceContract}`);
     }
   }
 
-  for (const ceremony of ceremonies) {
-    if (!ceremony.for) errors.push("log ceremony missing for");
-    if (!ceremony.operation) errors.push(`log ceremony ${ceremony.for ?? "(unknown)"} missing operation`);
+  for (const operationLog of operationLogs) {
+    if (!operationLog.for) errors.push("operation logging missing for");
+    if (!operationLog.operation) errors.push(`operation logging ${operationLog.for ?? "(unknown)"} missing operation`);
     for (const event of ["start", "complete", "failed"]) {
-      if (!ceremony.requiredEvents?.includes(event)) {
-        errors.push(`log ceremony ${ceremony.operation ?? ceremony.for ?? "(unknown)"} missing ${event} event`);
+      if (!operationLog.requiredEvents?.includes(event)) {
+        errors.push(`operation logging ${operationLog.operation ?? operationLog.for ?? "(unknown)"} missing ${event} event`);
       }
     }
     for (const summary of ["input", "output"]) {
-      if (!ceremony.summaries?.includes(summary)) {
-        errors.push(`log ceremony ${ceremony.operation ?? ceremony.for ?? "(unknown)"} missing ${summary} summary`);
+      if (!operationLog.summaries?.includes(summary)) {
+        errors.push(`operation logging ${operationLog.operation ?? operationLog.for ?? "(unknown)"} missing ${summary} summary`);
       }
     }
   }
@@ -364,7 +364,7 @@ export function checkProduction({ root, appDir }) {
     ...checkArchetypeBindings({ root }),
     ...checkExtensions({ root, appDir }),
     ...checkDerivation({ root, appDir }),
-    ...checkLogCeremony({ root, appDir }),
+    ...checkOperationLogging({ root, appDir }),
     ...checkUseCases({ root, appDir }),
     ...checkScenarioCoverage({ root, appDir }),
     ...checkBoundaryCoverage({ root, appDir }),

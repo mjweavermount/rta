@@ -1,0 +1,10 @@
+kind: ArchetypeInstance
+archetype: scheduler
+context: Scheduling
+bindings:
+  - role: claim-event
+    event: SlotBooked
+    from: Scheduling
+  - role: release-event
+    event: SlotReleased
+    from: Scheduling

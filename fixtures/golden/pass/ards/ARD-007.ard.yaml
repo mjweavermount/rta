@@ -1,0 +1,9 @@
+id: GOLDEN-ARD-007
+kind: letter
+family: fixture
+name: Golden fixture pattern specs
+spirit: [GOLDEN-ARD-000]
+severity: error
+checks:
+  - description: pattern specs valid
+    command: node ../../../packages/cli/dist/rta.js check --pattern-specs --root .

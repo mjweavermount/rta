@@ -9,8 +9,9 @@ demonstratedBy:
   - command: rta check --ard-meta
   - fixture: bad ARD family fails
 qaSteps:
-  - run: node scripts/rta.mjs check --ard-meta
-  - run: npm run check -- --test-name-pattern ARD
+  - do: node scripts/rta.mjs check --ard-meta
+  - do: run node --test tests/cli.test.mjs
+  - see: RtaProd03ArdSpiritLetterLoop produces visible evidence or a successful check result
 requires:
   - VocabArdCliSkeleton
 produces:

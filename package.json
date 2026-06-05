@@ -3,47 +3,38 @@
   "private": false,
   "version": "0.1.0",
   "type": "module",
-  "description": "RTA app-authoring platform for observable, reviewable applications from domain vocabulary.",
+  "description": "RTA app-authoring platform for governed, observable, reviewable applications from domain vocabulary.",
   "license": "UNLICENSED",
-  "bin": {
-    "rta": "scripts/rta.mjs"
-  },
+  "packageManager": "pnpm@9.0.0",
   "exports": {
-    ".": "./packages/index.mjs",
-    "./checks": "./packages/checks/index.mjs",
-    "./derivation": "./packages/derivation/index.mjs",
-    "./generators": "./packages/generators/index.mjs",
-    "./logging": "./packages/logging/index.mjs",
-    "./runtime": "./packages/runtime/index.mjs",
-    "./scheduler": "./packages/scheduler/index.mjs",
-    "./review": "./packages/review/index.mjs",
-    "./security": "./packages/security/index.mjs",
-    "./tiers": "./packages/tiers/index.mjs",
-    "./vocab": "./packages/vocab/index.mjs"
+    ".": {
+      "import": "./packages/cli/dist/index.js",
+      "types": "./packages/cli/dist/index.d.ts"
+    }
   },
-  "files": [
-    "AGENTS.md",
-    "README.md",
-    "ards/",
-    "archetypes/",
-    "docs/",
-    "examples/",
-    "packages/",
-    "patterns/",
-    "scripts/",
-    "work/"
-  ],
+  "bin": {
+    "rta": "./packages/cli/dist/rta.js"
+  },
   "scripts": {
-    "audit": "npm audit --audit-level=moderate",
-    "check": "node scripts/check-work-ledger.mjs && node --test tests/*.test.mjs",
-    "check:production": "node scripts/rta.mjs generate && node scripts/rta.mjs check --production",
+    "build": "pnpm --filter @rta/vocab build && pnpm --filter @rta/core build && pnpm --filter @rta/strict build && pnpm --filter @rta/runtime build && pnpm --filter @rta/cli build && pnpm --filter @rta/scenario build && pnpm --filter @rta/example-meeting-digest build",
+    "check": "pnpm typecheck && pnpm test && pnpm check:golden-fixture && pnpm check:sample-app-loop",
+    "check:production": "pnpm check && node scripts/rta.mjs check --production",
     "check:release": "node scripts/check-release-hygiene.mjs",
-    "check:work-ledger": "node scripts/check-work-ledger.mjs",
-    "demo": "node scripts/rta.mjs demo run",
+    "check:work-ledger": "node scripts/rta.mjs check --work-ledger",
+    "check:demo-coverage": "node scripts/rta.mjs check --demo-coverage",
+    "check:golden-fixture": "pnpm --filter @rta/vocab build && pnpm --filter @rta/core build && pnpm --filter @rta/strict build && pnpm --filter @rta/runtime build && pnpm --filter @rta/cli build && node scripts/check-golden-fixture.mjs",
+    "check:sample-app-loop": "pnpm --filter @rta/vocab build && pnpm --filter @rta/core build && pnpm --filter @rta/strict build && pnpm --filter @rta/runtime build && pnpm --filter @rta/cli build && node scripts/check-sample-app-loop.mjs",
+    "test": "pnpm --filter @rta/vocab test && pnpm --filter @rta/core test && pnpm --filter @rta/strict test && pnpm --filter @rta/runtime test && pnpm --filter @rta/cli test && pnpm --filter @rta/scenario test && pnpm --filter @rta/example-meeting-digest test",
+    "typecheck": "pnpm build && pnpm -r typecheck",
+    "audit": "pnpm audit --audit-level high",
     "doctor": "node scripts/rta.mjs doctor",
-    "rta": "node scripts/rta.mjs",
-    "test": "node --test tests/*.test.mjs",
-    "lint": "node scripts/check-work-ledger.mjs"
+    "rta": "pnpm --filter @rta/cli rta"
   },
-  "devDependencies": {}
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "tsup": "^8.0.0",
+    "typescript": "^5.4.0",
+    "vite": "^7.0.0",
+    "vitest": "^4.1.0"
+  }
 }

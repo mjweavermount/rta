@@ -77,7 +77,7 @@ Self-audit:
 - `rta-prod-05-generators-generated-sync`
 
 Goal: make derivation the single source for obligations, generated files,
-tests, log ceremonies, review gates, telemetry expectations, and provenance
+tests, operation event contracts, review gates, telemetry expectations, and provenance
 requirements.
 
 Self-audit:

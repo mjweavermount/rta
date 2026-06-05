@@ -1,8 +1,8 @@
 kind: Capability
 id: observability-log-qa-grafana
 name: ObservabilityLogQaGrafana
-status: in-progress
-why: Operators should be able to watch RTA apps through ceremonial human-readable logs and later Grafana-backed views.
+status: demo-covered
+why: Operators should be able to watch RTA apps through human-readable operation logs and later Grafana-backed views.
 ownedBy:
   internal: rta-platform
   plane: LAB-42
@@ -10,10 +10,16 @@ demonstratedBy:
   - integration: end-to-end-demo-harness
   - log: human-readable run trace
   - dashboard: Grafana adapter check
+  - command: rta grafana render meeting-digest
+qaSteps:
+  - do: run node scripts/rta.mjs scenario watch meeting-digest.integrated.fixture --input tests/fixtures/custom-transcript.txt
+  - do: run node scripts/rta.mjs grafana render meeting-digest
+  - see: terminal output includes readable operation logs and `.rta/grafana/meeting-digest.dashboard.json` is rendered
 requires:
   - RuntimePorts
-  - LogCeremony
+  - OperationEventContract
 produces:
   - packages/logging
-  - rta check --log-ceremony
+  - rta check --operation-event
   - dashboard contract
+  - .rta/grafana/meeting-digest.dashboard.json

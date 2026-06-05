@@ -1,13 +1,18 @@
 kind: Capability
 id: scheduler-queue
 name: SchedulerQueue
-status: in-progress
+status: demo-covered
 why: RTA needs persistent queued jobs beyond direct local run execution.
 ownedBy:
   internal: rta-platform
 demonstratedBy:
   - command: rta queue enqueue meeting-digest.integrated.fixture --input tests/fixtures/custom-transcript.txt --review
   - command: rta queue run-next
+  - command: rta scheduler start --once
+qaSteps:
+  - do: run node scripts/rta.mjs queue enqueue meeting-digest.integrated.fixture --input tests/fixtures/custom-transcript.txt --review
+  - do: run node scripts/rta.mjs scheduler start --once
+  - see: queued scenario is claimed, executed, and stored as a replayable run
 requires:
   - RuntimePorts
   - GeneratedAppCliRuntimeWiring

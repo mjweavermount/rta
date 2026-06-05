@@ -1,0 +1,22 @@
+kind: BoundedContext
+name: Demo
+classification: supporting
+description: Demo context for invalid archetype binding failure.
+guidance: This context exists only to provide one real event and one missing event reference.
+
+aggregates:
+  - name: DemoAggregate
+    description: Aggregate used only for invalid archetype binding tests.
+    guidance: Keeps the fixture minimal while still providing a declared event.
+    id: { name: DemoId, backing: UUID }
+    commands:
+      - name: DoDemo
+        description: No-op command for schema completeness.
+        guidance: Not used by the checker directly.
+        payload: []
+        emits: [DemoDone]
+    events:
+      - name: DemoDone
+        description: Event that exists.
+        guidance: Included to prove the bound event mismatch is real.
+        payload: []

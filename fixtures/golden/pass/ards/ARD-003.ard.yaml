@@ -1,0 +1,9 @@
+id: GOLDEN-ARD-003
+kind: letter
+family: fixture
+name: Golden fixture decision coverage
+spirit: [GOLDEN-ARD-000]
+severity: error
+checks:
+  - description: decisions coverage
+    command: node ../../../packages/cli/dist/rta.js coverage --kind decisions --root .

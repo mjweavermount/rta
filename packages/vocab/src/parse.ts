@@ -1,0 +1,227 @@
+import { Data, Effect, Schema, pipe } from "effect"
+import { parse as parseYaml } from "yaml"
+import { readFile } from "node:fs/promises"
+import {
+  VocabFile,
+  type AggregateDeclaration,
+  type BoundedContextDeclaration,
+  type DecisionDeclaration,
+  type ProcessManagerDeclaration,
+  type ReactionDeclaration,
+  type RuleDeclaration,
+} from "./schemas/index.js"
+
+// ---------------------------------------------------------------------------
+// Error type
+// ---------------------------------------------------------------------------
+
+export class VocabParseError extends Data.TaggedError("VocabParseError")<{
+  readonly path: string
+  readonly cause: unknown
+}> {}
+
+const DECISION_PATTERN_SHAPE_COMPATIBILITY: Record<string, ReadonlyArray<string>> = {
+  classifier: ["numeric-buckets", "lookup-table", "predicate-chain", "scorecard", "matrix"],
+  lifecycle: ["lookup-table", "predicate-chain", "matrix"],
+  eligibility: ["numeric-buckets", "lookup-table", "predicate-chain", "matrix"],
+  prioritization: ["numeric-buckets", "predicate-chain", "scorecard"],
+  routing: ["lookup-table", "predicate-chain", "matrix"],
+}
+
+const RULE_PATTERN_SHAPE_COMPATIBILITY: Record<string, ReadonlyArray<string>> = {
+  guard: ["predicate", "state-precondition"],
+  availability: ["predicate", "exclusivity"],
+}
+
+const REACTION_PATTERN_SHAPE_COMPATIBILITY: Record<string, ReadonlyArray<string>> = {
+  "command-emitter": ["single-dispatch", "fan-out", "conditional-dispatch"],
+  notification: ["single-dispatch", "fan-out"],
+  "integration-bridge": ["single-dispatch", "fan-out", "conditional-dispatch", "idempotent-upsert"],
+  "projection-updater": ["idempotent-upsert", "conditional-dispatch"],
+}
+
+const PROCESS_MANAGER_PATTERN_SHAPE_COMPATIBILITY: Record<string, ReadonlyArray<string>> = {
+  saga: ["linear-flow", "branching-flow", "retrying-flow"],
+  "retry-loop": ["retrying-flow", "branching-flow"],
+  "approval-flow": ["linear-flow", "branching-flow", "timeout-aware"],
+  "compensation-flow": ["branching-flow", "retrying-flow"],
+  lifecycle: ["linear-flow", "branching-flow"],
+}
+
+const validateDecisionDeclaration = (
+  decision: DecisionDeclaration,
+  label: string,
+): ReadonlyArray<string> => {
+  const pattern = decision.pattern
+  const shape = decision.implementation?.shape
+  if (!pattern || !shape) return []
+
+  const compatibleShapes = DECISION_PATTERN_SHAPE_COMPATIBILITY[pattern]
+  if (compatibleShapes && !compatibleShapes.includes(shape)) {
+    return [
+      `${label}: pattern "${pattern}" is incompatible with implementation.shape "${shape}"`,
+    ]
+  }
+
+  return []
+}
+
+const validateRuleDeclaration = (
+  rule: RuleDeclaration,
+  label: string,
+): ReadonlyArray<string> => {
+  const pattern = rule.pattern
+  const shape = rule.implementation?.shape
+  if (!pattern || !shape) return []
+
+  const compatibleShapes = RULE_PATTERN_SHAPE_COMPATIBILITY[pattern]
+  if (compatibleShapes && !compatibleShapes.includes(shape)) {
+    return [
+      `${label}: pattern "${pattern}" is incompatible with implementation.shape "${shape}"`,
+    ]
+  }
+
+  return []
+}
+
+const validateReactionDeclaration = (
+  reaction: ReactionDeclaration,
+  label: string,
+): ReadonlyArray<string> => {
+  const pattern = reaction.pattern
+  const shape = reaction.implementation?.shape
+  if (!pattern || !shape) return []
+
+  const compatibleShapes = REACTION_PATTERN_SHAPE_COMPATIBILITY[pattern]
+  if (compatibleShapes && !compatibleShapes.includes(shape)) {
+    return [
+      `${label}: pattern "${pattern}" is incompatible with implementation.shape "${shape}"`,
+    ]
+  }
+
+  return []
+}
+
+const validateProcessManagerDeclaration = (
+  processManager: ProcessManagerDeclaration,
+  label: string,
+): ReadonlyArray<string> => {
+  const pattern = processManager.pattern
+  const shape = processManager.implementation?.shape
+  if (!pattern || !shape) return []
+
+  const compatibleShapes = PROCESS_MANAGER_PATTERN_SHAPE_COMPATIBILITY[pattern]
+  if (compatibleShapes && !compatibleShapes.includes(shape)) {
+    return [
+      `${label}: pattern "${pattern}" is incompatible with implementation.shape "${shape}"`,
+    ]
+  }
+
+  return []
+}
+
+const validateAggregateDeclaration = (
+  aggregate: AggregateDeclaration,
+  contextName: string,
+): ReadonlyArray<string> => [
+  ...(aggregate.rules ?? []).flatMap((rule) =>
+    validateRuleDeclaration(
+      rule,
+      `${contextName}.aggregate.${aggregate.name}.rule.${rule.name}`,
+    ),
+  ),
+  ...(aggregate.decisions ?? []).flatMap((decision) =>
+    validateDecisionDeclaration(
+      decision,
+      `${contextName}.aggregate.${aggregate.name}.decision.${decision.name}`,
+    ),
+  ),
+]
+
+const validateContextDeclaration = (
+  context: BoundedContextDeclaration,
+): ReadonlyArray<string> => [
+  ...(context.aggregates ?? []).flatMap((aggregate) =>
+    validateAggregateDeclaration(aggregate, context.name),
+  ),
+  ...(context.decisions ?? []).flatMap((decision) =>
+    validateDecisionDeclaration(
+      decision,
+      `${context.name}.decision.${decision.name}`,
+    ),
+  ),
+  ...(context.processManagers ?? []).flatMap((processManager) =>
+    validateProcessManagerDeclaration(
+      processManager,
+      `${context.name}.processManager.${processManager.name}`,
+    ),
+  ),
+]
+
+const validateConnectionsDeclaration = (
+  connections: Extract<VocabFile, { kind: "Connections" }>,
+): ReadonlyArray<string> =>
+  (connections.reactions ?? []).flatMap((reaction) =>
+    validateReactionDeclaration(
+      reaction,
+      `${connections.context}.reaction.${reaction.name}`,
+    ),
+  )
+
+const validateVocabFile = (
+  parsed: VocabFile,
+  path: string,
+): Effect.Effect<VocabFile, VocabParseError> => {
+  const issues =
+    parsed.kind === "BoundedContext"
+      ? validateContextDeclaration(parsed)
+      : parsed.kind === "Connections"
+        ? validateConnectionsDeclaration(parsed)
+        : []
+  if (issues.length === 0) {
+    return Effect.succeed(parsed)
+  }
+
+  return Effect.fail(
+    new VocabParseError({
+      path,
+      cause: new Error(issues.join("; ")),
+    }),
+  )
+}
+
+// ---------------------------------------------------------------------------
+// Core: parse a raw YAML string into a validated VocabFile
+//
+// Separated from file I/O so tests can work with strings directly.
+// ---------------------------------------------------------------------------
+
+export const parseVocabContent = (
+  content: string,
+  path = "<string>",
+): Effect.Effect<VocabFile, VocabParseError> =>
+  pipe(
+    Effect.try({
+      try: () => parseYaml(content) as unknown,
+      catch: (cause) => new VocabParseError({ path, cause }),
+    }),
+    Effect.flatMap((raw) =>
+      Schema.decodeUnknown(VocabFile)(raw).pipe(
+        Effect.mapError((cause) => new VocabParseError({ path, cause })),
+      ),
+    ),
+    Effect.flatMap((parsed) => validateVocabFile(parsed, path)),
+  )
+
+// ---------------------------------------------------------------------------
+// Read + parse a vocab file from disk
+// ---------------------------------------------------------------------------
+
+export const readVocabFile = (path: string): Effect.Effect<VocabFile, VocabParseError> =>
+  pipe(
+    Effect.tryPromise({
+      try: () => readFile(path, "utf-8"),
+      catch: (cause) => new VocabParseError({ path, cause }),
+    }),
+    Effect.flatMap((content) => parseVocabContent(content, path)),
+  )

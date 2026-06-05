@@ -1,6 +1,6 @@
 import { redactSecrets } from "../security/index.mjs";
 
-export class CeremonyLogger {
+export class OperationLogger {
   constructor({ verbosity = "normal", sink = console.log, onEvent = null } = {}) {
     this.verbosity = verbosity;
     this.sink = sink;

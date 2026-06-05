@@ -3,9 +3,19 @@
 Start with:
 
 - [RTA Production Authoring Platform Spec](rta-production-authoring-platform-spec.md)
+- [RTA-ish Source Inventory](rta-ish-source-inventory.md)
+- [RTA Reset Plan Board](rta-reset-plan-board.md)
 - [RTA Production Achievements And QA](rta-production-achievements-and-qa.md)
 - [RTA To Live Meeting Digest Milestones](meeting-digest-live-milestones.md)
 - [Demo Walkthroughs](demos/README.md)
+
+Reset note:
+
+- The current implementation is prototype evidence, not the production
+  foundation.
+- Rebuild around TypeScript, strict CQRS, vocab, generated obligations, golden
+  fixtures, and enforced operation lifecycle instrumentation.
+- Plane may mirror future work, but it is not the source of truth.
 
 Planned docs from the spec:
 
@@ -17,7 +27,7 @@ Planned docs from the spec:
 - `ard-system.md`
 - `generator-contract.md`
 - `runtime-contract.md`
-- `logging-ceremony.md`
+- `operation-lifecycle-instrumentation.md`
 - `review-gates.md`
 - `hosting-adapters.md`
 - `meeting-digest-seed.md`
@@ -26,6 +36,8 @@ Planned docs from the spec:
 
 Current supporting docs:
 
+- `rta-ish-source-inventory.md`
+- `rta-reset-plan-board.md`
 - `meeting-digest-live-milestones.md`
 - `demos/README.md`
 - `demos/lab-34-bootstrap-repo-demo.md`

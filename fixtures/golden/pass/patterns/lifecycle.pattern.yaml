@@ -1,0 +1,12 @@
+kind: PatternSpec
+name: lifecycle
+requiredPrimitives: [Decision, Reaction]
+testingContract:
+  extends: decision-outcome-coverage
+  adds:
+    - all-outcomes-required: every declared outcome must have a test
+    - downstream-per-outcome: each outcome's downstream Reaction or PM transition tested
+    - integration: at least one test covering a representative full progression end-to-end
+vocabHint: Decision outcomes map 1:1 to Reaction trigger events or PM transition names
+visualConcepts: [progression, flow, state-machine, transition, pipeline, steps]
+narrativeLabel: "(lifecycle) {name} — steps: {outcomes}"

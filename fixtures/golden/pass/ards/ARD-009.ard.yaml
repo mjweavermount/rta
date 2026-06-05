@@ -1,0 +1,9 @@
+id: GOLDEN-ARD-009
+kind: letter
+family: fixture
+name: Golden fixture archetype bindings
+spirit: [GOLDEN-ARD-000]
+severity: error
+checks:
+  - description: archetype bindings valid
+    command: node ../../../packages/cli/dist/rta.js check --archetype-bindings --root .

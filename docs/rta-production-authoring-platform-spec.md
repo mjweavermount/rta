@@ -2,7 +2,7 @@
 
 Date: 2026-06-04
 
-Status: Draft for implementation
+Status: Reset draft for TypeScript/CQRS rebuild
 
 ## Executive Summary
 
@@ -13,6 +13,118 @@ The first proving app is the meeting digest system: ingest meeting transcripts, 
 The meeting digest app is not the RTA spec. It is the proving fixture. RTA must remain general enough to author many kinds of apps.
 
 The deeper target is broader: RTA should become the system that turns conversations and intent into hosted, governed, inspectable applications.
+
+## 2026-06-05 Reset Decision
+
+The current implementation in `/Users/virgil/Developer/rta` is rejected as the
+production foundation. It may preserve useful product requirements, demo
+expectations, and operator lessons, but its `.mjs` runtime shape should not be
+finished or polished as the real RTA framework.
+
+The rebuild should start from the stronger RTA-ish sources inventoried in
+[rta-ish-source-inventory.md](rta-ish-source-inventory.md), especially
+`/Users/virgil/Developer/Virgil-Info/home-lab-v7/vendor/rta-ddd-core` and
+`SiderealMollusk/rita-app-framework`.
+
+The new foundation must be:
+
+- TypeScript-first.
+- CQRS-first.
+- Vocab-first.
+- Fixture-proven.
+- Generated-sync enforced.
+- Built around typed primitive contracts that cannot skip required operation
+  lifecycle instrumentation.
+- Governed by operation scopes, capability tokens, explicit reasons, and
+  deterministic time/randomness where domain logic requires them.
+
+This reset also invalidates the old Plane/formal-review framing for the
+prototype. Plane may mirror future work, but the source of truth is the repo:
+specs, typed contracts, generated obligations, tests, fixtures, commits, and
+demo evidence.
+
+### Required Programming Pattern
+
+RTA primitives should use abstract classes or an equivalent template-method
+pattern.
+
+The base primitive owns the public execution method. That public method emits
+the required operation events at the right phases, applies correlation and
+causation context, calls protected hooks, validates outputs, and records
+completion or failure. Descendants implement the protected hooks.
+
+In TypeScript terms, the desired shape is closer to:
+
+```ts
+abstract class CommandHandler<C extends Command<string, unknown>> {
+  finalHandle(command: C, context: OperationContext): Effect.Effect<void, DomainError> {
+    // Emits received/started/completed/failed and preserves the event contract.
+    return this.instrumented(command, context, () => this.handleCommand(command, context))
+  }
+
+  protected abstract handleCommand(
+    command: C,
+    context: OperationContext,
+  ): Effect.Effect<void, DomainError>
+
+  protected summarize(command: C): OperationSummary {
+    return {
+      action: command._tag,
+      reason: "command received by declared handler",
+    }
+  }
+}
+```
+
+TypeScript does not have true `final` methods like C# or Java. RTA should still
+design the framework so app authors receive generated subclasses and extension
+points that make bypassing the instrumented method an explicit violation caught
+by lint/checks/tests.
+
+### CQRS Is Core, Not Optional
+
+RTA must preserve strict CQRS as a core contract:
+
+- Commands return no business result.
+- Command outcomes are observed through domain events and projections.
+- Queries are read-side only.
+- Query handlers must not mutate write models.
+- Event handlers are for projections, reactions, process managers,
+  notifications, and other side effects.
+- The type system and runtime checks must prevent command/query/event families
+  from being handled interchangeably.
+
+### Governed Execution Is Also Core
+
+RTA should pull the governed-execution ideas from `rita-app-framework` into the
+new TypeScript core:
+
+- Every operation runs inside an `OperationScope` or equivalent runtime context.
+- Trust is promoted explicitly: external, internal, command/write-capable,
+  system/admin.
+- Durable writes require a capability such as `CommitCap`.
+- Domain evolution requires a policy/authority token and a human-readable
+  reason.
+- Unit of Work owns transactional writes and staged domain events.
+- Boundary checks and forbidden API scans enforce deterministic, side-effect
+  free domain logic.
+- Time and randomness must flow through ports, with simulated implementations
+  available for tests and scenarios.
+
+### Terminology
+
+Do not use the retired informal log wording as a technical term.
+
+Use:
+
+- `operation lifecycle instrumentation`
+- `structured operation events`
+- `operation event contract`
+- `readable log projection`
+- `execution telemetry`
+
+Readable logs are a projection of canonical structured operation events, not
+the canonical signal themselves.
 
 ## Philosophical Heart
 
@@ -129,7 +241,7 @@ rta/
     ard-system.md
     generator-contract.md
     runtime-contract.md
-    logging-ceremony.md
+    operation-event-logs.md
     review-gates.md
     hosting-adapters.md
     meeting-digest-seed.md
@@ -173,7 +285,7 @@ rta/
       src/
         derive-obligations.ts
         derive-telemetry.ts
-        derive-log-ceremonies.ts
+        derive-operation-events.ts
         derive-review-gates.ts
         derive-use-case-obligations.ts
         derive-scenario-coverage.ts
@@ -233,7 +345,7 @@ rta/
         context-generator.ts
         obligation-test-generator.ts
         telemetry-test-generator.ts
-        log-ceremony-generator.ts
+        operation-event-generator.ts
         review-gate-generator.ts
         use-case-test-generator.ts
         scenario-test-generator.ts
@@ -251,7 +363,7 @@ rta/
         generated-sync.ts
         obligation-coverage.ts
         telemetry-coverage.ts
-        log-ceremony.ts
+        operation-event.ts
         pattern-contracts.ts
         archetype-bindings.ts
         derived-obligations.ts
@@ -300,7 +412,7 @@ rta/
     logging/
       src/
         logger.ts
-        log-ceremony.ts
+        operation-event.ts
         verbosity.ts
       test/
 
@@ -411,7 +523,7 @@ meeting-digest/
     obligation-manifest.json
     provenance-schema.ts
     review-gates.ts
-    log-ceremonies.ts
+    operation-events.ts
 
   src/
     handlers/
@@ -522,9 +634,38 @@ Agents should run this before editing.
 
 ### `rta generate`
 
-Reads vocab, patterns, archetypes, bindings, and config. Produces code, tests, telemetry expectations, log ceremonies, review gates, routes, registry, and hosting metadata.
+Reads vocab, patterns, archetypes, bindings, and config. Produces code, tests, telemetry expectations, operation event contracts, review gates, routes, registry, and hosting metadata.
 
 Generated output should include a vocab hash or derivation hash.
+
+In strict mode, generated command and query handlers must be primitive
+subclasses:
+
+```text
+CommandNameHandler extends InstrumentedCommandHandler
+QueryNameHandler extends InstrumentedQueryHandler
+```
+
+Event handlers use the same protected-hook pattern:
+
+```text
+EventNameHandler extends InstrumentedEventHandler
+```
+
+The generated public compatibility functions may remain for registries and
+runtime wiring, but they must delegate through the primitive instance so
+operation events cannot be skipped.
+
+Generated registries must expose a runnable CQRS surface:
+
+```text
+dispatch(operation, raw, scope?)
+dispatchCommand(operation, raw, scope?)
+dispatchQuery(operation, raw, scope?)
+```
+
+The registry may perform dynamic lookup and layer provision, but leaf behavior
+must still live in generated or authored primitive subclasses.
 
 ### `rta check`
 
@@ -543,7 +684,9 @@ Required modes:
 --derived-obligations
 --obligation-coverage
 --telemetry-coverage
---log-ceremony
+--operation-event
+--primitive-boundaries
+--production
 --review-gates
 --connector-safety
 --dependency-boundaries
@@ -687,6 +830,49 @@ Production-capable apps may also include:
 ```
 
 Commands should be generated only when the app declares the needed capability. A CLI-only app does not need `api start`. An app with no scheduler does not need `scheduler start`.
+
+Current generated-app baseline:
+
+```text
+src/main.ts
+  invokes generated registry dispatch for the default command
+
+src/app-cli.ts
+  list
+  run
+  scenario
+  watch --trace
+
+package scripts
+  pnpm generate
+  pnpm app:build
+  pnpm app:run
+  pnpm app:scenario
+  pnpm app:watch
+  pnpm check
+```
+
+This baseline is intentionally smaller than the final app CLI surface, but it
+must prove the important contract: generated vocab produces generated registry
+dispatch, the app CLI calls that dispatch, and `watch --trace` prints readable
+primitive operation logs. The sample-app loop must fail if this path stops
+working.
+
+Generated leaves should include strict primitive subclasses for every declared
+message-handling responsibility:
+
+```text
+command -> InstrumentedCommandHandler
+query -> InstrumentedQueryHandler
+connection reaction -> InstrumentedEventHandler
+```
+
+Reaction event handlers are generated from connection vocab. They should log
+the incoming event, declared command outputs, and derivation lineage even before
+the app author fills in concrete command mapping code. Generated registries
+should expose `dispatchEvent` alongside `dispatchCommand` and `dispatchQuery`
+so event-handler leaves can be invoked by local scenarios, workers, and later
+production wiring.
 
 ### Scenario Targets
 
@@ -1186,7 +1372,7 @@ storage/projection updates
 review gate enforcement
 connector adapter behavior
 external write blocking
-logging ceremony
+operation lifecycle instrumentation
 provenance graph emission
 scheduled work where relevant
 ```
@@ -1606,7 +1792,7 @@ Task
 ReviewGate
 Connector
 Projection
-LogCeremony
+OperationEventContract
 ```
 
 T1 asks:
@@ -1724,6 +1910,24 @@ Binding:
 Generation:
   TopicOpened/TopicClosed tests, logs, review gates, and provenance edges appear.
 ```
+
+Blooming is transitive and enforceable, not only descriptive.
+
+If a concrete app vocabulary item extends a T2 pattern, it inherits the T1
+primitive contracts under that pattern. If it extends a T3 archetype, it
+inherits every primitive/pattern obligation in that archetype chain. The
+derived obligations, required operation events, generated artifacts, and
+production checks must use the bloomed chain.
+
+This means an app-local `TopicSegmenter` that extends a topic-segmentation
+pattern still owes the underlying input primitive operation event. It cannot
+only declare `TopicSegmenter.segment` and silently skip `TopicSegmenter.read`.
+Likewise, a reusable job archetype that composes input and artifact primitives
+owes read, write, and archetype-specific materialization operation events.
+
+Tier contracts should reject cycles and should reject duplicate parent
+obligations/events in child contracts. Children add obligations; they do not
+redeclare inherited ones.
 
 ## Testing And Obligation Model
 
@@ -1894,7 +2098,7 @@ rta check --archetype-bindings
 rta check --derived-obligations
 rta check --obligation-coverage
 rta check --telemetry-coverage
-rta check --log-ceremony
+rta check --operation-event
 rta check --review-gates
 rta check --connector-safety
 rta check --use-cases
@@ -1936,7 +2140,7 @@ Core APIs:
 ```ts
 deriveObligations(input): Obligation[]
 deriveTelemetry(input): TelemetryExpectation[]
-deriveLogCeremonies(input): LogCeremony[]
+deriveOperationEventContracts(input): OperationEventContract[]
 deriveReviewGates(input): ReviewGateRequirement[]
 deriveUseCaseObligations(input): UseCaseObligation[]
 deriveScenarioCoverage(input): ScenarioCoverageRequirement[]
@@ -2293,11 +2497,40 @@ checks:
     command: pnpm rta check --app-cli --runtime-wiring --scenario-runtime-parity
 ```
 
-## Logging Ceremony
+## Operation Event Logs
 
 Logging is not incidental. Logs are how the operator watches the system.
 
-Every meaningful log call should be a ceremony:
+Every primitive invocation should emit canonical structured operation events.
+Leaf code should not invent ad hoc `console.log` calls for app behavior. Leaf
+code should extend or compose an RTA primitive, and that primitive should speak
+through the operation event stream.
+
+The base primitive families should include at least:
+
+```text
+command-handler
+query-handler
+event-handler
+rule
+decision
+reaction
+process-manager
+inbound-adapter
+outbound-adapter
+bounded-context
+scheduler
+job
+projector
+repository
+policy
+guardrail
+```
+
+Concrete app code should extend a specific primitive family and implement the
+protected leaf hook. The public invocation method owns event emission.
+
+Every emitted operation event should carry:
 
 ```text
 machine-readable fields
@@ -2308,16 +2541,21 @@ derivation/provenance ids where relevant
 verbosity-aware diagnostics
 ```
 
-At normal verbosity, logs should be readable.
+At normal verbosity, logs should be readable as compact operator prose:
+
+```text
+[normal] RULE-NO_DUP_IDS Rejected Obj.id because duplicate ids cannot be indexed
+[normal] DIGEST_MEETING_HANDLER Started command Digest meeting-1 because the transcript is ready for topic and work-item extraction
+```
 
 At debug/trace verbosity, logs should show detailed context, stack-like diagnostic trails, decision inputs, derived obligation ids, connector targets, and review state.
 
-Generated log ceremony requirements should come from vocab and derivation.
+Generated operation event contract requirements should come from vocab and derivation.
 
 Example generated requirement:
 
 ```yaml
-kind: LogCeremony
+kind: OperationEventContract
 for: TopicSegmentation.SegmentTranscript
 required:
   - start summary
@@ -2327,7 +2565,37 @@ required:
   - provenance edge emitted
 ```
 
-`rta check --log-ceremony` should fail if a required log ceremony is missing.
+`rta check --operation-event` should fail if a required operation event contract is missing.
+
+`rta check --primitive-boundaries` should fail when authored app source exports
+behavior that does not extend an RTA primitive or use an approved RTA factory.
+Generated files may be checked separately, but authored leaf behavior should
+not be able to bypass primitive instrumentation silently.
+
+`rta check --production` should aggregate the production gates:
+
+```text
+ARD metadata
+generated sync
+decision/rule implementation shape
+obligation coverage
+execution telemetry
+operation event contracts
+primitive boundaries
+pattern specs and contracts
+archetype specs and bindings
+```
+
+Scenario and demo runs should write:
+
+```text
+readable.log
+operation-events.json
+trace-summary.md
+```
+
+Those artifacts are QA evidence. A demo card should link to them or to a
+larger proof-through-integration run that includes them.
 
 ## Review Gates
 
@@ -2519,7 +2787,7 @@ connectors
 side effects
 ```
 
-`docs/logging-ceremony.md`
+`docs/operation-event-logs.md`
 
 ```text
 what every log must carry
@@ -2620,7 +2888,7 @@ Rewrite or refactor:
 ```text
 obligation derivation
 telemetry derivation
-log ceremony derivation
+operation event contract derivation
 review gate derivation
 archetype-derived test plans
 explain output
@@ -2864,13 +3132,29 @@ home-lab adapter:
 
 ## Packaging And Distribution
 
-Early development should use a monorepo and local workspace packages.
+Early development should use a monorepo and local packages.
 
 ```text
 pnpm workspace
 local packages
 examples in repo
 ```
+
+Generated apps may be created outside the RTA repo before publishing exists.
+Until packages are published, `rta generate app` should write local `file:`
+dependencies and pnpm overrides pointing to the checked-out RTA packages:
+
+```text
+@rta/cli     file:/path/to/rta/packages/cli
+@rta/core    file:/path/to/rta/packages/core
+@rta/runtime file:/path/to/rta/packages/runtime
+@rta/strict  file:/path/to/rta/packages/strict
+@rta/vocab   file:/path/to/rta/packages/vocab
+```
+
+This is a local-authoring bridge, not the upstream package contract. The
+publishable story replaces those file links with versioned package
+dependencies.
 
 Later:
 
@@ -2964,7 +3248,7 @@ Goals:
 generate code scaffolds
 generate obligation tests
 generate telemetry tests
-generate log ceremonies
+generate operation event contracts
 generate review gates
 generate use-case test stubs
 generate scenario test stubs
@@ -2973,7 +3257,7 @@ obligation coverage
 use-case coverage
 scenario coverage
 boundary coverage
-log ceremony check
+operation event contract check
 review gate check
 ```
 
@@ -2993,7 +3277,7 @@ Goals:
 unit of work
 flow runner
 scheduler and simulated time
-logging ceremony runtime
+operation lifecycle instrumentation runtime
 review gate runtime
 connector ports
 ```
@@ -3024,6 +3308,8 @@ Checks:
 
 ```text
 generated app CLI exposes declared commands, flows, scenarios, review actions
+generated app can install outside the RTA repo using local file-linked packages
+generated app watch mode prints trace-level primitive operation logs
 runtime wiring declares all production processes
 scenario runner and production worker use the same wiring
 connectors are wired through ports
@@ -3104,7 +3390,7 @@ These choices should be treated as the initial build plan unless implementation 
 2. Plane is first a publication target, not the core review system. RTA owns the internal review queue. A Plane adapter may mirror approved or review-ready items.
 3. AFFiNE drafts should be generated only after approval by default. Pre-review drafts may exist internally inside RTA, not as external AFFiNE writes.
 4. First UI vocabulary primitives should be `ViewSpec`, `Panel`, `Affordance`, and `Projection`.
-5. `rta dev` may warn on unfinished obligations. `rta check --production` must fail on uncovered obligations, missing use cases, missing scenario coverage, missing boundary coverage, unsafe connector writes, stale generation, missing review gates, and missing log ceremonies.
+5. `rta dev` may warn on unfinished obligations. `rta check --production` must fail on uncovered obligations, missing use cases, missing scenario coverage, missing boundary coverage, unsafe connector writes, stale generation, missing review gates, and missing operation event contracts.
 6. Generated files must be marked as `always-regenerated`, `generated-once`, or `manual-leaf`. Always-regenerated files are protected by generated-sync. Generated-once files are protected by provenance headers and drift warnings, not overwritten by default.
 7. Waivers are allowed only as review artifacts with scope, reason, approver, and revisit condition.
 8. Generated apps start with a single-process local runtime by default. The same AppRuntime contract may split into `api`, `worker`, and `scheduler` processes when a hosting adapter or production need requires it.

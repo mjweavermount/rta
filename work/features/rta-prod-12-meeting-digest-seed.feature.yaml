@@ -9,10 +9,10 @@ demonstratedBy:
   - command: meeting-digest scenario run approved-digest-publishes-work-items
   - artifact: reviewable digest
 qaSteps:
-  - run: node examples/meeting-digest-seed/bin/meeting-digest.mjs scenario run approved-digest-publishes-work-items --review --high
-  - inspect: run artifacts include approved-digest-work-items.json
-  - run: node scripts/rta.mjs review approve <review-id> --actor Virgil
-  - run: node scripts/rta.mjs publish dry-run <review-id> --target fixture
+  - do: node examples/meeting-digest-seed/bin/meeting-digest.mjs scenario run approved-digest-publishes-work-items --review --high
+  - see: run artifacts include approved-digest-work-items.json
+  - do: node scripts/rta.mjs review approve <review-id> --actor Virgil
+  - do: node scripts/rta.mjs publish dry-run <review-id> --target fixture
 requires:
   - MeetingDigestProvingApp
   - RtaProd11GeneratedAppRuntimeWiring

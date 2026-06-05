@@ -9,11 +9,11 @@ All `rta-prod-00` through `rta-prod-15` repo work cards are `demo-covered`.
 The current local release gates pass:
 
 ```bash
-npm run check
-npm run check:production
-npm run check:release
-npm run doctor
-npm run audit
+pnpm check
+pnpm run check:production
+node scripts/check-release-hygiene.mjs
+node scripts/rta.mjs doctor
+pnpm audit --audit-level high
 ```
 
 Expected current result:
@@ -22,7 +22,7 @@ Expected current result:
 - Test suite passes.
 - Production gate passes.
 - Release hygiene passes.
-- `npm audit --audit-level=moderate` reports zero vulnerabilities.
+- `pnpm audit --audit-level high` reports zero vulnerabilities.
 
 ## What Was Built
 
@@ -30,14 +30,22 @@ RTA now has an enforceable app-authoring loop:
 
 - Tier/vocab contracts for T1 primitives, T2 patterns, T3 archetypes, and app-local concrete extensions.
 - ARD spirit/letter checks with reciprocal family validation.
-- A central derivation engine for obligations, telemetry, log ceremonies, review gates, use cases, boundary coverage, provenance, and runtime contracts.
+- A central derivation engine for obligations, telemetry, operation event contracts, review gates, use cases, boundary coverage, provenance, and runtime contracts.
 - Generated artifacts with derivation hashes and generated-sync drift checks.
-- Production checks that combine app declaration, ARDs, tier contracts, generated sync, log ceremony, use cases, boundaries, review gates, connector safety, runtime wiring, telemetry, hosting, and security.
+- Production checks that combine app declaration, ARDs, tier contracts, generated sync, operation event contract, use cases, boundaries, review gates, connector safety, runtime wiring, telemetry, hosting, and security.
 - Runtime unit-of-work state, replay, scheduler one-shot execution, simulated time, artifacts, logs, and provenance.
-- Human-readable log ceremony output suitable for watching runs in a terminal.
+- Shared `@rta/runtime` primitives for file-backed runs, queue state, review items, and generated-app execution.
+- Human-readable log projection output suitable for watching runs in a terminal.
 - Telemetry coverage and Grafana dashboard artifact generation derived from scenario obligations.
 - Review gates and connector policies that block dry-run publication until review is approved.
 - Generated app runtime wiring with an AppRuntime schema and generated CLI parity checks.
+- `rta generate app` now emits an operational app CLI with `run`, `scenario`, `status`, `watch --trace`, `review`, `logs tail`, `graph run`, and `doctor` paths.
+- Tier blooming is transitive: app-local vocabulary that extends a T2 pattern or T3 archetype inherits parent primitive obligations and operation event requirements.
+- TypeScript CQRS buses in `@rta/core` for scoped command, query, and event dispatch.
+- Strict primitive subclasses for command handlers, query handlers, event handlers, and generic runtime primitives.
+- Generated strict command, query, and reaction event-handler leaves that inherit operation logging from RTA primitives.
+- Generated strict registries with `dispatch`, `dispatchCommand`, `dispatchQuery`, and `dispatchEvent`, proven by the sample-app loop typecheck and generated-app watch demo.
+- Work ledger enforcement with mandatory `qaSteps` containing at least one `do` action and one `see` observation for every feature/capability entry.
 - Meeting digest proving app scenarios for bulk, simulated streaming, loopback topics, unavailable enrichment, and reviewable work-item extraction.
 - Optional host-neutral/home-lab hosting adapter output with Containerfile, health server, probes, WorkloadApp draft, and local validation.
 - Root and app-level agent guides.
@@ -48,12 +56,27 @@ RTA now has an enforceable app-authoring loop:
 Run the whole local acceptance loop:
 
 ```bash
-npm run check
-npm run check:production
-npm run check:release
-npm run doctor
-npm run audit
+pnpm check
+pnpm run check:production
+node scripts/check-release-hygiene.mjs
+node scripts/rta.mjs doctor
+pnpm audit --audit-level high
 ```
+
+`pnpm check` includes the generated app authoring smoke:
+
+```text
+rta generate app
+pnpm install
+pnpm generate
+pnpm app:build
+node dist/app-cli.js watch --trace
+node dist/app-cli.js logs tail --run <run-id>
+node dist/app-cli.js graph run --run <run-id>
+node dist/app-cli.js review create --run <run-id>
+```
+
+That path must print readable primitive operation logs, persist run artifacts, expose a provenance graph, and create review items from the same runtime state.
 
 Run the main meeting digest experience:
 
@@ -92,6 +115,7 @@ Use these repo cards as the source of truth for per-feature QA:
 node scripts/rta.mjs work show rta-prod-08-runtime-unit-of-work
 node scripts/rta.mjs work show rta-prod-12-meeting-digest-seed
 node scripts/rta.mjs work show rta-prod-15-package-release
+pnpm check:demo-coverage
 ```
 
 ## Optional Hosting QA
@@ -112,6 +136,7 @@ Live home-lab promotion is intentionally separate and requires explicit operator
 ## Important Non-Claims
 
 - This does not publish RTA to npm.
+- Generated apps currently use local `file:` dependencies to the checked-out RTA packages. Publishing replaces those links with versioned package dependencies.
 - This does not deploy meeting digest into the live home lab.
 - This does not write to AFFiNE, Plane, GitHub, Otter, or Kubernetes.
 - Plane can mirror the repo work, but the repo work ledger is the current source of truth.

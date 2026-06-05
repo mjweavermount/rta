@@ -1,71 +1,68 @@
 # RTA
 
-RTA is an app-authoring platform for building observable, reviewable applications from domain vocabulary.
+RTA is a TypeScript app-authoring platform for governed, observable,
+reviewable applications from domain vocabulary.
 
-It turns declared vocabulary, tier contracts, use cases, scenarios, ARDs, and runtime wiring into generated scaffolding, checks, test obligations, log ceremonies, review gates, app CLIs, and optional hosting-adapter artifacts.
+This repo now supersedes the previous RTA/Rita attempts. The old `.mjs`
+prototype remains useful as requirement evidence, but the production foundation
+is the pnpm TypeScript workspace in this repo.
 
-## Current Status
-
-This repository is in production-bootstrap state. The source of truth for the build and proving app is:
+## Start Here
 
 - [RTA Production Authoring Platform Spec](docs/rta-production-authoring-platform-spec.md)
+- [RTA-ish Source Inventory](docs/rta-ish-source-inventory.md)
+- [RTA Reset Plan Board](docs/rta-reset-plan-board.md)
 - [RTA To Live Meeting Digest Milestones](docs/meeting-digest-live-milestones.md)
-- [RTA Demo Walkthroughs](docs/demos/README.md)
 
-## Intended Authoring Loop
+## Workspace
 
-```bash
-node scripts/rta.mjs context
-node scripts/rta.mjs generate
-node scripts/rta.mjs explain graph
-node scripts/rta.mjs check --production
-npm run check
+```text
+packages/vocab      declarative bounded-context vocabulary
+packages/core       CQRS primitives and governed execution kernel
+packages/strict     strict runtime wrappers and operation event projections
+packages/cli        vocab/generator/check CLI
+packages/scenario   scenario capture and reporting
+examples/meeting-digest
+                    TypeScript proving fixture for meeting digest extraction
 ```
 
-Authored apps should also receive an operational app CLI generated from their vocab, use cases, scenarios, and runtime wiring.
+## Validation
 
-## Build Order
-
-1. Vocab, ARDs, and CLI skeleton.
-2. Derivation graph.
-3. Generators and checks.
-4. Runtime.
-5. Generated app CLI and runtime wiring.
-6. Meeting digest proving app.
-7. Optional hosting adapters.
-
-## Current QA Loop
+Use pnpm. On this machine, pnpm may need the local Node bin on PATH:
 
 ```bash
-node scripts/rta.mjs scenario watch meeting-digest.integrated.fixture --input tests/fixtures/custom-transcript.txt
-node examples/meeting-digest-seed/bin/meeting-digest.mjs scenario run approved-digest-publishes-work-items --review --high
-node scripts/rta.mjs check --review-gates
-node scripts/rta.mjs check --connector-safety
-node scripts/rta.mjs check --runtime-wiring
-node scripts/rta.mjs check --scenario-runtime-parity
-node scripts/rta.mjs check --hosting-package
+PATH="/Users/virgil/Developer/Virgil-Info/heckitonkires/.hermes/node/bin:$PATH" pnpm check
 ```
 
-## Release Hygiene
+The check runs:
 
-RTA is package-shaped but not published from this repo yet. Release readiness is checked locally and in CI:
+- workspace build
+- recursive TypeScript typecheck
+- package tests
+- meeting digest example tests
+- golden fixture pass/fail loop
+- sample-app loop
 
-```bash
-npm run check
-npm run check:production
-npm run check:release
-npm run doctor
-npm run audit
+## Current Proving App
+
+The clean meeting digest proving fixture lives in:
+
+```text
+examples/meeting-digest
 ```
 
-## Demo Coverage
+It proves the reset direction by running transcript digestion through:
 
-Every nontrivial RTA capability should be tied to a direct demo or proof-through-integration path. Start with the [demo coverage map](docs/demos/rta-demo-coverage-map.md).
+- strict command construction
+- `OperationScope`
+- commit capability enforcement
+- an instrumented command handler
+- topic and work-item extraction
+- review-gated dry-run publication shape
+- readable logs projected from structured operation events
 
-## Work Ledger
+## Plane
 
-RTA tracks work in repo-local ledger files under `work/`. External tools such as Plane or GitHub may mirror those items, but they are not required to validate the repo.
-
-```bash
-node scripts/check-work-ledger.mjs
-```
+Plane may mirror work later. It is not the source of truth for this reset.
+Use [docs/rta-reset-plan-board.md](docs/rta-reset-plan-board.md) as the active
+board until a supported Plane project/card creation path exists.

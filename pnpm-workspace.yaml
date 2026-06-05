@@ -1,4 +1,8 @@
 packages:
-  - "packages/*"
+  - "packages/vocab"
+  - "packages/core"
+  - "packages/strict"
+  - "packages/runtime"
+  - "packages/cli"
+  - "packages/scenario"
   - "examples/*"
-

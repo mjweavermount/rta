@@ -40,7 +40,7 @@ export function renderGrafanaDashboard({ root, appName = "meeting-digest" }) {
     panels: [
       {
         type: "logs",
-        title: "Human-readable ceremony logs",
+        title: "Human-readable operation logs",
         gridPos: { x: 0, y: 0, w: 24, h: 8 },
         targets: [{ refId: "A", expr: `{app="${appName}"} |= "rta.step"` }],
       },

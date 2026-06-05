@@ -12,6 +12,7 @@ const requiredFields = [
   "why:",
   "ownedBy:",
   "demonstratedBy:",
+  "qaSteps:",
   "requires:",
   "produces:",
 ];
@@ -80,6 +81,11 @@ function demoTargets(text) {
     });
 }
 
+function hasQaStep(text, kind) {
+  return sectionLines(text, "qaSteps")
+    .some((line) => line.trim().startsWith(`- ${kind}:`));
+}
+
 const files = existsSync(workDir) ? walk(workDir) : [];
 if (files.length === 0) {
   errors.push("work ledger has no YAML entries");
@@ -123,6 +129,14 @@ for (const file of files) {
 
   if (!hasListItemAfter(text, "demonstratedBy:")) {
     errors.push(`${rel} must declare at least one demonstratedBy item`);
+  }
+
+  if (!hasQaStep(text, "do")) {
+    errors.push(`${rel} qaSteps must include at least one do action`);
+  }
+
+  if (!hasQaStep(text, "see")) {
+    errors.push(`${rel} qaSteps must include at least one see observation`);
   }
 
   if (!hasListItemAfter(text, "produces:")) {

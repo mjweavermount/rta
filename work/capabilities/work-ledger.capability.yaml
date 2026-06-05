@@ -1,7 +1,7 @@
 kind: Capability
 id: work-ledger
 name: WorkLedger
-status: in-progress
+status: demo-covered
 why: RTA needs a vocab-aware registry for capabilities, features, decisions, research, upstream candidates, and demo coverage.
 ownedBy:
   internal: rta-platform
@@ -9,7 +9,14 @@ ownedBy:
 demonstratedBy:
   - doc: docs/demos/rta-demo-coverage-map.md
   - command: pnpm check:work-ledger
-  - futureCommand: rta work list
+  - command: pnpm check:demo-coverage
+  - command: rta work list
+qaSteps:
+  - do: run pnpm check:work-ledger
+  - do: run pnpm check:demo-coverage
+  - do: run node scripts/rta.mjs work list
+  - see: the ledger check passes and reports all 34 entries
+  - see: every work item requires demo evidence plus one do action and one see observation
 requires:
   - UseCases
   - Scenarios

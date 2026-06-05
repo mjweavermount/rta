@@ -9,9 +9,10 @@ demonstratedBy:
   - doc: docs/spec-to-ticket-backlog.md
   - command: rta check --work-ledger
 qaSteps:
-  - read docs/spec-to-ticket-backlog.md
-  - run: node scripts/rta.mjs check --work-ledger
-  - run: node scripts/rta.mjs work list
+  - do: read docs/spec-to-ticket-backlog.md
+  - do: node scripts/rta.mjs check --work-ledger
+  - do: node scripts/rta.mjs work list
+  - see: RtaProd00RebaselineLedger produces visible evidence or a successful check result
 requires:
   - WorkLedger
 produces:

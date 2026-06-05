@@ -1,0 +1,88 @@
+kind: BoundedContext
+name: OrderManagement
+classification: core-domain
+description: Manages the lifecycle of customer orders
+
+imports:
+  - from: CustomerContext
+    types: [CustomerId]
+  - from: InventoryContext
+    types: [ProductId]
+
+aggregates:
+  - name: Order
+    id:
+      name: OrderId
+      backing: UUID
+
+    commands:
+      - name: PlaceOrder
+        payload:
+          - { name: customerId, type: CustomerId }
+          - { name: items, type: "OrderItem[]" }
+        emits: [OrderPlaced]
+
+      - name: CancelOrder
+        payload:
+          - { name: reason, type: CancellationReason }
+        emits: [OrderCancelled]
+
+    events:
+      - name: OrderPlaced
+        payload:
+          - { name: orderId,    type: OrderId }
+          - { name: customerId, type: CustomerId }
+          - { name: items,      type: "OrderItem[]" }
+          - { name: occurredAt, type: Timestamp }
+
+      - name: OrderCancelled
+        payload:
+          - { name: orderId,    type: OrderId }
+          - { name: reason,     type: CancellationReason }
+          - { name: occurredAt, type: Timestamp }
+
+    entities:
+      - name: OrderItem
+        id: { name: OrderItemId, backing: UUID }
+        fields:
+          - { name: productId,  type: ProductId }
+          - { name: quantity,   type: PositiveInt }
+          - { name: unitPrice,  type: Money }
+
+    valueObjects:
+      - name: Money
+        fields:
+          - { name: amount,   type: Decimal }
+          - { name: currency, type: CurrencyCode }
+      - name: CancellationReason
+        backing: String
+        constraints:
+          minLength: 1
+          maxLength: 500
+
+queries:
+  - name: GetOrder
+    parameters:
+      - { name: orderId, type: OrderId }
+    returns: OrderReadModel
+
+  - name: ListOrdersForCustomer
+    parameters:
+      - { name: customerId, type: CustomerId }
+      - { name: pagination,  type: Pagination }
+    returns: "OrderReadModel[]"
+
+readModels:
+  - name: OrderReadModel
+    fields:
+      - { name: orderId, type: OrderId }
+      - { name: status,  type: OrderStatus }
+      - { name: items,   type: "OrderItemReadModel[]" }
+
+domainServices:
+  - name: OrderPricingService
+    operations:
+      - name: calculateTotal
+        parameters:
+          - { name: items, type: "OrderItem[]" }
+        returns: Money

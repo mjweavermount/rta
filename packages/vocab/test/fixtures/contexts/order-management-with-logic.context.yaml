@@ -1,0 +1,89 @@
+kind: BoundedContext
+name: OrderManagement
+classification: core-domain
+description: Manages the lifecycle of customer orders
+
+aggregates:
+  - name: Order
+    id:
+      name: OrderId
+      backing: UUID
+
+    commands:
+      - name: PlaceOrder
+        payload:
+          - { name: customerId, type: CustomerId }
+          - { name: items, type: "OrderItem[]" }
+        emits: [OrderPlaced]
+
+    events:
+      - name: OrderPlaced
+        payload:
+          - { name: orderId, type: OrderId }
+          - { name: occurredAt, type: Timestamp }
+
+    rules:
+      - name: OrderMustHaveItems
+        violation: OrderHasNoItems
+        description: An order must contain at least one item
+        implementation:
+          shape: predicate
+      - name: CustomerNotSuspended
+        violation: CustomerAccountSuspended
+        description: Orders from suspended accounts are rejected
+        input:
+          - { name: accountStatus, type: AccountStatus }
+        pattern: guard
+        implementation:
+          shape: state-precondition
+
+decisions:
+  - name: PricingTierDecision
+    description: Determines which pricing tier applies to an order
+    input:
+      - { name: orderHistory, type: OrderHistorySummary }
+    outcomes:
+      - Standard
+      - Premium
+      - Enterprise
+    pattern: classifier
+    implementation:
+      shape: numeric-buckets
+
+  - name: OrderEligibilityDecision
+    input:
+      - { name: customerId, type: CustomerId }
+    outcomes:
+      - Eligible
+      - IneligibleDueToSuspendedAccount
+      - IneligibleDueToOverdueBalance
+    pattern: classifier
+    implementation:
+      shape: predicate-chain
+
+processManagers:
+  - name: OrderFulfillmentManager
+    description: Coordinates the multi-step order fulfilment flow
+    pattern: saga
+    implementation:
+      shape: linear-flow
+    id:
+      name: OrderFulfillmentManagerId
+      backing: UUID
+    trigger:
+      event: OrderPlaced
+      from: OrderManagement
+    state:
+      - { name: orderId, type: OrderId }
+      - { name: inventoryReserved, type: Boolean }
+      - { name: paymentConfirmed, type: Boolean }
+    transitions:
+      - on: InventoryReserved
+        emits: [RequestPayment]
+      - on: PaymentConfirmed
+        emits: [DispatchOrder]
+        terminal: true
+      - on: PaymentFailed
+        when: RetryBudgetExhausted
+        emits: [CancelOrder]
+        terminal: true

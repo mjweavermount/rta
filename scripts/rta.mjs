@@ -6,10 +6,10 @@ import { publishDryRun } from "../packages/connectors/index.mjs";
 import { explainMeetingDigestObligation } from "../packages/derivation/index.mjs";
 import { renderGrafanaDashboard } from "../packages/grafana/index.mjs";
 import { renderHomeLabDeploymentPackage, renderHomeLabIntent, renderHostNeutralIntent, validateHomeLabDeploymentPackage } from "../packages/hosting-adapters/index.mjs";
-import { checkApp, checkArchetypeBindings, checkArds, checkBoundaryCoverage, checkConnectorSafety, checkDerivation, checkExtensions, checkHostingPackage, checkIntegrationContracts, checkLogCeremony, checkPatternContracts, checkProduction, checkReviewGates, checkRuntimeWiring, checkScenarioCoverage, checkScenarioRuntimeParity, checkSecurity, checkTelemetryCoverage, checkTierContracts, checkUseCases } from "../packages/checks/index.mjs";
+import { checkApp, checkArchetypeBindings, checkArds, checkBoundaryCoverage, checkConnectorSafety, checkDerivation, checkExtensions, checkHostingPackage, checkIntegrationContracts, checkOperationLogging, checkPatternContracts, checkProduction, checkReviewGates, checkRuntimeWiring, checkScenarioCoverage, checkScenarioRuntimeParity, checkSecurity, checkTelemetryCoverage, checkTierContracts, checkUseCases } from "../packages/checks/index.mjs";
 import { buildDerivationGraph } from "../packages/derivation/index.mjs";
 import { checkGeneratedSync, generateAppCli, generateAppScaffold, generateDerivationBundle } from "../packages/generators/index.mjs";
-import { CeremonyLogger } from "../packages/logging/index.mjs";
+import { OperationLogger } from "../packages/logging/index.mjs";
 import { ReviewQueue } from "../packages/review/index.mjs";
 import { FileRuntime, createRunId } from "../packages/runtime/index.mjs";
 import { FileQueue } from "../packages/scheduler/index.mjs";
@@ -101,6 +101,7 @@ Commands:
   rta work list
   rta work show <id>
   rta check --work-ledger
+  rta check --demo-coverage
   rta check --meeting-digest
   rta check --ard-meta
   rta check --generated-sync
@@ -120,7 +121,7 @@ Commands:
   rta check --scenario-runtime-parity
   rta check --hosting-package
   rta check --telemetry-coverage
-  rta check --log-ceremony
+  rta check --operation-logging
   rta check --security
   rta check --production
   rta check --all
@@ -176,7 +177,7 @@ function work(sub, rest) {
 }
 
 async function check(flag) {
-  if (flag === "--work-ledger") {
+  if (flag === "--work-ledger" || flag === "--demo-coverage") {
     await import("./check-work-ledger.mjs");
     return;
   }
@@ -210,7 +211,7 @@ async function check(flag) {
   if (flag === "--scenario-runtime-parity") return reportCheck("Scenario runtime parity", checkScenarioRuntimeParity({ root, appDir: "examples/meeting-digest-seed" }));
   if (flag === "--hosting-package") return reportCheck("Hosting package", checkHostingPackage({ root, appDir: "examples/meeting-digest-seed" }));
   if (flag === "--telemetry-coverage") return reportCheck("Telemetry coverage", checkTelemetryCoverage({ root, appDir: "examples/meeting-digest-seed" }));
-  if (flag === "--log-ceremony") return reportCheck("Log ceremony", checkLogCeremony({ root, appDir: "examples/meeting-digest-seed" }));
+  if (flag === "--operation-logging") return reportCheck("Operation logging", checkOperationLogging({ root, appDir: "examples/meeting-digest-seed" }));
   if (flag === "--security") return reportCheck("Security", checkSecurity({ root, appDir: "examples/meeting-digest-seed" }));
   if (flag === "--production") return reportCheck("Production", checkProduction({ root, appDir: "examples/meeting-digest-seed" }));
   if (flag === "--app-cli") {
@@ -236,7 +237,7 @@ async function check(flag) {
       ...checkScenarioRuntimeParity({ root, appDir: "examples/meeting-digest-seed" }),
       ...checkHostingPackage({ root, appDir: "examples/meeting-digest-seed" }),
       ...checkTelemetryCoverage({ root, appDir: "examples/meeting-digest-seed" }),
-      ...checkLogCeremony({ root, appDir: "examples/meeting-digest-seed" }),
+      ...checkOperationLogging({ root, appDir: "examples/meeting-digest-seed" }),
       ...checkSecurity({ root, appDir: "examples/meeting-digest-seed" }),
     ];
     if (errors.length > 0) {
@@ -246,7 +247,7 @@ async function check(flag) {
     console.log("All implemented RTA checks passed.");
     return;
   }
-  throw new Error("usage: rta check --work-ledger | --meeting-digest | --ard-meta | --generated-sync | --tier-contracts | --pattern-contracts | --archetype-bindings | --extensions-local | --extensions-upstreamable | --derived-obligations | --use-cases | --scenario-coverage | --boundary-coverage | --integration-contracts | --review-gates | --connector-safety | --runtime-wiring | --scenario-runtime-parity | --hosting-package | --telemetry-coverage | --log-ceremony | --security | --production | --app-cli | --all");
+  throw new Error("usage: rta check --work-ledger | --demo-coverage | --meeting-digest | --ard-meta | --generated-sync | --tier-contracts | --pattern-contracts | --archetype-bindings | --extensions-local | --extensions-upstreamable | --derived-obligations | --use-cases | --scenario-coverage | --boundary-coverage | --integration-contracts | --review-gates | --connector-safety | --runtime-wiring | --scenario-runtime-parity | --hosting-package | --telemetry-coverage | --operation-logging | --security | --production | --app-cli | --all");
 }
 
 function reportCheck(label, errors) {
@@ -458,7 +459,7 @@ async function runNamedScenario(name, { review: shouldReview = false, verbosity 
 
   const runId = createRunId(name.replace(/[^a-z0-9]+/gi, "-"));
   const runtime = new FileRuntime({ root, runId });
-  const logger = new CeremonyLogger({ verbosity, onEvent: (event) => runtime.recordStep(event) });
+  const logger = new OperationLogger({ verbosity, onEvent: (event) => runtime.recordStep(event) });
   const result = await runScenario({ scenario: selected, runtime, logger, input });
   runtime.saveArtifact("logs.json", logger.events);
 

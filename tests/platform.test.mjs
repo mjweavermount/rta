@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import test from "node:test";
-import { CeremonyLogger } from "../packages/logging/index.mjs";
+import { OperationLogger } from "../packages/logging/index.mjs";
 
 function rta(args) {
   return execFileSync("node", ["scripts/rta.mjs", ...args], {
@@ -105,8 +105,8 @@ test("release hygiene exposes package, CI, and audit checks", () => {
   assert.ok(pkg.exports["."]);
   assert.ok(pkg.scripts["check:production"]);
   assert.ok(pkg.scripts.audit);
-  assert.match(workflow, /npm run check:production/);
-  assert.match(workflow, /npm run audit/);
+  assert.match(workflow, /pnpm run check:production/);
+  assert.match(workflow, /pnpm run audit/);
   assert.match(rta(["doctor"]), /pass-with-planned-work/);
 });
 
@@ -114,7 +114,7 @@ test("security rejects escaping input paths and redacts secret-like logs", () =>
   assert.throws(() => rta(["scenario", "run", "meeting-digest.integrated.fixture", "--input", "../outside.txt"]), /path escapes RTA root/);
 
   const lines = [];
-  const logger = new CeremonyLogger({ sink: (line) => lines.push(line), verbosity: "high" });
+  const logger = new OperationLogger({ sink: (line) => lines.push(line), verbosity: "high" });
   logger.step({
     runId: "security-test",
     step: "secret.redaction",

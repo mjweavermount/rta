@@ -1,0 +1,9 @@
+id: GOLDEN-ARD-006
+kind: letter
+family: fixture
+name: Golden fixture test policy
+spirit: [GOLDEN-ARD-000]
+severity: error
+checks:
+  - description: primitive test mentions
+    command: node ../../../packages/cli/dist/rta.js test-policy --root .

@@ -11,6 +11,9 @@ demonstratedBy:
   - artifact: generated WorkloadApp draft package
   - command: WORKLOAD_APPS_DIR=tmp/rta-workload-root/tmp/workload-apps nix develop --command scripts/test/integrity/workload-apps.rb
   - optionalDemo: approved home-lab deployment
+qaSteps:
+  - do: run or inspect the demonstrated evidence for HomeLabHostingAdapter
+  - see: HomeLabHostingAdapter has visible command, doc, artifact, or integration evidence
 requires:
   - GeneratedAppCliRuntimeWiring
   - HostingAdapterContract

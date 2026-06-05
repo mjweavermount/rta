@@ -1,0 +1,26 @@
+kind: ArchetypeSpec
+name: scheduler
+description: >
+  Manages the lifecycle of scheduled items — open, claimed, released.
+  Used here to exercise archetype checking in the golden fixture.
+requiredPatterns: [guard, availability, lifecycle]
+inputRoles:
+  - name: claim-event
+    description: The event that books or claims the scheduled item
+  - name: release-event
+    description: The event that cancels or releases the item
+outputRoles:
+  - name: claimed
+    description: Emitted when the item transitions to claimed state
+  - name: released
+    description: Emitted when the item is freed
+testPlan:
+  - rule-guard: item must be in claimable state — two-case test
+  - rule-availability: item not already claimed — two-case test
+  - decision-lifecycle: all lifecycle outcomes tested
+  - integration-claim: claim-event → item claimed → state reflects
+  - integration-release: release-event → item released → state open
+visualGuidance: >
+  Render instances with a time or calendar motif. The point of this fixture
+  archetype is validation, not design polish.
+narrativeLabel: "(archetype: scheduler) {context} — claims on {claim-event}, releases on {release-event}"

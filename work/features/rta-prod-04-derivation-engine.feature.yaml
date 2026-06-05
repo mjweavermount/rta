@@ -9,9 +9,10 @@ demonstratedBy:
   - command: rta explain graph
   - snapshot: derivation graph fixture
 qaSteps:
-  - run: node scripts/rta.mjs explain graph
-  - run: node scripts/rta.mjs check --derived-obligations
-  - run: npm run check -- --test-name-pattern derivation
+  - do: node scripts/rta.mjs explain graph
+  - do: node scripts/rta.mjs check --derived-obligations
+  - do: run node --test tests/derivation.test.mjs
+  - see: RtaProd04DerivationEngine produces visible evidence or a successful check result
 requires:
   - RtaProd02TierVocabContracts
   - RtaProd03ArdSpiritLetterLoop
