@@ -1,0 +1,22 @@
+kind: Capability
+id: pure-ts-effect-runtime
+name: PureTsEffectRuntime
+status: in-progress
+why: RTA should use TypeScript source only, with Effect TS owning runtime behavior, IO, services, layers, typed errors, and app execution.
+ownedBy:
+  internal: rta-platform
+demonstratedBy:
+  - command: pnpm check:pure-ts
+  - doc: docs/rta-pure-ts-effect-migration.md
+qaSteps:
+  - do: run pnpm check:pure-ts
+  - see: the check fails on new tracked JS/MJS/CJS source and reports the remaining allowlisted migration count
+  - see: the migration is complete only when the allowlist is empty
+requires:
+  - VocabArdCliSkeleton
+  - RuntimePorts
+produces:
+  - docs/rta-pure-ts-effect-migration.md
+  - docs/rta-pure-ts-allowlist.txt
+  - rta check --pure-ts
+  - TypeScript-only source gate

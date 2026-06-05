@@ -41,6 +41,8 @@ Use these states:
 | RTA-RESET-10 | Demo Ready | Rebuild meeting digest as proving fixture | Meeting digest is rebuilt from generated TypeScript contracts, not from the rejected `.mjs` prototype. | `@rta/example-meeting-digest` extracts topics/work items, runs through an instrumented command handler, emits readable logs, and stays dry-run/review-gated. |
 | RTA-RESET-11 | Ready | Add optional home-lab adapter | RTA apps can optionally generate home-lab packaging without making lab deployment mandatory. | Generate a draft WorkloadApp/package artifact and validate it without writing into `home-lab-v7/deploy/apps`. |
 | RTA-RESET-12 | Demo Ready | Create end-to-end acceptance harness | One demo proves the authored app path from vocab through generated code, scenario run, logs, review, dry-run publication, and provenance graph. | `pnpm check` runs golden fixtures, sample-app loop, production check, primitive-boundary check, operation-event check, and meeting digest trace/log tests. |
+| RTA-RESET-13 | In Progress | Purge active JS/MJS and move to Effect-first TypeScript | RTA source converges on tracked TypeScript only. Effect services/layers own runtime IO, repositories, edge boundaries, secrets, review, queue, logs, and generated app execution. | `pnpm check:pure-ts` blocks new tracked JS/MJS/CJS source and reports the explicit burn-down allowlist until it reaches zero. |
+| RTA-RESET-14 | Ready | Add repository, edge-boundary, and secret primitives | DDD repositories, file-backed/in-memory storage, edge trust promotion, SQL safety, and secrets bloom through vocab into checks/logs/runtime layers. | Minimum demo app proves in-memory repository for tests and file-backed repository for local demo with edge validation and secret redaction. |
 
 ## Superseded Plane Cards
 
@@ -84,3 +86,4 @@ Passed:
 - work ledger and demo coverage check
 - golden fixture pass/fail loop
 - sample-app loop including generated app install, generate, build, watch, status, logs, graph, and review
+- pure TypeScript migration rail via `pnpm check:pure-ts`

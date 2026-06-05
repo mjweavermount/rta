@@ -24,6 +24,8 @@ This map links RTA work to the demo surface that should prove it.
 | `work-ledger` | `LAB-49` | Work ledger/demo coverage tracking | Direct CLI/doc demo: show capability linked to optional mirror and demo path |
 | `scheduler-queue` | local | Persistent scheduler/queue | Direct CLI demo: enqueue a meeting digest job, run next, inspect completed queue state |
 | `security-hardening` | local | Generic security guardrails | Direct test/CLI demo: escaping input paths fail, secret-like log fields are redacted, `rta check --security` passes |
+| `pure-ts-effect-runtime` | local | Pure TS and Effect runtime migration | Direct CLI/doc demo: `pnpm check:pure-ts` blocks new tracked JS/MJS/CJS source while the allowlist burns down |
+| `repository-edge-secret-primitives` | local | Repository, edge boundary, and secret primitives | Source/doc acceptance: primitive obligations are captured before vocab/runtime implementation |
 | `rta-prod-00-rebaseline-ledger` | local | Rebaseline overclaimed work | Direct doc/CLI demo: inspect `docs/spec-to-ticket-backlog.md`, run `rta check --work-ledger`, confirm broad old capabilities are no longer marked complete |
 | `rta-prod-01-cli-command-surface` | local | Full CLI command surface | Direct CLI demo: run required command inventory including `doctor`, `dev`, `test-scenario`, `extensions`, and `upstream` |
 | `rta-prod-02-tier-vocab-contracts` | local | Tier/vocab contracts | Direct fixture demo: good/bad T1/T2/T3 fixtures pass/fail `rta check --tier-contracts`, `--pattern-contracts`, and `--archetype-bindings` |
@@ -40,6 +42,8 @@ This map links RTA work to the demo surface that should prove it.
 | `rta-prod-13-hosting-adapter-live` | local/home-lab | Hosting adapter live path | Optional hosted demo: host-neutral intent, containerized app, WorkloadApp validation, healthcheck, and optional lab promotion |
 | `rta-prod-14-docs-agent-experience` | local | Agent docs and experience | Source/doc acceptance: a fresh agent can follow AGENTS/docs/CLI output to continue work without rediscovery |
 | `rta-prod-15-package-release` | local | Package/release hygiene | Direct CI/demo: production checks, package exports, audit/dependency hygiene, and release workflow pass |
+| `rta-prod-16-pure-ts-effect-purge` | local | Pure TS and Effect purge | Direct CLI/doc demo: run `pnpm check:pure-ts` and inspect `docs/rta-pure-ts-allowlist.txt` burn-down |
+| `rta-prod-17-repository-edge-secret-vocab` | local | Repository/edge/secret vocab | Source/doc acceptance: repository, file-backed, in-memory, edge-boundary, SQL-boundary, and secret obligations are ready to implement |
 
 ## Principle
 

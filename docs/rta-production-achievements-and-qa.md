@@ -14,6 +14,7 @@ pnpm run check:production
 node scripts/check-release-hygiene.mjs
 node scripts/rta.mjs doctor
 pnpm audit --audit-level high
+pnpm check:pure-ts
 ```
 
 Expected current result:
@@ -50,6 +51,7 @@ RTA now has an enforceable app-authoring loop:
 - Optional host-neutral/home-lab hosting adapter output with Containerfile, health server, probes, WorkloadApp draft, and local validation.
 - Root and app-level agent guides.
 - Package/release hygiene: package exports, lockfile-backed audit, CI checks, doctor, production check, and release hygiene script.
+- Pure TypeScript migration rail: `pnpm check:pure-ts` blocks new tracked JS/MJS/CJS source while the legacy allowlist is burned down.
 
 ## Fast QA
 
@@ -61,6 +63,7 @@ pnpm run check:production
 node scripts/check-release-hygiene.mjs
 node scripts/rta.mjs doctor
 pnpm audit --audit-level high
+pnpm check:pure-ts
 ```
 
 `pnpm check` includes the generated app authoring smoke:

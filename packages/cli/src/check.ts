@@ -21,6 +21,7 @@ import { checkPrimitiveBoundaries } from "./check-primitive-boundaries.js"
 import { checkExecutionTelemetry } from "./check-telemetry.js"
 import { checkGeneratedSync } from "./generated-sync.js"
 import { isGoldenFixturePath } from "./discovery.js"
+import { runPureTsCheck } from "./check-pure-ts.js"
 
 // ---------------------------------------------------------------------------
 // Discover *.ard.yaml files under a root directory (non-recursive for v1)
@@ -85,6 +86,7 @@ export interface CheckOptions {
   readonly primitiveBoundaries?: boolean
   readonly production?: boolean
   readonly telemetrySync?: boolean
+  readonly pureTs?: boolean
 }
 
 export const runCheck = (options: CheckOptions = {}): Effect.Effect<number> =>
@@ -108,6 +110,17 @@ export const runCheck = (options: CheckOptions = {}): Effect.Effect<number> =>
     }
     if (options.telemetrySync) {
       return yield* Effect.promise(() => checkGeneratedSync(cwd))
+    }
+    if (options.pureTs) {
+      return yield* runPureTsCheck(cwd).pipe(
+        Effect.catchAll((cause) =>
+          Effect.sync(() => {
+            console.error("pure-ts check failed:")
+            console.error(cause)
+            return 1
+          }),
+        ),
+      )
     }
     if (options.decisionShapes) {
       return yield* Effect.promise(() => checkDecisionShapes(cwd))

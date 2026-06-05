@@ -71,6 +71,7 @@ const main = Effect.gen(function* () {
         ...(hasFlag("--primitive-boundaries") ? { primitiveBoundaries: true } : {}),
         ...(hasFlag("--production") ? { production: true } : {}),
         ...(hasFlag("--telemetry-sync") ? { telemetrySync: true } : {}),
+        ...(hasFlag("--pure-ts") ? { pureTs: true } : {}),
       })
       process.exit(exitCode)
       break
@@ -165,6 +166,7 @@ Options:
   --primitive-boundaries Validate app source exports go through RTA primitives (check only)
   --production          Run production-readiness checks as one aggregate gate (check only)
   --telemetry-sync      Validate generated telemetry stub headers (check only)
+  --pure-ts             Fail on tracked JS/MJS/CJS source outside the migration allowlist
 `)
       process.exit(command && !wantsHelp ? 1 : 0)
     }

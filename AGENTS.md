@@ -73,6 +73,7 @@ The target production check surface is implemented through the local CLI. Run ge
 node scripts/rta.mjs generate
 node scripts/rta.mjs check --production
 pnpm check
+pnpm check:pure-ts
 ```
 
 For focused work, use the named checks instead of guessing:

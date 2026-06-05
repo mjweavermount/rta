@@ -22,6 +22,7 @@
     "check:release": "node scripts/check-release-hygiene.mjs",
     "check:work-ledger": "node scripts/rta.mjs check --work-ledger",
     "check:demo-coverage": "node scripts/rta.mjs check --demo-coverage",
+    "check:pure-ts": "pnpm --filter @rta/cli build && pnpm --filter @rta/cli rta check --pure-ts --root ../..",
     "check:golden-fixture": "pnpm --filter @rta/vocab build && pnpm --filter @rta/core build && pnpm --filter @rta/strict build && pnpm --filter @rta/runtime build && pnpm --filter @rta/cli build && node scripts/check-golden-fixture.mjs",
     "check:sample-app-loop": "pnpm --filter @rta/vocab build && pnpm --filter @rta/core build && pnpm --filter @rta/strict build && pnpm --filter @rta/runtime build && pnpm --filter @rta/cli build && node scripts/check-sample-app-loop.mjs",
     "test": "pnpm --filter @rta/vocab test && pnpm --filter @rta/core test && pnpm --filter @rta/strict test && pnpm --filter @rta/runtime test && pnpm --filter @rta/cli test && pnpm --filter @rta/scenario test && pnpm --filter @rta/example-meeting-digest test",
