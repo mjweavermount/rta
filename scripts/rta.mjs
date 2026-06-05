@@ -8,7 +8,7 @@ import { renderGrafanaDashboard } from "../packages/grafana/index.mjs";
 import { renderHomeLabDeploymentPackage, renderHomeLabIntent } from "../packages/hosting-adapters/index.mjs";
 import { checkApp, checkArchetypeBindings, checkArds, checkDerivation, checkExtensions, checkLogCeremony, checkPatternContracts, checkSecurity, checkTierContracts } from "../packages/checks/index.mjs";
 import { buildDerivationGraph } from "../packages/derivation/index.mjs";
-import { generateAppCli, generateAppScaffold } from "../packages/generators/index.mjs";
+import { checkGeneratedSync, generateAppCli, generateAppScaffold, generateDerivationBundle } from "../packages/generators/index.mjs";
 import { CeremonyLogger } from "../packages/logging/index.mjs";
 import { ReviewQueue } from "../packages/review/index.mjs";
 import { FileRuntime, createRunId } from "../packages/runtime/index.mjs";
@@ -100,6 +100,7 @@ Commands:
   rta check --work-ledger
   rta check --meeting-digest
   rta check --ard-meta
+  rta check --generated-sync
   rta check --tier-contracts
   rta check --pattern-contracts
   rta check --archetype-bindings
@@ -170,6 +171,10 @@ async function check(flag) {
     return;
   }
   if (flag === "--ard-meta") return reportCheck("ARD metadata", checkArds({ root }));
+  if (flag === "--generated-sync") {
+    const app = loadAppDeclaration(join(root, "examples/meeting-digest-seed/rta.app.json"));
+    return reportCheck("Generated sync", checkGeneratedSync({ root, app }));
+  }
   if (flag === "--tier-contracts") return reportCheck("Tier contracts", checkTierContracts({ root, appDir: "examples/meeting-digest-seed" }));
   if (flag === "--pattern-contracts") return reportCheck("Pattern contracts", checkPatternContracts({ root }));
   if (flag === "--archetype-bindings") return reportCheck("Archetype bindings", checkArchetypeBindings({ root }));
@@ -205,7 +210,7 @@ async function check(flag) {
     console.log("All implemented RTA checks passed.");
     return;
   }
-  throw new Error("usage: rta check --work-ledger | --meeting-digest | --ard-meta | --tier-contracts | --pattern-contracts | --archetype-bindings | --extensions-local | --extensions-upstreamable | --derived-obligations | --log-ceremony | --security | --app-cli | --all");
+  throw new Error("usage: rta check --work-ledger | --meeting-digest | --ard-meta | --generated-sync | --tier-contracts | --pattern-contracts | --archetype-bindings | --extensions-local | --extensions-upstreamable | --derived-obligations | --log-ceremony | --security | --app-cli | --all");
 }
 
 function reportCheck(label, errors) {
@@ -263,6 +268,10 @@ function graph(sub, rest) {
 
 function generate(sub) {
   const app = loadAppDeclaration(join(root, "examples/meeting-digest-seed/rta.app.json"));
+  if (!sub) {
+    console.log(generateDerivationBundle({ root, app }));
+    return;
+  }
   if (sub === "app-cli") {
     console.log(generateAppCli({ root, app }));
     return;

@@ -1,7 +1,7 @@
 kind: Feature
 id: rta-prod-05-generators-generated-sync
 name: RtaProd05GeneratorsGeneratedSync
-status: planned
+status: demo-covered
 why: RTA must generate scaffolds, tests, telemetry expectations, log ceremonies, review gates, and app docs with derivation hashes and drift checks.
 ownedBy:
   internal: rta-platform
@@ -16,4 +16,3 @@ produces:
   - generated obligation and scenario stubs
 selfAudit:
   - "@did generated artifacts carry hashes and regeneration policy, or can drift hide?"
-

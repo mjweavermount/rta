@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import test from "node:test";
 import { CeremonyLogger } from "../packages/logging/index.mjs";
 
@@ -30,6 +30,21 @@ test("generator creates arbitrary app scaffold", () => {
   const out = rta(["generate", "app", ".rta/generated/scaffold/test-app"]).trim();
   assert.ok(existsSync(`${out}/rta.app.json`));
   assert.ok(existsSync(`${out}/bin/meeting-digest.mjs`));
+});
+
+test("generator writes derivation hashes and generated-sync catches drift", () => {
+  const out = rta(["generate"]).trim();
+  const manifestPath = `${out}/derivation-manifest.json`;
+  assert.ok(existsSync(manifestPath));
+  const manifest = JSON.parse(readFileSync(manifestPath, "utf8"));
+  assert.equal(manifest.generated.policy, "always-regenerated");
+  assert.match(manifest.generated.derivationHash, /^[a-f0-9]{16}$/);
+  assert.match(rta(["check", "--generated-sync"]), /Generated sync passed/);
+
+  writeFileSync(`${out}/obligations.json`, "{}\n");
+  assert.throws(() => rta(["check", "--generated-sync"]), /generated file drifted: obligations.json/);
+  rta(["generate"]);
+  assert.match(rta(["check", "--generated-sync"]), /Generated sync passed/);
 });
 
 test("grafana renderer writes a dashboard artifact", () => {
