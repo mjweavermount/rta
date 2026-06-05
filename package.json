@@ -16,16 +16,17 @@
     "rta": "./packages/cli/dist/rta.js"
   },
   "scripts": {
-    "build": "pnpm --filter @rta/vocab build && pnpm --filter @rta/core build && pnpm --filter @rta/strict build && pnpm --filter @rta/runtime build && pnpm --filter @rta/cli build && pnpm --filter @rta/scenario build && pnpm --filter @rta/example-meeting-digest build",
-    "check": "pnpm typecheck && pnpm test && pnpm check:pure-ts && pnpm check:work-ledger && pnpm check:demo-coverage && pnpm check:release",
+    "build": "pnpm --filter @rta/vocab build && pnpm --filter @rta/core build && pnpm --filter @rta/strict build && pnpm --filter @rta/runtime build && pnpm --filter @rta/cli build && pnpm --filter @rta/scenario build && pnpm --filter @rta/example-meeting-digest build && pnpm --filter @rta/example-affine-ops-gateway build",
+    "check": "pnpm typecheck && pnpm test && pnpm check:affine-ops-gateway && pnpm check:pure-ts && pnpm check:work-ledger && pnpm check:demo-coverage && pnpm check:release",
     "check:production": "pnpm check && pnpm --filter @rta/cli rta check --production --root ../../fixtures/golden/pass",
     "check:release": "pnpm --filter @rta/cli build && pnpm --filter @rta/cli rta check --release-hygiene --root ../..",
     "check:work-ledger": "pnpm --filter @rta/cli build && pnpm --filter @rta/cli rta check --work-ledger --root ../..",
     "check:demo-coverage": "pnpm --filter @rta/cli build && pnpm --filter @rta/cli rta check --demo-coverage --root ../..",
     "check:pure-ts": "pnpm --filter @rta/cli build && pnpm --filter @rta/cli rta check --pure-ts --root ../..",
+    "check:affine-ops-gateway": "pnpm --filter @rta/example-affine-ops-gateway check:coverage",
     "check:golden-fixture": "pnpm --filter @rta/cli test -- test/golden-fixture-coverage.test.ts",
     "check:sample-app-loop": "pnpm --filter @rta/cli test",
-    "test": "pnpm --filter @rta/vocab test && pnpm --filter @rta/core test && pnpm --filter @rta/strict test && pnpm --filter @rta/runtime test && pnpm --filter @rta/cli test && pnpm --filter @rta/scenario test && pnpm --filter @rta/example-meeting-digest test",
+    "test": "pnpm --filter @rta/vocab test && pnpm --filter @rta/core test && pnpm --filter @rta/strict test && pnpm --filter @rta/runtime test && pnpm --filter @rta/cli test && pnpm --filter @rta/scenario test && pnpm --filter @rta/example-meeting-digest test && pnpm --filter @rta/example-affine-ops-gateway test",
     "typecheck": "pnpm build && pnpm -r typecheck",
     "audit": "pnpm audit --audit-level high",
     "doctor": "pnpm check:production",
@@ -33,6 +34,7 @@
   },
   "devDependencies": {
     "@types/node": "^20.0.0",
+    "@vitest/coverage-v8": "^4.1.0",
     "tsup": "^8.0.0",
     "typescript": "^5.4.0",
     "vite": "^7.0.0",

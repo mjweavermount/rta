@@ -29,7 +29,8 @@
     "pattern-specs",
     "pattern-contracts",
     "archetype-specs",
-    "archetype-bindings"
+    "archetype-bindings",
+    "coverage-waivers"
   ],
   "future_cli_checks": [
     "dep-cruise",

@@ -1,0 +1,28 @@
+kind: Feature
+id: affine-ops-gateway-pre-mcp
+name: AffineOpsGatewayPreMcp
+status: demo-covered
+why: The first live RTA app needs a read-only, fake-tested, fail-closed AFFiNE gateway seed before Tower MCP exposure.
+ownedBy:
+  internal: rta-platform
+demonstratedBy:
+  - command: pnpm --filter @rta/example-affine-ops-gateway check:coverage
+  - test: examples/affine-ops-gateway/test/gateway.test.ts
+qaSteps:
+  - do: run pnpm --filter @rta/example-affine-ops-gateway check:coverage
+  - see: fake AFFiNE read tools complete through SecretBackend and AffineClient
+  - see: affine.doc_update returns fail-closed instead of attempting a write
+  - see: authored app source has 100% lines, branches, functions, and statements
+requires:
+  - CoverageWaiverEnforcement
+  - RuntimeCapabilityAdapter
+  - ToolSurface
+produces:
+  - examples/affine-ops-gateway
+  - fake SecretBackend and AFFiNE client
+  - read-only tool-call runner
+  - fail-closed write-tool behavior
+selfAudit:
+  - "@are live write tools still fail-closed?"
+  - "@can fake tests prove behavior without touching production AFFiNE?"
+  - "@is the app coverage gate part of pnpm check?"

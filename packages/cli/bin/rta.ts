@@ -75,6 +75,7 @@ const main = Effect.gen(function* () {
         ...(hasFlag("--release-hygiene") ? { releaseHygiene: true } : {}),
         ...(hasFlag("--work-ledger") ? { workLedger: true } : {}),
         ...(hasFlag("--demo-coverage") ? { demoCoverage: true } : {}),
+        ...(hasFlag("--coverage-waivers") ? { coverageWaivers: true } : {}),
       })
       process.exit(exitCode)
       break
@@ -173,6 +174,7 @@ Options:
   --release-hygiene     Validate package, CI, audit, and release metadata
   --work-ledger         Validate work ledger cards and QA shape
   --demo-coverage       Validate work ledger cards are tied to demo coverage
+  --coverage-waivers    Validate 100% authored-code coverage or explicit waivers
 `)
       process.exit(command && !wantsHelp ? 1 : 0)
     }

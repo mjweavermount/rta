@@ -1,0 +1,26 @@
+kind: Capability
+id: coverage-waiver-enforcement
+name: CoverageWaiverEnforcement
+status: demo-covered
+why: Authored app code must either meet 100% coverage or carry an explicit, owned, expiring waiver with a replacement check.
+ownedBy:
+  internal: rta-platform
+demonstratedBy:
+  - command: pnpm --filter @rta/cli test
+  - command: pnpm --filter @rta/example-affine-ops-gateway check:coverage
+qaSteps:
+  - do: run pnpm --filter @rta/cli test
+  - do: run pnpm --filter @rta/example-affine-ops-gateway check:coverage
+  - see: coverage waiver tests reject expired waivers and uncovered non-waived files
+  - see: AFFiNE gateway authored source reports 100% lines, branches, functions, and statements
+requires:
+  - RtaProd06CheckProduction
+  - PureTsEffectRuntime
+produces:
+  - rta check --coverage-waivers
+  - testing/coverage-waivers.yaml contract
+  - authored-code 100% coverage gate for live-app seeds
+selfAudit:
+  - "@does every waiver expire?"
+  - "@does every waiver name a replacement check?"
+  - "@does generated code stay outside authored coverage pressure?"

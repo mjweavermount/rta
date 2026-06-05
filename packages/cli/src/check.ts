@@ -24,6 +24,7 @@ import { isGoldenFixturePath } from "./discovery.js"
 import { runPureTsCheck } from "./check-pure-ts.js"
 import { runReleaseHygieneCheck } from "./check-release-hygiene.js"
 import { runWorkLedgerCheck } from "./check-work-ledger.js"
+import { runCoverageWaiverCheck } from "./check-coverage-waivers.js"
 
 // ---------------------------------------------------------------------------
 // Discover *.ard.yaml files under a root directory (non-recursive for v1)
@@ -92,6 +93,7 @@ export interface CheckOptions {
   readonly releaseHygiene?: boolean
   readonly workLedger?: boolean
   readonly demoCoverage?: boolean
+  readonly coverageWaivers?: boolean
 }
 
 export const runCheck = (options: CheckOptions = {}): Effect.Effect<number> =>
@@ -132,6 +134,9 @@ export const runCheck = (options: CheckOptions = {}): Effect.Effect<number> =>
     }
     if (options.workLedger || options.demoCoverage) {
       return yield* runWorkLedgerCheck(cwd)
+    }
+    if (options.coverageWaivers) {
+      return yield* runCoverageWaiverCheck(cwd)
     }
     if (options.decisionShapes) {
       return yield* Effect.promise(() => checkDecisionShapes(cwd))

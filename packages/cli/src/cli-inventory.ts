@@ -48,6 +48,7 @@ export const CHECK_MODES = [
   "pattern-contracts",
   "archetype-specs",
   "archetype-bindings",
+  "coverage-waivers",
 ] as const
 
 export type CheckMode = (typeof CHECK_MODES)[number]

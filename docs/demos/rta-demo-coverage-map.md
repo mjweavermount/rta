@@ -26,6 +26,8 @@ This map links RTA work to the demo surface that should prove it.
 | `security-hardening` | local | Generic security guardrails | Direct test/CLI demo: escaping input paths fail, secret-like log fields are redacted, `rta check --security` passes |
 | `pure-ts-effect-runtime` | local | Pure TS and Effect runtime migration | Direct CLI/doc demo: `pnpm check:pure-ts` blocks new tracked JS/MJS/CJS source while the allowlist burns down |
 | `repository-edge-secret-primitives` | local | Repository, edge boundary, and secret primitives | Source/doc acceptance: primitive obligations are captured before vocab/runtime implementation |
+| `coverage-waiver-enforcement` | local | Coverage waiver enforcement | Direct CLI demo: run `rta check --coverage-waivers` after Vitest coverage and see 100% authored-code enforcement or explicit waivers |
+| `affine-ops-gateway-pre-mcp` | local | AFFiNE ops gateway pre-MCP seed | Direct app demo: run `pnpm --filter @rta/example-affine-ops-gateway check:coverage`; fake read tools pass, writes fail closed, authored source is 100% covered |
 | `rta-prod-00-rebaseline-ledger` | local | Rebaseline overclaimed work | Direct doc/CLI demo: inspect `docs/spec-to-ticket-backlog.md`, run `rta check --work-ledger`, confirm broad old capabilities are no longer marked complete |
 | `rta-prod-01-cli-command-surface` | local | Full CLI command surface | Direct CLI demo: run required command inventory including `doctor`, `dev`, `test-scenario`, `extensions`, and `upstream` |
 | `rta-prod-02-tier-vocab-contracts` | local | Tier/vocab contracts | Direct fixture demo: good/bad T1/T2/T3 fixtures pass/fail `rta check --tier-contracts`, `--pattern-contracts`, and `--archetype-bindings` |
