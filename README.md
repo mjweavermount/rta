@@ -9,6 +9,7 @@ It turns declared vocabulary, tier contracts, use cases, scenarios, ARDs, and ru
 This repository is in bootstrap state. The source of truth for the initial build is:
 
 - [RTA Production Authoring Platform Spec](docs/rta-production-authoring-platform-spec.md)
+- [RTA To Live Meeting Digest Milestones](docs/meeting-digest-live-milestones.md)
 - [RTA Demo Walkthroughs](docs/demos/README.md)
 
 ## Intended Authoring Loop

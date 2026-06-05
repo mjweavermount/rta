@@ -5,9 +5,10 @@ Read this before changing the repo.
 ## First Moves
 
 1. Read [docs/rta-production-authoring-platform-spec.md](docs/rta-production-authoring-platform-spec.md).
-2. Check `git status --short`.
-3. Keep changes scoped to the active work-ledger item. Plane cards are optional mirrors, not the source of truth.
-4. Do not reintroduce Rita naming in user-facing code or docs.
+2. Read [docs/meeting-digest-live-milestones.md](docs/meeting-digest-live-milestones.md) when working toward the proving app.
+3. Check `git status --short`.
+4. Keep changes scoped to the active work-ledger item. Plane cards are optional mirrors, not the source of truth.
+5. Do not reintroduce Rita naming in user-facing code or docs.
 
 ## Project Shape
 
