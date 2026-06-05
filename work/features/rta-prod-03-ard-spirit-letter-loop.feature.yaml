@@ -1,7 +1,7 @@
 kind: Feature
 id: rta-prod-03-ard-spirit-letter-loop
 name: RtaProd03ArdSpiritLetterLoop
-status: planned
+status: demo-covered
 why: ARDs should enforce the spirit/letter loop so architectural claims are backed by reciprocal checks.
 ownedBy:
   internal: rta-platform
@@ -16,4 +16,3 @@ produces:
   - check-backed letter ARDs
 selfAudit:
   - "@did every spirit and letter ARD reciprocate and point to a concrete check?"
-

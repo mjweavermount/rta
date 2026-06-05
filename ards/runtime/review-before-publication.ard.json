@@ -1,9 +1,16 @@
 {
   "id": "ARD-RTA-REVIEW-PUBLICATION",
+  "kind": "letter",
+  "family": "review",
   "title": "Review Before External Publication",
-  "tier": "runtime",
   "status": "accepted",
+  "spirit": ["ARD-RTA-REVIEW-000"],
   "supports": ["review-identity-approval", "meeting-digest-proving-app"],
-  "enforcedBy": ["rta check --review-gates", "rta publish dry-run"],
+  "checks": [
+    {
+      "description": "publication rejects pending review items",
+      "command": "rta publish dry-run <pending-review-id>"
+    }
+  ],
   "decision": "Publication adapters must reject pending review items and only publish after an approval actor is recorded."
 }

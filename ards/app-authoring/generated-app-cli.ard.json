@@ -1,9 +1,16 @@
 {
   "id": "ARD-RTA-APP-CLI",
+  "kind": "letter",
+  "family": "app",
   "title": "Generated App CLI",
-  "tier": "app-authoring",
   "status": "accepted",
+  "spirit": ["ARD-RTA-APP-000"],
   "supports": ["generated-app-cli-runtime-wiring", "meeting-digest-proving-app"],
-  "enforcedBy": ["rta check --app-cli", "rta generate app-cli"],
+  "checks": [
+    {
+      "description": "generated app CLI can be generated and run",
+      "command": "rta check --app-cli"
+    }
+  ],
   "decision": "Authored apps receive generated operational CLI surfaces from app declarations."
 }

@@ -1,0 +1,10 @@
+{
+  "id": "ARD-RTA-APP-000",
+  "kind": "spirit",
+  "family": "app",
+  "title": "Apps Are Authored From Declared Contracts",
+  "status": "accepted",
+  "letters": ["ARD-RTA-APP-CLI"],
+  "supports": ["generated-app-cli-runtime-wiring", "vocab-ard-cli-skeleton"],
+  "decision": "RTA-authored apps should expose generated operational surfaces from their declarations so agents do not freehand app structure."
+}

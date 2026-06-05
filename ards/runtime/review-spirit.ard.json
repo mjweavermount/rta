@@ -1,0 +1,10 @@
+{
+  "id": "ARD-RTA-REVIEW-000",
+  "kind": "spirit",
+  "family": "review",
+  "title": "External Effects Pass Through Human Review",
+  "status": "accepted",
+  "letters": ["ARD-RTA-REVIEW-PUBLICATION"],
+  "supports": ["review-identity-approval", "security-hardening"],
+  "decision": "RTA should own an internal review gate before any connector or publication adapter performs externally visible writes."
+}

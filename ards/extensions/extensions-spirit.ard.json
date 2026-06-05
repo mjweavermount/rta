@@ -1,0 +1,10 @@
+{
+  "id": "ARD-RTA-EXTENSIONS-000",
+  "kind": "spirit",
+  "family": "extensions",
+  "title": "Local Extensions Must Remain Upstream-Shaped",
+  "status": "accepted",
+  "letters": ["ARD-RTA-EXTENSIONS"],
+  "supports": ["local-extensions-upstreaming"],
+  "decision": "App-local extensions should be low-friction for local work while preserving a clean path to move useful patterns upstream."
+}
