@@ -10,7 +10,9 @@ export function digestTranscriptIntegrated(text) {
 export function integrateDigest(base) {
   const app = loadAppDeclaration(new URL("./rta.app.json", import.meta.url));
   const graph = buildDerivationGraph(app);
-  const obligations = graph.nodes.filter((node) => node.type === "obligation").map((node) => node.id);
+  const obligations = graph.nodes
+    .filter((node) => node.type === "obligation")
+    .map((node) => node.id.replace(/^obligation:[^:]+:/, "").replace(/^obligation:/, ""));
 
   return {
     ...base,
@@ -37,6 +39,7 @@ export function integrateDigest(base) {
 
 function obligationsForTask(task, obligations) {
   const selected = [];
+  selected.push("TaskHasGoal", "TaskHasUser", "TaskHasSystems");
   if (task.classification.includes("automation")) selected.push("ReviewBeforePublication");
   if (task.largerSystem.includes("Logging") || task.largerSystem.includes("Monitoring")) selected.push("HumanReadableLogs");
   selected.push("ScenarioBoundaryCoverage");

@@ -70,7 +70,7 @@ async function main() {
   if (cmd === "check") return check(sub);
   if (cmd === "init") return init(rest[0] ?? "examples/hello-rta");
   if (cmd === "context") return context();
-  if (cmd === "explain") return explain(rest);
+  if (cmd === "explain") return explain([sub, ...rest].filter(Boolean));
   if (cmd === "graph") return graph(sub, rest);
   if (cmd === "generate") return generate(sub, rest);
   if (cmd === "scenario") return scenarioCommand(sub, rest);

@@ -1,7 +1,7 @@
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { validateArds } from "../ards/index.mjs";
-import { buildDerivationGraph } from "../derivation/index.mjs";
+import { buildDerivationGraph, deriveAll } from "../derivation/index.mjs";
 import { requiredCeremonyOperationsFor, validateArchetypeBindings, validateConcreteVocabulary, validatePatternContracts, validateTierContracts } from "../tiers/index.mjs";
 import { loadAppDeclaration, validateAppDeclaration } from "../vocab/index.mjs";
 
@@ -60,11 +60,22 @@ export function checkExtensions({ root, appDir, upstreamable = false }) {
 
 export function checkDerivation({ root, appDir }) {
   const app = loadAppDeclaration(join(root, appDir, "rta.app.json"));
+  const all = deriveAll(app);
   const graph = buildDerivationGraph(app);
-  const required = ["ReviewBeforePublication", "HumanReadableLogs", "ScenarioBoundaryCoverage"];
-  return required
-    .filter((id) => !graph.nodes.some((node) => node.id === id))
-    .map((id) => `missing derived obligation ${id}`);
+  const required = [
+    "obligation:ReviewBeforePublication",
+    "obligation:HumanReadableLogs",
+    "review-gate:meeting-digest:publication",
+    "runtime:meeting-digest",
+  ];
+  const ids = new Set(graph.nodes.map((node) => node.id));
+  const errors = required
+    .filter((id) => !ids.has(id))
+    .map((id) => `missing derived item ${id}`);
+  if (all.logCeremonies.length === 0) errors.push("missing derived log ceremonies");
+  if (all.telemetry.length === 0) errors.push("missing derived telemetry expectations");
+  if (all.boundaryCoverage.length === 0) errors.push("missing derived boundary coverage");
+  return errors;
 }
 
 export function checkTierContracts({ root, appDir }) {
