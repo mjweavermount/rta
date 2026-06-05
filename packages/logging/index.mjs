@@ -1,7 +1,8 @@
 export class CeremonyLogger {
-  constructor({ verbosity = "normal", sink = console.log } = {}) {
+  constructor({ verbosity = "normal", sink = console.log, onEvent = null } = {}) {
     this.verbosity = verbosity;
     this.sink = sink;
+    this.onEvent = onEvent;
     this.events = [];
   }
 
@@ -18,6 +19,7 @@ export class CeremonyLogger {
       detail: this.verbosity === "high" ? detail : null,
     };
     this.events.push(event);
+    this.onEvent?.(event);
     this.sink(formatHumanEvent(event, this.verbosity));
     return event;
   }

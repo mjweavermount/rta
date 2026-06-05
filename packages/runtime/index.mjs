@@ -13,6 +13,23 @@ export class FileRuntime {
     this.saveState();
   }
 
+  recordStep(event) {
+    const id = `${event.step}-${this.provenance.nodes.length}`.replace(/[^a-zA-Z0-9_.-]/g, "-");
+    this.provenance.nodes.push({
+      id,
+      type: "step",
+      step: event.step,
+      at: event.at,
+      actor: event.actor,
+    });
+    this.provenance.edges.push({
+      from: event.parent ?? this.runId,
+      to: id,
+      type: "step",
+    });
+    this.saveArtifactRaw("provenance.json", this.provenance);
+  }
+
   saveArtifact(name, data) {
     const path = join(this.runRoot, "artifacts", name);
     const content = typeof data === "string" ? data : JSON.stringify(data, null, 2);

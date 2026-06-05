@@ -1,0 +1,4 @@
+Virgil: Build a dashboard that shows RTA run provenance and review state.
+Jason: It should talk to Grafana later, but dry-run locally first.
+
+Virgil: Back to review, nothing should publish to AFFiNE until approval.

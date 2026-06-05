@@ -25,7 +25,7 @@ async function main() {
   if (cmd === "context") return context();
   if (cmd === "explain") return explain(rest);
   if (cmd === "scenario") return scenarioCommand(sub, rest);
-  if (cmd === "demo" && sub === "run") return runNamedScenario("meeting-digest.v2.fixture", { review: true, verbosity: rest.includes("--high") ? "high" : "normal" });
+  if (cmd === "demo" && sub === "run") return runNamedScenario("meeting-digest.v2.fixture", optionsFrom(rest, { review: true }));
   if (cmd === "review") return review(sub, rest);
   if (cmd === "publish") return publish(sub, rest);
 
@@ -44,8 +44,8 @@ Commands:
   rta context
   rta explain obligation meeting-digest
   rta scenario list
-  rta scenario run <name> [--high] [--review]
-  rta demo run [--high]
+  rta scenario run <name> [--input transcript.txt] [--high] [--review]
+  rta demo run [--input transcript.txt] [--high]
   rta review show <id>
   rta review approve <id> --actor <name>
   rta review reject <id> --actor <name>
@@ -126,7 +126,7 @@ async function scenarioCommand(sub, rest) {
     return;
   }
   if (sub === "run") {
-    return runNamedScenario(rest[0], { review: rest.includes("--review"), verbosity: rest.includes("--high") ? "high" : "normal" });
+    return runNamedScenario(rest[0], optionsFrom(rest));
   }
   throw new Error("usage: rta scenario list | run <name>");
 }
@@ -136,15 +136,24 @@ async function loadMeetingDigestScenarios() {
   return mod.scenarios;
 }
 
-async function runNamedScenario(name, { review: shouldReview = false, verbosity = "normal" } = {}) {
+function optionsFrom(rest, defaults = {}) {
+  const inputIndex = rest.indexOf("--input");
+  return {
+    review: defaults.review ?? rest.includes("--review"),
+    verbosity: rest.includes("--high") ? "high" : "normal",
+    input: inputIndex >= 0 ? { transcriptPath: resolve(root, rest[inputIndex + 1]) } : {},
+  };
+}
+
+async function runNamedScenario(name, { review: shouldReview = false, verbosity = "normal", input = {} } = {}) {
   const scenarios = await loadMeetingDigestScenarios();
   const selected = scenarios.find((scenario) => scenario.name === name);
   if (!selected) throw new Error(`unknown scenario: ${name}`);
 
   const runId = createRunId(name.replace(/[^a-z0-9]+/gi, "-"));
   const runtime = new FileRuntime({ root, runId });
-  const logger = new CeremonyLogger({ verbosity });
-  const result = await runScenario({ scenario: selected, runtime, logger });
+  const logger = new CeremonyLogger({ verbosity, onEvent: (event) => runtime.recordStep(event) });
+  const result = await runScenario({ scenario: selected, runtime, logger, input });
   runtime.saveArtifact("logs.json", logger.events);
 
   if (shouldReview) {
@@ -161,6 +170,7 @@ async function runNamedScenario(name, { review: shouldReview = false, verbosity 
 
   console.log(`run=${runId}`);
   console.log(`artifact=${result.artifactPath}`);
+  if (result.markdownPath) console.log(`digest=${result.markdownPath}`);
 }
 
 function review(sub, rest) {

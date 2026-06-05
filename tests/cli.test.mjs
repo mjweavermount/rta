@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
+import { existsSync, readFileSync } from "node:fs";
 import test from "node:test";
 
 function rta(args) {
@@ -37,4 +38,25 @@ test("generated-style meeting digest cli runs v2 through rta", () => {
   });
   assert.match(out, /meetingDigest.v2.digest/);
   assert.match(out, /review=/);
+});
+
+test("generated-style meeting digest cli accepts custom transcript and emits markdown plus step provenance", () => {
+  const out = execFileSync("node", [
+    "examples/meeting-digest-seed/bin/meeting-digest.mjs",
+    "--input",
+    "tests/fixtures/custom-transcript.txt",
+    "--high",
+  ], {
+    cwd: new URL("..", import.meta.url),
+    encoding: "utf8",
+  });
+  const digestPath = out.match(/^digest=(.+)$/m)?.[1];
+  const runId = out.match(/^run=(.+)$/m)?.[1];
+  assert.ok(digestPath);
+  assert.ok(runId);
+  assert.ok(existsSync(digestPath));
+  assert.match(readFileSync(digestPath, "utf8"), /Meeting Digest/);
+  const provenancePath = new URL(`../.rta/runs/${runId}/artifacts/provenance.json`, import.meta.url);
+  const provenance = JSON.parse(readFileSync(provenancePath, "utf8"));
+  assert.ok(provenance.nodes.some((node) => node.type === "step"));
 });

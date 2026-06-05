@@ -24,6 +24,44 @@ export function digestTranscriptV2(text) {
   };
 }
 
+export function formatDigestMarkdown(digest) {
+  const lines = [
+    "# Meeting Digest",
+    "",
+    `Version: ${digest.version}`,
+    "",
+    "## Topics",
+    "",
+  ];
+
+  for (const topic of digest.topics) {
+    lines.push(`### ${topic.title}`);
+    lines.push("");
+    if (topic.touchstones.length > 0) lines.push(`Touchstones: ${topic.touchstones.join(", ")}`);
+    if (topic.speakers.length > 0) lines.push(`Speakers: ${topic.speakers.join(", ")}`);
+    lines.push("");
+    for (const bullet of topic.salientBullets) lines.push(`- ${bullet}`);
+    lines.push("");
+  }
+
+  lines.push("## Extracted Work");
+  lines.push("");
+  for (const task of digest.tasks) {
+    lines.push(`### ${task.title}`);
+    lines.push("");
+    lines.push(`- Goal: ${task.goal}`);
+    lines.push(`- User: ${task.user}`);
+    lines.push(`- Systems: ${task.systems.join(", ")}`);
+    lines.push(`- Talks to: ${task.talksTo.length > 0 ? task.talksTo.join(", ") : "none inferred"}`);
+    lines.push(`- Larger system: ${task.largerSystem}`);
+    lines.push(`- Classification: ${task.classification}`);
+    lines.push(`- Confidence: ${task.confidence}`);
+    lines.push("");
+  }
+
+  return `${lines.join("\n").trim()}\n`;
+}
+
 class TopicAccumulator {
   constructor() {
     this.items = [];
@@ -68,6 +106,7 @@ function parseUtterance(line) {
 
 function topicKey(text, lastKey) {
   const lower = text.toLowerCase();
+  if (lower.includes("grafana") || lower.includes("dashboard") || lower.includes("provenance")) return "monitoring-provenance";
   if (lower.includes("log")) return "logging";
   if (lower.includes("review") || lower.includes("publish") || lower.includes("publication") || lower.includes("affine") || lower.includes("plane")) return "review-publication";
   if (lower.includes("meeting") || lower.includes("topic") || lower.includes("otter") || lower.includes("transcript")) return "meeting-digest";
@@ -81,6 +120,7 @@ function topicTitle(key) {
     "rta-authoring": "RTA authoring platform",
     "meeting-digest": "Meeting digest workflow",
     logging: "Logging ceremony and run visibility",
+    "monitoring-provenance": "Monitoring and provenance UI",
     "review-publication": "Review gates and publication adapters",
     general: "General discussion",
   }[key];
@@ -105,6 +145,7 @@ function extractTasks(topic) {
 
 function inferUser(topic) {
   if (topic.title.includes("Meeting")) return "operator reviewing meeting output";
+  if (topic.title.includes("Monitoring")) return "operator monitoring runs";
   if (topic.title.includes("Logging")) return "operator watching a run";
   return "RTA app author";
 }
@@ -115,6 +156,7 @@ function inferTalksTo(line) {
   if (lower.includes("affine")) talksTo.push("AFFiNE adapter");
   if (lower.includes("plane")) talksTo.push("Plane adapter");
   if (lower.includes("otter")) talksTo.push("Otter transcript source");
+  if (lower.includes("grafana")) talksTo.push("Grafana dashboard adapter");
   if (lower.includes("home lab")) talksTo.push("home-lab hosting adapter");
   return talksTo;
 }
