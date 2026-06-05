@@ -46,6 +46,18 @@ node scripts/rta.mjs check --scenario-runtime-parity
 node scripts/rta.mjs check --hosting-package
 ```
 
+## Release Hygiene
+
+RTA is package-shaped but not published from this repo yet. Release readiness is checked locally and in CI:
+
+```bash
+npm run check
+npm run check:production
+npm run check:release
+npm run doctor
+npm run audit
+```
+
 ## Demo Coverage
 
 Every nontrivial RTA capability should be tied to a direct demo or proof-through-integration path. Start with the [demo coverage map](docs/demos/rta-demo-coverage-map.md).

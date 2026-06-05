@@ -97,6 +97,19 @@ test("agent docs describe the current RTA QA loop", () => {
   assert.match(demo, /check --connector-safety/);
 });
 
+test("release hygiene exposes package, CI, and audit checks", () => {
+  const pkg = JSON.parse(readFileSync(new URL("../package.json", import.meta.url), "utf8"));
+  const workflow = readFileSync(new URL("../.github/workflows/checks.yml", import.meta.url), "utf8");
+  assert.equal(pkg.private, false);
+  assert.equal(pkg.name, "@mjweavermount/rta");
+  assert.ok(pkg.exports["."]);
+  assert.ok(pkg.scripts["check:production"]);
+  assert.ok(pkg.scripts.audit);
+  assert.match(workflow, /npm run check:production/);
+  assert.match(workflow, /npm run audit/);
+  assert.match(rta(["doctor"]), /pass-with-planned-work/);
+});
+
 test("security rejects escaping input paths and redacts secret-like logs", () => {
   assert.throws(() => rta(["scenario", "run", "meeting-digest.integrated.fixture", "--input", "../outside.txt"]), /path escapes RTA root/);
 

@@ -1,7 +1,7 @@
 kind: Feature
 id: rta-prod-15-package-release
 name: RtaProd15PackageRelease
-status: planned
+status: demo-covered
 why: RTA needs credible package, CI, release, dependency, and vulnerability hygiene before it can author production apps.
 ownedBy:
   internal: rta-platform
@@ -16,4 +16,3 @@ produces:
   - vulnerability and dependency hygiene checks
 selfAudit:
   - "@is this releasable and maintainable, or only runnable from this local checkout?"
-

@@ -1,15 +1,46 @@
 {
-  "name": "rta",
-  "private": true,
-  "version": "0.0.0",
+  "name": "@mjweavermount/rta",
+  "private": false,
+  "version": "0.1.0",
   "type": "module",
+  "description": "RTA app-authoring platform for observable, reviewable applications from domain vocabulary.",
+  "license": "UNLICENSED",
   "bin": {
     "rta": "scripts/rta.mjs"
   },
+  "exports": {
+    ".": "./packages/index.mjs",
+    "./checks": "./packages/checks/index.mjs",
+    "./derivation": "./packages/derivation/index.mjs",
+    "./generators": "./packages/generators/index.mjs",
+    "./logging": "./packages/logging/index.mjs",
+    "./runtime": "./packages/runtime/index.mjs",
+    "./scheduler": "./packages/scheduler/index.mjs",
+    "./review": "./packages/review/index.mjs",
+    "./security": "./packages/security/index.mjs",
+    "./tiers": "./packages/tiers/index.mjs",
+    "./vocab": "./packages/vocab/index.mjs"
+  },
+  "files": [
+    "AGENTS.md",
+    "README.md",
+    "ards/",
+    "archetypes/",
+    "docs/",
+    "examples/",
+    "packages/",
+    "patterns/",
+    "scripts/",
+    "work/"
+  ],
   "scripts": {
+    "audit": "npm audit --audit-level=moderate",
     "check": "node scripts/check-work-ledger.mjs && node --test tests/*.test.mjs",
+    "check:production": "node scripts/rta.mjs generate && node scripts/rta.mjs check --production",
+    "check:release": "node scripts/check-release-hygiene.mjs",
     "check:work-ledger": "node scripts/check-work-ledger.mjs",
     "demo": "node scripts/rta.mjs demo run",
+    "doctor": "node scripts/rta.mjs doctor",
     "rta": "node scripts/rta.mjs",
     "test": "node --test tests/*.test.mjs",
     "lint": "node scripts/check-work-ledger.mjs"

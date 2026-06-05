@@ -14,7 +14,10 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
-      - uses: pnpm/action-setup@v4
-        with:
-          version: 10
+          cache: npm
+      - run: npm ci
       - run: npm run check
+      - run: npm run check:production
+      - run: npm run check:release
+      - run: npm run doctor
+      - run: npm run audit
