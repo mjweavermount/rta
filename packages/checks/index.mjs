@@ -4,6 +4,7 @@ import { validateArds } from "../ards/index.mjs";
 import { buildDerivationGraph, deriveAll } from "../derivation/index.mjs";
 import { checkGeneratedSync } from "../generators/index.mjs";
 import { renderGrafanaDashboard } from "../grafana/index.mjs";
+import { renderHomeLabDeploymentPackage, validateHomeLabDeploymentPackage } from "../hosting-adapters/index.mjs";
 import { requiredCeremonyOperationsFor, validateArchetypeBindings, validateConcreteVocabulary, validatePatternContracts, validateTierContracts } from "../tiers/index.mjs";
 import { loadAppDeclaration, validateAppDeclaration } from "../vocab/index.mjs";
 
@@ -311,6 +312,12 @@ export function checkScenarioRuntimeParity({ root, appDir }) {
   return errors;
 }
 
+export function checkHostingPackage({ root, appDir }) {
+  const app = loadAppDeclaration(join(root, appDir, "rta.app.json"));
+  renderHomeLabDeploymentPackage({ root, appName: app.name });
+  return validateHomeLabDeploymentPackage({ root, appName: app.name });
+}
+
 export function checkTelemetryCoverage({ root, appDir }) {
   const app = loadAppDeclaration(join(root, appDir, "rta.app.json"));
   const all = deriveAll(app);
@@ -366,6 +373,7 @@ export function checkProduction({ root, appDir }) {
     ...checkConnectorSafety({ root, appDir }),
     ...checkRuntimeWiring({ root, appDir }),
     ...checkScenarioRuntimeParity({ root, appDir }),
+    ...checkHostingPackage({ root, appDir }),
     ...checkTelemetryCoverage({ root, appDir }),
     ...checkSecurity({ root, appDir }),
     ...checkGeneratedSync({ root, app }),

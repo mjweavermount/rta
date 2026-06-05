@@ -34,6 +34,7 @@ test("cli lists work and explains meeting digest obligation", () => {
   assert.match(rta(["check", "--connector-safety"]), /passed/);
   assert.match(rta(["check", "--runtime-wiring"]), /passed/);
   assert.match(rta(["check", "--scenario-runtime-parity"]), /passed/);
+  assert.match(rta(["check", "--hosting-package"]), /passed/);
   assert.match(rta(["check", "--telemetry-coverage"]), /passed/);
   assert.match(rta(["check", "--log-ceremony"]), /passed/);
   assert.match(rta(["check", "--security"]), /passed/);

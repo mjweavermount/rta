@@ -66,11 +66,22 @@ test("grafana renderer writes a dashboard artifact", () => {
 });
 
 test("home-lab deployment package renders WorkloadApp draft", () => {
+  const intentPath = rta(["hosting", "intent", "meeting-digest"]).trim();
+  const intent = JSON.parse(readFileSync(intentPath, "utf8"));
+  assert.equal(intent.optionalHomeLab, true);
+  assert.match(intent.image, /ghcr\.io\/mjweavermount\/rta\/meeting-digest/);
+
   const out = rta(["hosting", "package", "meeting-digest"]).trim();
   assert.ok(existsSync(`${out}/app.yaml`));
   assert.ok(existsSync(`${out}/application.yaml`));
+  assert.ok(existsSync(`${out}/Containerfile`));
+  assert.ok(existsSync(`${out}/health-server.mjs`));
   assert.ok(existsSync(`${out}/manifests/deployment.yaml`));
+  assert.ok(existsSync(`${out}/manifests/healthcheck.yaml`));
   assert.match(readFileSync(`${out}/app.yaml`, "utf8"), /apiVersion: lab.virgil.info\/v1alpha1/);
+  assert.match(readFileSync(`${out}/manifests/deployment.yaml`, "utf8"), /readinessProbe/);
+  assert.match(readFileSync(`${out}/manifests/deployment.yaml`, "utf8"), /ghcr\.io\/mjweavermount\/rta\/meeting-digest:0\.1\.0/);
+  assert.match(rta(["hosting", "validate", "meeting-digest"]), /Hosting package passed/);
 });
 
 test("security rejects escaping input paths and redacts secret-like logs", () => {

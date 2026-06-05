@@ -1,7 +1,7 @@
 kind: Feature
 id: rta-prod-13-hosting-adapter-live
 name: RtaProd13HostingAdapterLive
-status: planned
+status: demo-covered
 why: Hosting must remain optional but native, with host-neutral intent, home-lab WorkloadApp output, container image, healthcheck, and optional live promotion.
 ownedBy:
   internal: rta-platform
@@ -17,4 +17,3 @@ produces:
   - home-lab promotion and validation flow
 selfAudit:
   - "@is this deployable as an RTA-authored app, or only renderable as a draft artifact?"
-

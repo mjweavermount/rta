@@ -5,8 +5,8 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 import { publishDryRun } from "../packages/connectors/index.mjs";
 import { explainMeetingDigestObligation } from "../packages/derivation/index.mjs";
 import { renderGrafanaDashboard } from "../packages/grafana/index.mjs";
-import { renderHomeLabDeploymentPackage, renderHomeLabIntent } from "../packages/hosting-adapters/index.mjs";
-import { checkApp, checkArchetypeBindings, checkArds, checkBoundaryCoverage, checkConnectorSafety, checkDerivation, checkExtensions, checkIntegrationContracts, checkLogCeremony, checkPatternContracts, checkProduction, checkReviewGates, checkRuntimeWiring, checkScenarioCoverage, checkScenarioRuntimeParity, checkSecurity, checkTelemetryCoverage, checkTierContracts, checkUseCases } from "../packages/checks/index.mjs";
+import { renderHomeLabDeploymentPackage, renderHomeLabIntent, renderHostNeutralIntent, validateHomeLabDeploymentPackage } from "../packages/hosting-adapters/index.mjs";
+import { checkApp, checkArchetypeBindings, checkArds, checkBoundaryCoverage, checkConnectorSafety, checkDerivation, checkExtensions, checkHostingPackage, checkIntegrationContracts, checkLogCeremony, checkPatternContracts, checkProduction, checkReviewGates, checkRuntimeWiring, checkScenarioCoverage, checkScenarioRuntimeParity, checkSecurity, checkTelemetryCoverage, checkTierContracts, checkUseCases } from "../packages/checks/index.mjs";
 import { buildDerivationGraph } from "../packages/derivation/index.mjs";
 import { checkGeneratedSync, generateAppCli, generateAppScaffold, generateDerivationBundle } from "../packages/generators/index.mjs";
 import { CeremonyLogger } from "../packages/logging/index.mjs";
@@ -118,6 +118,7 @@ Commands:
   rta check --connector-safety
   rta check --runtime-wiring
   rta check --scenario-runtime-parity
+  rta check --hosting-package
   rta check --telemetry-coverage
   rta check --log-ceremony
   rta check --security
@@ -153,7 +154,9 @@ Commands:
   rta review reject <id> --actor <name>
   rta publish dry-run <review-id> [--target fixture]
   rta hosting render [meeting-digest]
-  rta hosting package [meeting-digest] [--lab-root /path/to/home-lab-v7]`);
+  rta hosting intent [meeting-digest]
+  rta hosting package [meeting-digest] [--lab-root /path/to/home-lab-v7]
+  rta hosting validate [meeting-digest]`);
 }
 
 function work(sub, rest) {
@@ -205,6 +208,7 @@ async function check(flag) {
   if (flag === "--connector-safety") return reportCheck("Connector safety", checkConnectorSafety({ root, appDir: "examples/meeting-digest-seed" }));
   if (flag === "--runtime-wiring") return reportCheck("Runtime wiring", checkRuntimeWiring({ root, appDir: "examples/meeting-digest-seed" }));
   if (flag === "--scenario-runtime-parity") return reportCheck("Scenario runtime parity", checkScenarioRuntimeParity({ root, appDir: "examples/meeting-digest-seed" }));
+  if (flag === "--hosting-package") return reportCheck("Hosting package", checkHostingPackage({ root, appDir: "examples/meeting-digest-seed" }));
   if (flag === "--telemetry-coverage") return reportCheck("Telemetry coverage", checkTelemetryCoverage({ root, appDir: "examples/meeting-digest-seed" }));
   if (flag === "--log-ceremony") return reportCheck("Log ceremony", checkLogCeremony({ root, appDir: "examples/meeting-digest-seed" }));
   if (flag === "--security") return reportCheck("Security", checkSecurity({ root, appDir: "examples/meeting-digest-seed" }));
@@ -230,6 +234,7 @@ async function check(flag) {
       ...checkConnectorSafety({ root, appDir: "examples/meeting-digest-seed" }),
       ...checkRuntimeWiring({ root, appDir: "examples/meeting-digest-seed" }),
       ...checkScenarioRuntimeParity({ root, appDir: "examples/meeting-digest-seed" }),
+      ...checkHostingPackage({ root, appDir: "examples/meeting-digest-seed" }),
       ...checkTelemetryCoverage({ root, appDir: "examples/meeting-digest-seed" }),
       ...checkLogCeremony({ root, appDir: "examples/meeting-digest-seed" }),
       ...checkSecurity({ root, appDir: "examples/meeting-digest-seed" }),
@@ -241,7 +246,7 @@ async function check(flag) {
     console.log("All implemented RTA checks passed.");
     return;
   }
-  throw new Error("usage: rta check --work-ledger | --meeting-digest | --ard-meta | --generated-sync | --tier-contracts | --pattern-contracts | --archetype-bindings | --extensions-local | --extensions-upstreamable | --derived-obligations | --use-cases | --scenario-coverage | --boundary-coverage | --integration-contracts | --review-gates | --connector-safety | --runtime-wiring | --scenario-runtime-parity | --telemetry-coverage | --log-ceremony | --security | --production | --app-cli | --all");
+  throw new Error("usage: rta check --work-ledger | --meeting-digest | --ard-meta | --generated-sync | --tier-contracts | --pattern-contracts | --archetype-bindings | --extensions-local | --extensions-upstreamable | --derived-obligations | --use-cases | --scenario-coverage | --boundary-coverage | --integration-contracts | --review-gates | --connector-safety | --runtime-wiring | --scenario-runtime-parity | --hosting-package | --telemetry-coverage | --log-ceremony | --security | --production | --app-cli | --all");
 }
 
 function reportCheck(label, errors) {
@@ -536,6 +541,10 @@ function publish(sub, rest) {
 
 function hosting(sub, rest) {
   const appName = rest[0] ?? "meeting-digest";
+  if (sub === "intent") {
+    console.log(renderHostNeutralIntent({ root, appName }));
+    return;
+  }
   if (sub === "render") {
     console.log(renderHomeLabIntent({ root, appName }));
     return;
@@ -555,7 +564,11 @@ function hosting(sub, rest) {
     console.log(renderHomeLabDeploymentPackage({ root, appName }));
     return;
   }
-  throw new Error("usage: rta hosting render|package [meeting-digest]");
+  if (sub === "validate") {
+    const errors = validateHomeLabDeploymentPackage({ root, appName });
+    return reportCheck("Hosting package", errors);
+  }
+  throw new Error("usage: rta hosting intent|render|package|validate [meeting-digest]");
 }
 
 async function queue(sub, rest) {
