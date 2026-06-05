@@ -42,6 +42,16 @@ node scripts/rta.mjs publish dry-run <review-id> --target fixture
 This writes only a local `.rta/published/*.json` proof artifact. It performs no
 AFFiNE, Plane, GitHub, or home-lab write.
 
+## Optional Hosting Intent
+
+Generate home-lab adapter intent without deploying:
+
+```bash
+node scripts/rta.mjs hosting render meeting-digest
+```
+
+This writes `.rta/hosting/meeting-digest.workload-app.yaml`.
+
 ## Artifacts
 
 Each run writes:

@@ -16,6 +16,7 @@ test("cli lists work and explains meeting digest obligation", () => {
   const explanation = rta(["explain", "obligation", "meeting-digest"]);
   assert.match(explanation, /ReviewGate/);
   assert.match(rta(["check", "--meeting-digest"]), /passed/);
+  assert.match(rta(["check", "--all"]), /All implemented RTA checks passed/);
 });
 
 test("cli runs demo, review can approve, and dry-run publish is gated", () => {
@@ -59,4 +60,10 @@ test("generated-style meeting digest cli accepts custom transcript and emits mar
   const provenancePath = new URL(`../.rta/runs/${runId}/artifacts/provenance.json`, import.meta.url);
   const provenance = JSON.parse(readFileSync(provenancePath, "utf8"));
   assert.ok(provenance.nodes.some((node) => node.type === "step"));
+});
+
+test("hosting adapter renders intent without deploying", () => {
+  const out = rta(["hosting", "render", "meeting-digest"]).trim();
+  assert.match(out, /\.rta\/hosting\/meeting-digest\.workload-app\.yaml$/);
+  assert.match(readFileSync(out, "utf8"), /This is intent only and does not deploy anything/);
 });

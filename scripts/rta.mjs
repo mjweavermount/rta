@@ -4,6 +4,7 @@ import { join, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { publishDryRun } from "../packages/connectors/index.mjs";
 import { explainMeetingDigestObligation } from "../packages/derivation/index.mjs";
+import { renderHomeLabIntent } from "../packages/hosting-adapters/index.mjs";
 import { checkApp } from "../packages/checks/index.mjs";
 import { CeremonyLogger } from "../packages/logging/index.mjs";
 import { ReviewQueue } from "../packages/review/index.mjs";
@@ -28,6 +29,7 @@ async function main() {
   if (cmd === "demo" && sub === "run") return runNamedScenario("meeting-digest.v2.fixture", optionsFrom(rest, { review: true }));
   if (cmd === "review") return review(sub, rest);
   if (cmd === "publish") return publish(sub, rest);
+  if (cmd === "hosting") return hosting(sub, rest);
 
   throw new Error(`unknown command: ${args.join(" ")}`);
 }
@@ -40,6 +42,7 @@ Commands:
   rta work show <id>
   rta check --work-ledger
   rta check --meeting-digest
+  rta check --all
   rta init [dir]
   rta context
   rta explain obligation meeting-digest
@@ -49,7 +52,8 @@ Commands:
   rta review show <id>
   rta review approve <id> --actor <name>
   rta review reject <id> --actor <name>
-  rta publish dry-run <review-id> [--target fixture]`);
+  rta publish dry-run <review-id> [--target fixture]
+  rta hosting render [meeting-digest]`);
 }
 
 function work(sub, rest) {
@@ -82,7 +86,17 @@ async function check(flag) {
     console.log("Meeting digest app declaration passed.");
     return;
   }
-  throw new Error("usage: rta check --work-ledger | --meeting-digest");
+  if (flag === "--all") {
+    await import("./check-work-ledger.mjs");
+    const errors = checkApp({ root, appDir: "examples/meeting-digest-seed" });
+    if (errors.length > 0) {
+      console.error(errors.map((error) => `- ${error}`).join("\n"));
+      process.exit(1);
+    }
+    console.log("All implemented RTA checks passed.");
+    return;
+  }
+  throw new Error("usage: rta check --work-ledger | --meeting-digest | --all");
 }
 
 function init(dir) {
@@ -195,6 +209,12 @@ function publish(sub, rest) {
   const queue = new ReviewQueue({ root });
   const item = queue.show(rest[0]);
   console.log(JSON.stringify(publishDryRun({ root, reviewItem: item, target }), null, 2));
+}
+
+function hosting(sub, rest) {
+  if (sub !== "render") throw new Error("usage: rta hosting render [meeting-digest]");
+  const appName = rest[0] ?? "meeting-digest";
+  console.log(renderHomeLabIntent({ root, appName }));
 }
 
 main().catch((error) => {
