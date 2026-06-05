@@ -1,7 +1,7 @@
 kind: Capability
 id: end-to-end-demo-harness
 name: EndToEndDemoHarness
-status: demo-covered
+status: in-progress
 why: RTA needs a single experiential proof that generated app pieces work together rather than only existing as isolated modules.
 ownedBy:
   internal: rta-platform

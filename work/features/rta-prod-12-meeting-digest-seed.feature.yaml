@@ -1,0 +1,20 @@
+kind: Feature
+id: rta-prod-12-meeting-digest-seed
+name: RtaProd12MeetingDigestSeed
+status: planned
+why: Meeting digest is the proving app and must be rebuilt against finished RTA contracts, not handmade shortcuts.
+ownedBy:
+  internal: rta-platform
+demonstratedBy:
+  - command: meeting-digest scenario run approved-digest-publishes-work-items
+  - artifact: reviewable digest
+requires:
+  - MeetingDigestProvingApp
+  - RtaProd11GeneratedAppRuntimeWiring
+produces:
+  - generated meeting digest app scaffold
+  - transcript and pasted-text intake
+  - reviewable digest and extracted work items
+selfAudit:
+  - "@is meeting digest using RTA-generated contracts and leaves, or is it still a hand-built demo wearing RTA labels?"
+

@@ -1,7 +1,7 @@
 kind: Capability
 id: generated-app-cli-runtime-wiring
 name: GeneratedAppCliRuntimeWiring
-status: demo-covered
+status: in-progress
 why: Authored apps need their own operational CLI backed by the same runtime wiring used in scenarios and production.
 ownedBy:
   internal: rta-platform

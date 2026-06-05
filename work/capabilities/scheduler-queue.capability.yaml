@@ -1,7 +1,7 @@
 kind: Capability
 id: scheduler-queue
 name: SchedulerQueue
-status: demo-covered
+status: in-progress
 why: RTA needs persistent queued jobs beyond direct local run execution.
 ownedBy:
   internal: rta-platform

@@ -1,0 +1,20 @@
+kind: Feature
+id: rta-prod-04-derivation-engine
+name: RtaProd04DerivationEngine
+status: planned
+why: Checks and generators must consume one derivation output for obligations, logs, telemetry, review gates, provenance, and runtime contracts.
+ownedBy:
+  internal: rta-platform
+demonstratedBy:
+  - command: rta explain graph
+  - snapshot: derivation graph fixture
+requires:
+  - RtaProd02TierVocabContracts
+  - RtaProd03ArdSpiritLetterLoop
+produces:
+  - normalized derivation graph
+  - stable obligation ids
+  - source chains for generated artifacts
+selfAudit:
+  - "@did checks and generators consume the same derivation output, or are they still rediscovering rules separately?"
+

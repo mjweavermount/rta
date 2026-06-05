@@ -24,6 +24,22 @@ This map links RTA work to the demo surface that should prove it.
 | `work-ledger` | `LAB-49` | Work ledger/demo coverage tracking | Direct CLI/doc demo: show capability linked to optional mirror and demo path |
 | `scheduler-queue` | local | Persistent scheduler/queue | Direct CLI demo: enqueue a meeting digest job, run next, inspect completed queue state |
 | `security-hardening` | local | Generic security guardrails | Direct test/CLI demo: escaping input paths fail, secret-like log fields are redacted, `rta check --security` passes |
+| `rta-prod-00-rebaseline-ledger` | local | Rebaseline overclaimed work | Direct doc/CLI demo: inspect `docs/spec-to-ticket-backlog.md`, run `rta check --work-ledger`, confirm broad old capabilities are no longer marked complete |
+| `rta-prod-01-cli-command-surface` | local | Full CLI command surface | Direct CLI demo: run required command inventory including `doctor`, `dev`, `test-scenario`, `extensions`, and `upstream` |
+| `rta-prod-02-tier-vocab-contracts` | local | Tier/vocab contracts | Direct fixture demo: good/bad T1/T2/T3 fixtures pass/fail `rta check --tier-contracts`, `--pattern-contracts`, and `--archetype-bindings` |
+| `rta-prod-03-ard-spirit-letter-loop` | local | ARD spirit/letter loop | Direct fixture demo: reciprocal ARD families pass and broken families fail `rta check --ard-meta` |
+| `rta-prod-04-derivation-engine` | local | Central derivation engine | Direct CLI/demo snapshot: `rta explain graph` shows stable source chains for obligations, logs, review gates, tests, and runtime contracts |
+| `rta-prod-05-generators-generated-sync` | local | Generators and generated-sync | Direct fixture demo: `rta generate` emits classified files with derivation hashes and `rta check --generated-sync` catches drift |
+| `rta-prod-06-check-production` | local | Production check gate | Direct negative fixture demo: `rta check --production` fails missing obligations, stale generation, unsafe connectors, and missing review gates |
+| `rta-prod-07-usecase-scenario-boundary` | local | Use-case/scenario/boundary coverage | Direct fixture demo: executable scenarios prove use cases and declared bounded-context edges |
+| `rta-prod-08-runtime-unit-of-work` | local | Runtime unit of work | Direct CLI demo: run, replay, simulated time, queue/worker, artifacts, and provenance all use one runtime contract |
+| `rta-prod-09-observability-telemetry` | local | Observability and telemetry | Direct CLI/dashboard demo: derived log ceremonies, telemetry coverage, and watch mode correlate with provenance |
+| `rta-prod-10-review-connector-safety` | local | Review and connector safety | Direct negative fixture demo: external writes fail without declared connector policy and approved review artifact |
+| `rta-prod-11-generated-app-runtime-wiring` | local | Generated app runtime wiring | Proof-through-integration: generated app CLI, scenario runner, worker, and production process use the same AppRuntime contract |
+| `rta-prod-12-meeting-digest-seed` | local | Meeting digest seed rebuild | Direct app demo: generated meeting digest app turns transcript into reviewable digest and extracted work without handmade bypasses |
+| `rta-prod-13-hosting-adapter-live` | local/home-lab | Hosting adapter live path | Optional hosted demo: host-neutral intent, containerized app, WorkloadApp validation, healthcheck, and optional lab promotion |
+| `rta-prod-14-docs-agent-experience` | local | Agent docs and experience | Source/doc acceptance: a fresh agent can follow AGENTS/docs/CLI output to continue work without rediscovery |
+| `rta-prod-15-package-release` | local | Package/release hygiene | Direct CI/demo: production checks, package exports, audit/dependency hygiene, and release workflow pass |
 
 ## Principle
 

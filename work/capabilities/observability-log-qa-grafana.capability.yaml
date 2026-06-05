@@ -1,7 +1,7 @@
 kind: Capability
 id: observability-log-qa-grafana
 name: ObservabilityLogQaGrafana
-status: demo-covered
+status: in-progress
 why: Operators should be able to watch RTA apps through ceremonial human-readable logs and later Grafana-backed views.
 ownedBy:
   internal: rta-platform

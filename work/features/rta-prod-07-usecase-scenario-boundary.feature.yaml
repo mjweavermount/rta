@@ -1,0 +1,20 @@
+kind: Feature
+id: rta-prod-07-usecase-scenario-boundary
+name: RtaProd07UsecaseScenarioBoundary
+status: planned
+why: User stories, use cases, scenarios, inter-bounded-context tests, and integration tests must be first-class and enforceable.
+ownedBy:
+  internal: rta-platform
+demonstratedBy:
+  - command: rta check --use-cases
+  - command: rta check --scenario-coverage
+  - command: rta check --boundary-coverage
+requires:
+  - UseCaseScenarioCoverage
+produces:
+  - use-case schema
+  - executable scenario schema
+  - boundary coverage and integration checks
+selfAudit:
+  - "@did every use case and bounded-context connection have an executable proving scenario?"
+

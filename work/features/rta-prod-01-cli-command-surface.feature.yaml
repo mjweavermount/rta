@@ -1,0 +1,20 @@
+kind: Feature
+id: rta-prod-01-cli-command-surface
+name: RtaProd01CliCommandSurface
+status: planned
+why: The spec requires a broad CLI command surface that agents can use as the primary authoring and operating interface.
+ownedBy:
+  internal: rta-platform
+demonstratedBy:
+  - command: rta doctor
+  - command: rta dev
+  - command: rta test-scenario
+requires:
+  - VocabArdCliSkeleton
+produces:
+  - required CLI command inventory
+  - command help and TODO-safe warnings
+  - golden command fixture
+selfAudit:
+  - "@did each required command exist with useful behavior or explicit TODO warning, and can an agent tell what to do next?"
+

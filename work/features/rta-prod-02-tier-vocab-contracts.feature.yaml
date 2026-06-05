@@ -1,0 +1,20 @@
+kind: Feature
+id: rta-prod-02-tier-vocab-contracts
+name: RtaProd02TierVocabContracts
+status: planned
+why: T1 primitives, T2 patterns, T3 archetypes, and concrete app extensions must have enforceable contracts rather than loose labels.
+ownedBy:
+  internal: rta-platform
+demonstratedBy:
+  - command: rta check --tier-contracts
+  - command: rta check --pattern-contracts
+  - command: rta check --archetype-bindings
+requires:
+  - VocabArdCliSkeleton
+produces:
+  - tier schemas
+  - primitive/pattern/archetype fixtures
+  - local extension inheritance checks
+selfAudit:
+  - "@did the tier model enforce obligations mechanically, or did I only add metadata?"
+

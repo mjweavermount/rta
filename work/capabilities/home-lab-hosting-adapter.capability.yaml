@@ -1,7 +1,7 @@
 kind: Capability
 id: home-lab-hosting-adapter
 name: HomeLabHostingAdapter
-status: demo-covered
+status: in-progress
 why: RTA apps should be easy to run in Virgil's home lab without making home-lab deployment mandatory.
 ownedBy:
   internal: rta-platform

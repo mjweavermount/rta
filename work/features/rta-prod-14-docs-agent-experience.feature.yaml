@@ -1,0 +1,18 @@
+kind: Feature
+id: rta-prod-14-docs-agent-experience
+name: RtaProd14DocsAgentExperience
+status: planned
+why: Agents should start from RTA context, generated docs, obligations, and leaves instead of freehanding code.
+ownedBy:
+  internal: rta-platform
+demonstratedBy:
+  - doc: docs/spec-to-ticket-backlog.md
+  - source/doc acceptance: future root and generated app AGENTS.md
+requires:
+  - AgentPlaybookDocs
+produces:
+  - root AGENTS.md
+  - generated app AGENTS.md
+  - operational docs for checks, generators, runtime, review, and hosting
+selfAudit:
+  - "@can a fresh agent use the docs and CLI to continue without rediscovering the architecture?"

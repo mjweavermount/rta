@@ -1,0 +1,19 @@
+kind: Feature
+id: rta-prod-03-ard-spirit-letter-loop
+name: RtaProd03ArdSpiritLetterLoop
+status: planned
+why: ARDs should enforce the spirit/letter loop so architectural claims are backed by reciprocal checks.
+ownedBy:
+  internal: rta-platform
+demonstratedBy:
+  - command: rta check --ard-meta
+  - fixture: bad ARD family fails
+requires:
+  - VocabArdCliSkeleton
+produces:
+  - reciprocal spirit/letter validation
+  - ARD family id enforcement
+  - check-backed letter ARDs
+selfAudit:
+  - "@did every spirit and letter ARD reciprocate and point to a concrete check?"
+

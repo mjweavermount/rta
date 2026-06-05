@@ -1,7 +1,7 @@
 kind: Capability
 id: ci-package-release-hygiene
 name: CiPackageReleaseHygiene
-status: demo-covered
+status: in-progress
 why: RTA needs repeatable checks, package boundaries, and release hygiene before it becomes the base for production app authoring.
 ownedBy:
   internal: rta-platform

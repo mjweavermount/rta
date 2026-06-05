@@ -1,0 +1,17 @@
+kind: Feature
+id: rta-prod-00-rebaseline-ledger
+name: RtaProd00RebaselineLedger
+status: demo-covered
+why: The current ledger overclaims demo coverage for thin vertical slices; production work needs honest ticket state before more implementation.
+ownedBy:
+  internal: rta-platform
+demonstratedBy:
+  - doc: docs/spec-to-ticket-backlog.md
+  - command: rta check --work-ledger
+requires:
+  - WorkLedger
+produces:
+  - honest ledger statuses
+  - spec ticket backlog
+selfAudit:
+  - "@did I reclassify every overclaimed item, or did I leave demo-covered meaning some related demo exists?"

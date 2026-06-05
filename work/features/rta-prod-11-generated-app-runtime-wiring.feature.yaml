@@ -1,0 +1,21 @@
+kind: Feature
+id: rta-prod-11-generated-app-runtime-wiring
+name: RtaProd11GeneratedAppRuntimeWiring
+status: planned
+why: Generated apps need operational CLIs, AppRuntime schema, process topology, scenario targets, and parity across CLI, scenario runner, worker, and production runtime.
+ownedBy:
+  internal: rta-platform
+demonstratedBy:
+  - command: rta check --app-cli
+  - command: rta check --runtime-wiring
+  - command: rta check --scenario-runtime-parity
+requires:
+  - GeneratedAppCliRuntimeWiring
+  - RtaProd08RuntimeUnitOfWork
+produces:
+  - AppRuntime schema
+  - generated app wiring bootstrap
+  - parity checks for scenario and production paths
+selfAudit:
+  - "@does generated app CLI, scenario runner, worker, and production process use the same wiring contract?"
+

@@ -1,7 +1,7 @@
 kind: Capability
 id: monitor-review-provenance-ui
 name: MonitorReviewProvenanceUi
-status: demo-covered
+status: in-progress
 why: Operators need a UI surface for monitoring steps, reviewing outputs, and inspecting provenance without reading code.
 ownedBy:
   internal: rta-platform
