@@ -25,6 +25,18 @@ test("cli lists work and explains meeting digest obligation", () => {
   assert.match(rta(["check", "--all"]), /All implemented RTA checks passed/);
 });
 
+test("cli exposes the required production command surface honestly", () => {
+  const doctor = JSON.parse(rta(["doctor"]));
+  assert.equal(doctor.status, "pass-with-planned-work");
+  assert.equal(doctor.checks.find((check) => check.name === "required command surface").status, "pass");
+  assert.match(rta(["lint"]), /Lint passed/);
+  assert.match(rta(["graph"]), /TranscriptInput/);
+  assert.match(rta(["dev"]), /productionGate/);
+  assert.match(rta(["test-scenario", "list"]), /meeting-digest.integrated.fixture/);
+  assert.match(rta(["extensions", "list"]), /MeetingDigestTopicSegmenter/);
+  assert.match(rta(["upstream", "plan", "MeetingDigestTopicSegmenter"]), /upstreamRequires/);
+});
+
 test("cli runs demo, review can approve, and dry-run publish is gated", () => {
   const demo = rta(["demo", "run"]);
   const reviewId = demo.match(/review=(\S+)/)?.[1];

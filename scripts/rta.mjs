@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { existsSync, mkdirSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { publishDryRun } from "../packages/connectors/index.mjs";
@@ -20,6 +20,47 @@ import { loadAppDeclaration, summarizeAppDeclaration } from "../packages/vocab/i
 
 const root = resolve(fileURLToPath(new URL("..", import.meta.url)));
 const args = process.argv.slice(2);
+const requiredCommands = [
+  "init",
+  "context",
+  "generate",
+  "check",
+  "lint",
+  "explain",
+  "graph",
+  "dev",
+  "run",
+  "review",
+  "scenario",
+  "test-scenario",
+  "work",
+  "extensions",
+  "upstream",
+  "doctor",
+];
+const implementedCommands = [
+  "init",
+  "context",
+  "generate",
+  "check",
+  "lint",
+  "explain",
+  "graph",
+  "dev",
+  "run",
+  "review",
+  "scenario",
+  "test-scenario",
+  "work",
+  "extensions",
+  "upstream",
+  "doctor",
+  "demo",
+  "publish",
+  "hosting",
+  "queue",
+  "grafana",
+];
 
 async function main() {
   const [cmd, sub, ...rest] = args;
@@ -30,8 +71,16 @@ async function main() {
   if (cmd === "init") return init(rest[0] ?? "examples/hello-rta");
   if (cmd === "context") return context();
   if (cmd === "explain") return explain(rest);
+  if (cmd === "graph") return graph(sub, rest);
   if (cmd === "generate") return generate(sub, rest);
   if (cmd === "scenario") return scenarioCommand(sub, rest);
+  if (cmd === "test-scenario") return testScenario(sub, rest);
+  if (cmd === "run") return runCommand(sub, rest);
+  if (cmd === "dev") return dev(sub, rest);
+  if (cmd === "lint") return lint(rest);
+  if (cmd === "extensions") return extensions(sub, rest);
+  if (cmd === "upstream") return upstream(sub, rest);
+  if (cmd === "doctor") return doctor();
   if (cmd === "demo" && sub === "run") return runNamedScenario("meeting-digest.v2.fixture", optionsFrom(rest, { review: true }));
   if (cmd === "review") return review(sub, rest);
   if (cmd === "publish") return publish(sub, rest);
@@ -57,6 +106,11 @@ Commands:
   rta check --log-ceremony
   rta check --security
   rta check --all
+  rta lint
+  rta doctor
+  rta graph
+  rta dev
+  rta run scenario <name> [--input transcript.txt] [--high] [--review]
   rta generate app-cli
   rta generate app <out-dir>
   rta queue enqueue <scenario> [--input transcript.txt] [--review] [--high]
@@ -69,6 +123,10 @@ Commands:
   rta scenario list
   rta scenario run <name> [--input transcript.txt] [--high] [--review]
   rta scenario watch <name> [--input transcript.txt] [--high|--trace] [--review]
+  rta test-scenario list
+  rta test-scenario run <name>
+  rta extensions list
+  rta upstream plan <extension>
   rta demo run [--input transcript.txt] [--high]
   rta review show <id>
   rta review approve <id> --actor <name>
@@ -171,7 +229,8 @@ function context() {
     repo: root,
     workItems: loadWorkLedger(root).length,
     provingApp: summarizeAppDeclaration(app),
-    implementedCommands: ["work", "check", "init", "context", "explain", "scenario", "demo", "review", "publish"],
+    requiredCommands,
+    implementedCommands,
   }, null, 2));
 }
 
@@ -188,6 +247,11 @@ function explain(rest) {
   console.log(JSON.stringify(explainMeetingDigestObligation(), null, 2));
 }
 
+function graph(sub, rest) {
+  if (sub && sub !== "show") throw new Error("usage: rta graph [show]");
+  return explain(["graph", ...rest]);
+}
+
 function generate(sub) {
   const app = loadAppDeclaration(join(root, "examples/meeting-digest-seed/rta.app.json"));
   if (sub === "app-cli") {
@@ -200,6 +264,104 @@ function generate(sub) {
     return;
   }
   throw new Error("usage: rta generate app-cli | app <out-dir>");
+}
+
+async function testScenario(sub, rest) {
+  if (sub === "list" || !sub) return scenarioCommand("list", rest);
+  if (sub === "run") return runNamedScenario(rest[0], optionsFrom(rest.slice(1)));
+  throw new Error("usage: rta test-scenario list | run <name>");
+}
+
+async function runCommand(sub, rest) {
+  if (sub === "scenario") return runNamedScenario(rest[0], optionsFrom(rest.slice(1)));
+  throw new Error("usage: rta run scenario <name>");
+}
+
+async function dev(sub, rest) {
+  if (!sub || sub === "status") {
+    console.log(JSON.stringify({
+      mode: "dev",
+      status: "warning",
+      warning: "rta dev is a local warning surface; rta check --production is ticketed but not implemented yet.",
+      nextTickets: ["rta-prod-06-check-production", "rta-prod-08-runtime-unit-of-work"],
+      checks: {
+        workLedger: "available",
+        implementedChecks: "available",
+        productionGate: "planned",
+      },
+    }, null, 2));
+    return;
+  }
+  if (sub === "check") return check("--all");
+  throw new Error("usage: rta dev [status|check]");
+}
+
+function lint() {
+  const app = loadAppDeclaration(join(root, "examples/meeting-digest-seed/rta.app.json"));
+  const errors = [];
+  for (const item of app.vocabulary ?? []) {
+    if (!item.description) errors.push(`vocabulary ${item.id} missing description`);
+    if (!item.extends) errors.push(`vocabulary ${item.id} missing extends`);
+  }
+  if (!app.publication?.adapters?.length) errors.push("publication adapters must be explicit");
+  if (app.security?.externalWritesRequireReview !== true) errors.push("external write behavior must be explicit");
+  return reportCheck("Lint", errors);
+}
+
+function extensions(sub) {
+  if (sub !== "list" && sub !== "health" && sub) throw new Error("usage: rta extensions [list|health]");
+  const data = JSON.parse(readFileSync(join(root, "examples/meeting-digest-seed/extensions.json"), "utf8"));
+  const rows = (data.extensions ?? []).map((extension) => ({
+    id: extension.id,
+    extends: extension.extends,
+    scope: "app-local",
+    status: extension.upstreamCandidate ? "candidate" : "local-safe",
+    upstreamRequires: extension.upstreamRequires ?? [],
+  }));
+  console.log(JSON.stringify(rows, null, 2));
+}
+
+function upstream(sub, rest) {
+  if (sub === "plan") {
+    const id = rest[0];
+    if (!id) throw new Error("usage: rta upstream plan <extension>");
+    const data = JSON.parse(readFileSync(join(root, "examples/meeting-digest-seed/extensions.json"), "utf8"));
+    const extension = (data.extensions ?? []).find((item) => item.id === id);
+    if (!extension) throw new Error(`unknown extension: ${id}`);
+    console.log(JSON.stringify({
+      extension: id,
+      canPromoteNow: false,
+      reason: "Promotion is planned; this command currently reports upstream gaps only.",
+      upstreamRequires: extension.upstreamRequires ?? [],
+      requiredTicket: "rta-prod-10-review-connector-safety",
+    }, null, 2));
+    return;
+  }
+  if (sub === "promote") {
+    throw new Error("rta upstream promote is not implemented; run rta upstream plan <extension> and complete rta-prod-02/04/05 first");
+  }
+  throw new Error("usage: rta upstream plan|promote <extension>");
+}
+
+async function doctor() {
+  const checks = [];
+  const implemented = new Set(implementedCommands);
+  checks.push({
+    name: "required command surface",
+    status: requiredCommands.every((command) => implemented.has(command)) ? "pass" : "fail",
+    commands: requiredCommands,
+  });
+  checks.push({
+    name: "work ledger",
+    status: "pass",
+    count: loadWorkLedger(root).length,
+  });
+  checks.push({
+    name: "production gate",
+    status: "planned",
+    ticket: "rta-prod-06-check-production",
+  });
+  console.log(JSON.stringify({ status: "pass-with-planned-work", checks }, null, 2));
 }
 
 async function scenarioCommand(sub, rest) {

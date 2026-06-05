@@ -1,7 +1,7 @@
 kind: Feature
 id: rta-prod-01-cli-command-surface
 name: RtaProd01CliCommandSurface
-status: planned
+status: demo-covered
 why: The spec requires a broad CLI command surface that agents can use as the primary authoring and operating interface.
 ownedBy:
   internal: rta-platform
@@ -17,4 +17,3 @@ produces:
   - golden command fixture
 selfAudit:
   - "@did each required command exist with useful behavior or explicit TODO warning, and can an agent tell what to do next?"
-
