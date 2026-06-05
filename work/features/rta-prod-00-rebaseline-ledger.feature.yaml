@@ -8,6 +8,10 @@ ownedBy:
 demonstratedBy:
   - doc: docs/spec-to-ticket-backlog.md
   - command: rta check --work-ledger
+qaSteps:
+  - read docs/spec-to-ticket-backlog.md
+  - run: node scripts/rta.mjs check --work-ledger
+  - run: node scripts/rta.mjs work list
 requires:
   - WorkLedger
 produces:

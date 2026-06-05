@@ -9,6 +9,10 @@ demonstratedBy:
   - command: rta check --tier-contracts
   - command: rta check --pattern-contracts
   - command: rta check --archetype-bindings
+qaSteps:
+  - run: node scripts/rta.mjs check --tier-contracts
+  - run: node scripts/rta.mjs check --pattern-contracts
+  - run: node scripts/rta.mjs check --archetype-bindings
 requires:
   - VocabArdCliSkeleton
 produces:

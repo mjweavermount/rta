@@ -3,6 +3,7 @@
 Start with:
 
 - [RTA Production Authoring Platform Spec](rta-production-authoring-platform-spec.md)
+- [RTA Production Achievements And QA](rta-production-achievements-and-qa.md)
 - [RTA To Live Meeting Digest Milestones](meeting-digest-live-milestones.md)
 - [Demo Walkthroughs](demos/README.md)
 

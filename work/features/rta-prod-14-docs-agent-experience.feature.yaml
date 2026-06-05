@@ -8,6 +8,11 @@ ownedBy:
 demonstratedBy:
   - doc: docs/spec-to-ticket-backlog.md
   - source/doc acceptance: future root and generated app AGENTS.md
+qaSteps:
+  - read AGENTS.md
+  - read examples/meeting-digest-seed/AGENTS.md
+  - read docs/rta-production-achievements-and-qa.md
+  - run: npm run check -- --test-name-pattern "agent docs"
 requires:
   - AgentPlaybookDocs
 produces:

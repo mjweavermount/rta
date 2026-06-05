@@ -8,6 +8,10 @@ ownedBy:
 demonstratedBy:
   - command: rta check --production
   - fixture: bad production app fails
+qaSteps:
+  - run: node scripts/rta.mjs generate
+  - run: node scripts/rta.mjs check --production
+  - run: npm run check
 requires:
   - RtaProd04DerivationEngine
   - RtaProd05GeneratorsGeneratedSync

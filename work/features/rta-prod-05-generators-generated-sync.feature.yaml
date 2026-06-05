@@ -8,6 +8,10 @@ ownedBy:
 demonstratedBy:
   - command: rta generate
   - command: rta check --generated-sync
+qaSteps:
+  - run: node scripts/rta.mjs generate
+  - run: node scripts/rta.mjs check --generated-sync
+  - run: npm run check -- --test-name-pattern generated-sync
 requires:
   - RtaProd04DerivationEngine
 produces:

@@ -9,6 +9,11 @@ demonstratedBy:
   - command: rta check --app-cli
   - command: rta check --runtime-wiring
   - command: rta check --scenario-runtime-parity
+qaSteps:
+  - run: node scripts/rta.mjs generate app-cli
+  - run: node scripts/rta.mjs check --runtime-wiring
+  - run: node scripts/rta.mjs check --scenario-runtime-parity
+  - run: node .rta/generated/meeting-digest/meeting-digest.mjs watch --input tests/fixtures/custom-transcript.txt
 requires:
   - GeneratedAppCliRuntimeWiring
   - RtaProd08RuntimeUnitOfWork

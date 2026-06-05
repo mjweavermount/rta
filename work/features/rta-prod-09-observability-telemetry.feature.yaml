@@ -8,6 +8,10 @@ ownedBy:
 demonstratedBy:
   - command: rta check --telemetry-coverage
   - command: rta scenario watch meeting-digest.integrated.fixture
+qaSteps:
+  - run: node scripts/rta.mjs check --telemetry-coverage
+  - run: node scripts/rta.mjs scenario watch meeting-digest.integrated.fixture --input tests/fixtures/custom-transcript.txt
+  - run: node scripts/rta.mjs grafana render meeting-digest
 requires:
   - ObservabilityLogQaGrafana
   - RtaProd04DerivationEngine

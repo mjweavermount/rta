@@ -8,6 +8,9 @@ ownedBy:
 demonstratedBy:
   - command: rta check --ard-meta
   - fixture: bad ARD family fails
+qaSteps:
+  - run: node scripts/rta.mjs check --ard-meta
+  - run: npm run check -- --test-name-pattern ARD
 requires:
   - VocabArdCliSkeleton
 produces:

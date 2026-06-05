@@ -90,7 +90,9 @@ export function summarizeWorkItem(item) {
     why: item.why,
     ownedBy: item.ownedBy ?? {},
     demonstratedBy: item.demonstratedBy ?? [],
+    qaSteps: item.qaSteps ?? [],
     requires: item.requires ?? [],
     produces: item.produces ?? [],
+    selfAudit: item.selfAudit ?? [],
   };
 }

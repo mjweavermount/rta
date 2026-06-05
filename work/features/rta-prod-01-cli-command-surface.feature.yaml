@@ -9,6 +9,11 @@ demonstratedBy:
   - command: rta doctor
   - command: rta dev
   - command: rta test-scenario
+qaSteps:
+  - run: node scripts/rta.mjs doctor
+  - run: node scripts/rta.mjs dev
+  - run: node scripts/rta.mjs test-scenario list
+  - run: node scripts/rta.mjs context
 requires:
   - VocabArdCliSkeleton
 produces:

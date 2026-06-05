@@ -9,6 +9,11 @@ demonstratedBy:
   - command: rta check --use-cases
   - command: rta check --scenario-coverage
   - command: rta check --boundary-coverage
+qaSteps:
+  - run: node scripts/rta.mjs check --use-cases
+  - run: node scripts/rta.mjs check --scenario-coverage
+  - run: node scripts/rta.mjs check --boundary-coverage
+  - run: node scripts/rta.mjs scenario list
 requires:
   - UseCaseScenarioCoverage
 produces:

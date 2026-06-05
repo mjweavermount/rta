@@ -8,6 +8,11 @@ ownedBy:
 demonstratedBy:
   - command: npm audit
   - command: rta doctor
+qaSteps:
+  - run: npm run check:release
+  - run: npm run doctor
+  - run: npm run audit
+  - run: npm run check:production
 requires:
   - CiPackageReleaseHygiene
 produces:

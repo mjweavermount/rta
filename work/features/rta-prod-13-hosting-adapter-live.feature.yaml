@@ -8,6 +8,12 @@ ownedBy:
 demonstratedBy:
   - command: rta hosting package meeting-digest
   - command: home-lab WorkloadApp integrity check
+qaSteps:
+  - run: node scripts/rta.mjs hosting intent meeting-digest
+  - run: node scripts/rta.mjs hosting package meeting-digest
+  - run: node scripts/rta.mjs hosting validate meeting-digest
+  - run: node scripts/rta.mjs check --hosting-package
+  - note: live home-lab integrity is optional and requires explicit operator approval
 requires:
   - HomeLabHostingAdapter
   - RtaProd11GeneratedAppRuntimeWiring
