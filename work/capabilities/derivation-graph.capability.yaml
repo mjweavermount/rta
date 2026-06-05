@@ -1,7 +1,7 @@
 kind: Capability
 id: derivation-graph
 name: DerivationGraph
-status: planned
+status: in-progress
 why: RTA should explain why generated files, checks, tests, logs, and review gates exist.
 ownedBy:
   internal: rta-platform

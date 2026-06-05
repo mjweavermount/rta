@@ -1,7 +1,7 @@
 kind: Capability
 id: use-case-scenario-coverage
 name: UseCaseScenarioCoverage
-status: planned
+status: demo-covered
 why: RTA needs user stories, executable scenarios, bounded-context coverage, and integration contracts as first-class work products.
 ownedBy:
   internal: rta-platform

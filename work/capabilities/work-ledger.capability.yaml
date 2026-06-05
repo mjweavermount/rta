@@ -1,7 +1,7 @@
 kind: Capability
 id: work-ledger
 name: WorkLedger
-status: planned
+status: demo-covered
 why: RTA needs a vocab-aware registry for capabilities, features, decisions, research, upstream candidates, and demo coverage.
 ownedBy:
   internal: rta-platform

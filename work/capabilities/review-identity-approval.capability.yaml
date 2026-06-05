@@ -1,7 +1,7 @@
 kind: Capability
 id: review-identity-approval
 name: ReviewIdentityApproval
-status: planned
+status: demo-covered
 why: Human review should be an internal QA/demo/approval gate with actor identity and audit trail, not a mandatory external board dependency.
 ownedBy:
   internal: rta-platform

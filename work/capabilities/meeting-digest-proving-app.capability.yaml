@@ -1,7 +1,7 @@
 kind: Capability
 id: meeting-digest-proving-app
 name: MeetingDigestProvingApp
-status: planned
+status: demo-covered
 why: The first proving app should exercise RTA against a real workflow without becoming part of RTA core.
 ownedBy:
   internal: rta-platform

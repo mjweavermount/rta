@@ -1,7 +1,7 @@
 kind: Capability
 id: runtime-ports
 name: RuntimePorts
-status: planned
+status: demo-covered
 why: RTA needs storage, queue, artifact, clock, and run-state ports so local, scenario, and production execution share one wiring model.
 ownedBy:
   internal: rta-platform
