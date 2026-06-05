@@ -10,8 +10,8 @@ demonstratedBy:
   - doc: docs/rta-pure-ts-effect-migration.md
 qaSteps:
   - do: run pnpm check:pure-ts
-  - see: the check fails on new tracked JS/MJS/CJS source and reports the remaining allowlisted migration count
-  - see: the migration is complete only when the allowlist is empty
+  - see: the check fails on new tracked JS/MJS/CJS source
+  - see: the allowlist is empty and no tracked JS/MJS/CJS source remains
 requires:
   - VocabArdCliSkeleton
   - RuntimePorts

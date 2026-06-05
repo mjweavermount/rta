@@ -11,8 +11,7 @@ The current local release gates pass:
 ```bash
 pnpm check
 pnpm run check:production
-node scripts/check-release-hygiene.mjs
-node scripts/rta.mjs doctor
+pnpm check:release
 pnpm audit --audit-level high
 pnpm check:pure-ts
 ```
@@ -21,7 +20,7 @@ Expected current result:
 
 - Work ledger passes.
 - Test suite passes.
-- Production gate passes.
+- Production gate passes against `fixtures/golden/pass`.
 - Release hygiene passes.
 - `pnpm audit --audit-level high` reports zero vulnerabilities.
 
@@ -51,7 +50,7 @@ RTA now has an enforceable app-authoring loop:
 - Optional host-neutral/home-lab hosting adapter output with Containerfile, health server, probes, WorkloadApp draft, and local validation.
 - Root and app-level agent guides.
 - Package/release hygiene: package exports, lockfile-backed audit, CI checks, doctor, production check, and release hygiene script.
-- Pure TypeScript migration rail: `pnpm check:pure-ts` blocks new tracked JS/MJS/CJS source while the legacy allowlist is burned down.
+- Pure TypeScript source gate: `pnpm check:pure-ts` blocks tracked JS/MJS/CJS source. The allowlist is empty.
 
 ## Fast QA
 
@@ -60,8 +59,7 @@ Run the whole local acceptance loop:
 ```bash
 pnpm check
 pnpm run check:production
-node scripts/check-release-hygiene.mjs
-node scripts/rta.mjs doctor
+pnpm check:release
 pnpm audit --audit-level high
 pnpm check:pure-ts
 ```
@@ -81,32 +79,14 @@ node dist/app-cli.js review create --run <run-id>
 
 That path must print readable primitive operation logs, persist run artifacts, expose a provenance graph, and create review items from the same runtime state.
 
-Run the main meeting digest experience:
+Run the main TypeScript meeting digest proof:
 
 ```bash
-node scripts/rta.mjs scenario watch meeting-digest.integrated.fixture --input tests/fixtures/custom-transcript.txt
-node examples/meeting-digest-seed/bin/meeting-digest.mjs scenario run approved-digest-publishes-work-items --review --high
+pnpm --filter @rta/example-meeting-digest test
 ```
 
-The second command prints:
-
-- `review=...`
-- `run=...`
-- `artifact=...`
-- `digest=...`
-
-Approve and dry-run publish:
-
-```bash
-node scripts/rta.mjs review approve <review-id> --actor Virgil
-node scripts/rta.mjs publish dry-run <review-id> --target fixture
-```
-
-Replay a run:
-
-```bash
-node scripts/rta.mjs scenario replay <run-id>
-```
+The former `.mjs` meeting-digest seed CLI has been removed. Reintroduce
+scenario/watch/review/publish paths in TypeScript only.
 
 ## Card QA Steps
 
@@ -115,9 +95,7 @@ Each `work/features/rta-prod-*.feature.yaml` card now has `qaSteps`.
 Use these repo cards as the source of truth for per-feature QA:
 
 ```bash
-node scripts/rta.mjs work show rta-prod-08-runtime-unit-of-work
-node scripts/rta.mjs work show rta-prod-12-meeting-digest-seed
-node scripts/rta.mjs work show rta-prod-15-package-release
+pnpm check:work-ledger
 pnpm check:demo-coverage
 ```
 
@@ -126,15 +104,10 @@ pnpm check:demo-coverage
 Hosting is native but optional. It should not require the home lab.
 
 ```bash
-node scripts/rta.mjs hosting intent meeting-digest
-node scripts/rta.mjs hosting package meeting-digest
-node scripts/rta.mjs hosting validate meeting-digest
-node scripts/rta.mjs check --hosting-package
+pnpm check
 ```
 
-This produces draft artifacts under `.rta/hosting/`.
-
-Live home-lab promotion is intentionally separate and requires explicit operator approval.
+Live home-lab promotion is intentionally separate and requires explicit operator approval. Optional hosting adapters should be reintroduced in TypeScript only.
 
 ## Important Non-Claims
 
@@ -147,7 +120,7 @@ Live home-lab promotion is intentionally separate and requires explicit operator
 ## Useful Docs
 
 - `AGENTS.md`
-- `examples/meeting-digest-seed/AGENTS.md`
+- `examples/meeting-digest/src/index.ts`
 - `docs/demos/meeting-digest-local-demo.md`
 - `docs/demos/rta-demo-coverage-map.md`
 - `docs/spec-to-ticket-backlog.md`

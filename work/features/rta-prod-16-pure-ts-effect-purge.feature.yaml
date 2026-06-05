@@ -1,8 +1,8 @@
 kind: Feature
 id: rta-prod-16-pure-ts-effect-purge
 name: RtaProd16PureTsEffectPurge
-status: planned
-why: The repo still has active `.mjs` source; production RTA should be pure TypeScript with Effect services/layers for runtime behavior.
+status: demo-covered
+why: The repo must stay pure TypeScript source; production RTA should use Effect services/layers for runtime behavior.
 ownedBy:
   internal: rta-platform
 demonstratedBy:
@@ -11,14 +11,14 @@ demonstratedBy:
 qaSteps:
   - do: run pnpm check:pure-ts
   - see: new tracked JS/MJS/CJS files fail the check
-  - see: remaining tracked MJS files are explicitly listed in docs/rta-pure-ts-allowlist.txt for burn-down
+  - see: the allowlist is empty and the check reports no tracked JS/MJS/CJS source remains
 requires:
   - PureTsEffectRuntime
 produces:
-  - pure TypeScript migration rail
-  - tracked JS/MJS/CJS burn-down list
-  - future hard gate for zero tracked JavaScript source
+  - pure TypeScript source gate
+  - empty tracked JS/MJS/CJS allowlist
+  - deletion of legacy MJS source
 selfAudit:
-  - "@did I reduce the allowlist, or only preserve the hybrid state?"
+  - "@did I keep the allowlist empty?"
   - "@did Effect own runtime IO, or did I only rename files?"
   - "@did generated apps still run after every MJS removal?"

@@ -22,6 +22,8 @@ import { checkExecutionTelemetry } from "./check-telemetry.js"
 import { checkGeneratedSync } from "./generated-sync.js"
 import { isGoldenFixturePath } from "./discovery.js"
 import { runPureTsCheck } from "./check-pure-ts.js"
+import { runReleaseHygieneCheck } from "./check-release-hygiene.js"
+import { runWorkLedgerCheck } from "./check-work-ledger.js"
 
 // ---------------------------------------------------------------------------
 // Discover *.ard.yaml files under a root directory (non-recursive for v1)
@@ -87,6 +89,9 @@ export interface CheckOptions {
   readonly production?: boolean
   readonly telemetrySync?: boolean
   readonly pureTs?: boolean
+  readonly releaseHygiene?: boolean
+  readonly workLedger?: boolean
+  readonly demoCoverage?: boolean
 }
 
 export const runCheck = (options: CheckOptions = {}): Effect.Effect<number> =>
@@ -121,6 +126,12 @@ export const runCheck = (options: CheckOptions = {}): Effect.Effect<number> =>
           }),
         ),
       )
+    }
+    if (options.releaseHygiene) {
+      return yield* runReleaseHygieneCheck(cwd)
+    }
+    if (options.workLedger || options.demoCoverage) {
+      return yield* runWorkLedgerCheck(cwd)
     }
     if (options.decisionShapes) {
       return yield* Effect.promise(() => checkDecisionShapes(cwd))

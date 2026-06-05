@@ -1,6 +1,6 @@
 # RTA Pure TypeScript And Effect Migration
 
-Status: active migration plan
+Status: source purge complete; Effect refactor still active
 
 ## Goal
 
@@ -19,23 +19,20 @@ Disallowed tracked source:
 - `.js`
 - `.cjs`
 
-## Current Migration Rail
+## Current Source Gate
 
 `pnpm check:pure-ts` runs `rta check --pure-ts`.
 
-During the migration it uses `docs/rta-pure-ts-allowlist.txt` as an explicit
-burn-down list. The check fails if a new tracked JS/MJS/CJS file appears outside
-that allowlist, and it reports the remaining allowlisted count.
+`docs/rta-pure-ts-allowlist.txt` is intentionally empty. The check fails if a
+tracked JS/MJS/CJS source file exists in the worktree.
 
-When the allowlist is empty, the check becomes a hard no-JS source gate.
+## Completed Purge
 
-## Purge Order
-
-1. Move the active root CLI from `scripts/rta.mjs` into `packages/cli/bin/rta.ts`.
-2. Port root production checks from `packages/*.mjs` into TypeScript packages.
-3. Port legacy Node tests from `tests/*.test.mjs` into package-local Vitest tests.
-4. Replace `examples/meeting-digest-seed/*.mjs` with TypeScript proving apps.
-5. Delete the allowlist and make pure TS a release gate.
+- The root `.mjs` CLI has been removed.
+- Legacy root `.mjs` packages have been removed or superseded by TypeScript packages.
+- Legacy Node `.mjs` tests have been removed in favor of package-local Vitest tests.
+- The meeting digest proof now lives under `examples/meeting-digest`.
+- `pnpm check` includes the pure TypeScript source gate.
 
 ## Effect Migration Order
 
@@ -52,8 +49,7 @@ When the allowlist is empty, the check becomes a hard no-JS source gate.
 
 ## Done Means
 
-- `git ls-files '*.js' '*.mjs' '*.cjs'` returns no tracked source files.
-- `pnpm check:pure-ts` passes without an allowlist.
+- `pnpm check:pure-ts` passes with an empty allowlist.
 - `pnpm check:production` passes.
 - The minimum demo app proves in-memory and file-backed repositories through
   Effect services/layers.

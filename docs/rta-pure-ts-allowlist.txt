@@ -1,37 +1,4 @@
-# Temporary burn-down list for tracked JS/MJS/CJS source.
-# `pnpm check:pure-ts` fails if a new tracked JS/MJS/CJS file appears outside
-# this list. The migration is complete when this file is empty except comments.
-examples/meeting-digest-seed/app.mjs
-examples/meeting-digest-seed/bin/meeting-digest.mjs
-examples/meeting-digest-seed/meeting-digest-integrated.mjs
-examples/meeting-digest-seed/meeting-digest-v1.mjs
-examples/meeting-digest-seed/meeting-digest-v2.mjs
-packages/ards/index.mjs
-packages/checks/index.mjs
-packages/connectors/index.mjs
-packages/derivation/index.mjs
-packages/generators/index.mjs
-packages/grafana/index.mjs
-packages/hosting-adapters/index.mjs
-packages/index.mjs
-packages/logging/index.mjs
-packages/review/index.mjs
-packages/runtime/index.mjs
-packages/scheduler/index.mjs
-packages/security/index.mjs
-packages/tiers/index.mjs
-packages/use-cases/index.mjs
-packages/vocab/index.mjs
-packages/work-ledger/index.mjs
-scripts/check-golden-fixture.mjs
-scripts/check-release-hygiene.mjs
-scripts/check-sample-app-loop.mjs
-scripts/check-work-ledger.mjs
-scripts/rta.mjs
-tests/ards.test.mjs
-tests/cli.test.mjs
-tests/derivation.test.mjs
-tests/meeting-digest.test.mjs
-tests/platform.test.mjs
-tests/tiers.test.mjs
-tests/work-ledger.test.mjs
+# Pure TypeScript source gate allowlist.
+#
+# This file is intentionally empty. Tracked JS/MJS/CJS source files are not
+# allowed in this repo; build output belongs under ignored dist directories.

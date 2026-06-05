@@ -14,14 +14,13 @@ Read this before changing the repo.
 
 ## Reset Warning
 
-The current `.mjs` implementation is rejected as the production foundation.
-Treat it as prototype evidence. Do not continue broadening it as the real
-framework.
+The previous `.mjs` implementation was rejected as the production foundation
+and has been removed from tracked source. Treat old `.mjs` references in
+historic docs as prototype evidence only.
 
-The next RTA build should start from the TypeScript/CQRS spine in
-`/Users/virgil/Developer/Virgil-Info/home-lab-v7/vendor/rta-ddd-core` and prove
-the primitive instrumentation, vocab, generated obligations, checks, fixtures,
-and readable log projections before rebuilding meeting digest.
+The current RTA build is the TypeScript workspace in this repo. Continue from
+the TypeScript/CQRS spine, strict primitive instrumentation, vocab, generated
+obligations, checks, fixtures, and readable log projections here.
 
 ## Project Shape
 
@@ -63,15 +62,12 @@ Do not hand-edit always-regenerated files.
 
 ## Required Checks
 
-These commands describe the target production surface. In the current reset,
-verify whether they exist before relying on them; stale `.mjs` commands from
-the rejected prototype are not proof of production readiness.
-
-The target production check surface is implemented through the local CLI. Run generation before production checks when the app declaration changes:
+The production check surface is implemented through the local TypeScript CLI.
+Run generation before production checks when declarations change:
 
 ```bash
-node scripts/rta.mjs generate
-node scripts/rta.mjs check --production
+pnpm --filter @rta/cli rta generate --root ../..
+pnpm --filter @rta/cli rta check --production --root ../../fixtures/golden/pass
 pnpm check
 pnpm check:pure-ts
 ```
@@ -79,59 +75,47 @@ pnpm check:pure-ts
 For focused work, use the named checks instead of guessing:
 
 ```bash
-node scripts/rta.mjs check --tier-contracts
-node scripts/rta.mjs check --ard-meta
-node scripts/rta.mjs check --generated-sync
-node scripts/rta.mjs check --use-cases
-node scripts/rta.mjs check --scenario-coverage
-node scripts/rta.mjs check --boundary-coverage
-node scripts/rta.mjs check --operation-event
-node scripts/rta.mjs check --telemetry-coverage
-node scripts/rta.mjs check --review-gates
-node scripts/rta.mjs check --connector-safety
-node scripts/rta.mjs check --runtime-wiring
-node scripts/rta.mjs check --scenario-runtime-parity
-node scripts/rta.mjs check --hosting-package
-node scripts/rta.mjs check --security
+pnpm --filter @rta/cli rta check --ard-meta --root ../..
+pnpm --filter @rta/cli rta check --generated-sync --root ../..
+pnpm --filter @rta/cli rta check --operation-event --root ../..
+pnpm --filter @rta/cli rta check --primitive-boundaries --root ../..
+pnpm --filter @rta/cli rta check --pattern-specs --root ../..
+pnpm --filter @rta/cli rta check --pattern-contracts --root ../..
+pnpm --filter @rta/cli rta check --archetype-specs --root ../..
+pnpm --filter @rta/cli rta check --archetype-bindings --root ../..
+pnpm --filter @rta/cli rta check --pure-ts --root ../..
 ```
 
 Run the repo-native work check before claiming a capability is ready:
 
 ```bash
-node scripts/check-work-ledger.mjs
+pnpm check:work-ledger
+pnpm check:demo-coverage
 ```
 
 The check must not require Plane, GitHub, or any other external work tracker.
 
 ## Runtime Demo Loop
 
-Use the proving app to verify that generated/runtime paths still line up:
+Use the TypeScript proving app and generated app smoke path to verify that
+generated/runtime paths still line up:
 
 ```bash
-node scripts/rta.mjs scenario watch meeting-digest.integrated.fixture --input tests/fixtures/custom-transcript.txt
-node scripts/rta.mjs scenario replay <run-id>
-node scripts/rta.mjs queue enqueue meeting-digest.integrated.fixture --input tests/fixtures/custom-transcript.txt --review
-node scripts/rta.mjs scheduler start --once
-node examples/meeting-digest-seed/bin/meeting-digest.mjs scenario run approved-digest-publishes-work-items --review --high
+pnpm --filter @rta/example-meeting-digest test
+pnpm --filter @rta/cli test
+pnpm check
 ```
 
-Publication must remain review-gated and connector-policy-gated:
-
-```bash
-node scripts/rta.mjs review approve <review-id> --actor Virgil
-node scripts/rta.mjs publish dry-run <review-id> --target fixture
-```
-
-The dry-run publisher must not write to AFFiNE, Plane, GitHub, or the home lab.
+Publication paths must remain review-gated and connector-policy-gated when
+they are reintroduced in TypeScript. Dry-run publishers must not write to
+AFFiNE, Plane, GitHub, or the home lab.
 
 ## Optional Hosting
 
 Home-lab deployment is optional adapter output. Generate and validate draft artifacts locally:
 
 ```bash
-node scripts/rta.mjs hosting intent meeting-digest
-node scripts/rta.mjs hosting package meeting-digest
-node scripts/rta.mjs hosting validate meeting-digest
+pnpm check
 ```
 
 Do not promote into `/Users/virgil/Developer/Virgil-Info/home-lab-v7` unless the user explicitly asks for a live lab step.

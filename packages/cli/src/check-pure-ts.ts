@@ -1,5 +1,6 @@
 import { Effect } from "effect"
 import { execFile } from "node:child_process"
+import { existsSync } from "node:fs"
 import { readFile } from "node:fs/promises"
 import { join, resolve } from "node:path"
 import { promisify } from "node:util"
@@ -25,6 +26,7 @@ export const checkPureTs = (root = process.cwd()): Effect.Effect<PureTsCheckResu
           .split("\n")
           .map((line) => line.trim())
           .filter((line) => SOURCE_JS_RE.test(line))
+          .filter((line) => existsSync(join(cwd, line)))
           .sort()
       },
       catch: (cause) => cause,

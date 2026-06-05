@@ -72,6 +72,9 @@ const main = Effect.gen(function* () {
         ...(hasFlag("--production") ? { production: true } : {}),
         ...(hasFlag("--telemetry-sync") ? { telemetrySync: true } : {}),
         ...(hasFlag("--pure-ts") ? { pureTs: true } : {}),
+        ...(hasFlag("--release-hygiene") ? { releaseHygiene: true } : {}),
+        ...(hasFlag("--work-ledger") ? { workLedger: true } : {}),
+        ...(hasFlag("--demo-coverage") ? { demoCoverage: true } : {}),
       })
       process.exit(exitCode)
       break
@@ -167,6 +170,9 @@ Options:
   --production          Run production-readiness checks as one aggregate gate (check only)
   --telemetry-sync      Validate generated telemetry stub headers (check only)
   --pure-ts             Fail on tracked JS/MJS/CJS source outside the migration allowlist
+  --release-hygiene     Validate package, CI, audit, and release metadata
+  --work-ledger         Validate work ledger cards and QA shape
+  --demo-coverage       Validate work ledger cards are tied to demo coverage
 `)
       process.exit(command && !wantsHelp ? 1 : 0)
     }
