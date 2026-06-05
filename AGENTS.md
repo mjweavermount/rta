@@ -51,3 +51,11 @@ Do not hand-edit always-regenerated files.
 
 The target production check surface is defined in the spec. During bootstrap, add checks incrementally and keep placeholders honest.
 
+## Demo Coverage
+
+Every card/capability needs a demo path. It can be direct, or it can be proven by a later integration/demo card that uses the capability. Do not mark a capability complete merely because code exists.
+
+Use:
+
+- [docs/demos/README.md](docs/demos/README.md)
+- [docs/demos/rta-demo-coverage-map.md](docs/demos/rta-demo-coverage-map.md)

@@ -3,6 +3,7 @@
 Start with:
 
 - [RTA Production Authoring Platform Spec](rta-production-authoring-platform-spec.md)
+- [Demo Walkthroughs](demos/README.md)
 
 Planned docs from the spec:
 
@@ -21,3 +22,8 @@ Planned docs from the spec:
 - `agent-playbook.md`
 - `salvage-plan.md`
 
+Current supporting docs:
+
+- `demos/README.md`
+- `demos/lab-34-bootstrap-repo-demo.md`
+- `demos/rta-demo-coverage-map.md`

@@ -9,6 +9,7 @@ It turns declared vocabulary, tier contracts, use cases, scenarios, ARDs, and ru
 This repository is in bootstrap state. The source of truth for the initial build is:
 
 - [RTA Production Authoring Platform Spec](docs/rta-production-authoring-platform-spec.md)
+- [RTA Demo Walkthroughs](docs/demos/README.md)
 
 ## Intended Authoring Loop
 
@@ -32,3 +33,6 @@ Authored apps should also receive an operational app CLI generated from their vo
 6. Meeting digest proving app.
 7. Optional hosting adapters.
 
+## Demo Coverage
+
+Every nontrivial RTA capability should be tied to a direct demo or proof-through-integration path. Start with the [demo coverage map](docs/demos/rta-demo-coverage-map.md).

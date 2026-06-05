@@ -210,6 +210,16 @@ rta/
         ops-command-surface.ts
       test/
 
+    work-ledger/
+      src/
+        capability-schema.ts
+        feature-schema.ts
+        work-linker.ts
+        demo-coverage.ts
+        export-plane.ts
+        export-github.ts
+      test/
+
     ards/
       src/
         schema.ts
@@ -458,6 +468,7 @@ rta run
 rta review
 rta scenario
 rta test-scenario
+rta work
 rta extensions
 rta upstream
 rta doctor
@@ -543,6 +554,8 @@ Required modes:
 --app-cli
 --runtime-wiring
 --scenario-runtime-parity
+--work-ledger
+--demo-coverage
 --extensions-local
 --extensions-upstreamable
 ```
@@ -823,6 +836,118 @@ Required checks:
 rta check --app-cli
 rta check --runtime-wiring
 rta check --scenario-runtime-parity
+```
+
+## Work Ledger And Demo Coverage
+
+The CLI is necessary, but it is not sufficient for tracking what RTA is building.
+
+RTA needs a first-class work ledger: a vocab-aware product/work registry for capabilities, features, research threads, decisions, waivers, upstream candidates, and demo coverage.
+
+The work ledger is not a full project manager. It is the connective tissue between:
+
+```text
+capabilities
+features
+use cases
+scenarios
+vocab declarations
+patterns/archetypes
+ARDs
+waivers
+Plane/GitHub cards
+demo coverage
+```
+
+Suggested app/repo layout:
+
+```text
+work/
+  capabilities/
+    generated-app-cli.capability.yaml
+  features/
+    scenario-runner.feature.yaml
+  decisions/
+    sqlite-first.decision.yaml
+  research/
+    otter-realtime-options.research.yaml
+  upstream-candidates/
+    topic-extractor.upstream.yaml
+```
+
+Example capability:
+
+```yaml
+kind: Capability
+name: GeneratedAppCli
+status: in-progress
+why: Operators need to run, inspect, review, and replay authored apps.
+ownedBy:
+  plane: LAB-39
+demonstratedBy:
+  - scenario: approved-brief-publishes-work-items
+  - plane: LAB-47
+requires:
+  - AppRuntime
+  - ScenarioRunner
+  - ReviewGate
+produces:
+  - generated/app-cli.ts
+  - generated/processes.ts
+```
+
+### `rta work`
+
+`rta work` should operate the ledger.
+
+Examples:
+
+```bash
+rta work list
+rta work show generated-app-cli
+rta work link generated-app-cli --use-case ReviewAndPublishResearchBrief
+rta work link generated-app-cli --scenario approved-brief-publishes-work-items
+rta work status generated-app-cli --state demo-covered
+rta work export --target plane
+rta work export --target github
+```
+
+### Demo Coverage Contract
+
+Every nontrivial capability must have a proving path.
+
+That path may be direct:
+
+```text
+run this command
+open this page
+watch this log
+inspect this generated artifact
+```
+
+Or it may be proof-through-integration:
+
+```text
+LAB-39 generated app CLI is demo-covered by LAB-47 because the end-to-end demo
+uses the generated CLI without bypassing its runtime wiring.
+```
+
+Contractual rules:
+
+```text
+every nontrivial capability has an owner
+every capability has at least one proving path
+every proving path points to a direct demo or integration scenario
+every upstream candidate links to the work item that discovered it
+every Plane/GitHub export preserves the RTA work id
+every Human Review card declares direct demo or proof-through-integration coverage
+```
+
+Required checks:
+
+```text
+rta check --work-ledger
+rta check --demo-coverage
 ```
 
 ### `rta explain`
