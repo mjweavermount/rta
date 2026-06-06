@@ -1,0 +1,12 @@
+kind: PatternSpec
+name: brand-bloom
+requiredPrimitives: [Port, AdapterBinding, BoundarySchema, OutboundAdapter]
+testingContract:
+  extends: brand-fitting
+  adds:
+    - typed-identity: every cross-referenceable vocab object blooms into a branded ID type
+    - adapter-fitting: adapter bindings fit the branded port and boundary schemas they claim to connect
+    - readable-values: runtime values remain human-readable strings while compile-time consumers require brands
+vocabHint: Context declares ports, boundarySchemas, adapterBindings, runtimeCapabilities, publishedLanguages, toolSurfaces, and operations that can bloom into branded fitting IDs.
+visualConcepts: [brand, fitting, port, schema, adapter]
+narrativeLabel: "(brand-bloom) {name} — fits {adapter} to {port} through branded boundary schemas"

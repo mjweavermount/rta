@@ -37,7 +37,8 @@
     "work-ledger",
     "demo-coverage",
     "coverage-waivers",
-    "boundary-sanitization"
+    "boundary-sanitization",
+    "brand-bloom"
   ],
   "future_cli_checks": [
     "dep-cruise",

@@ -1,0 +1,63 @@
+kind: BoundedContext
+name: Demo
+classification: supporting
+description: Fixture where a binding points to an existing schema that does not fit its port.
+
+ports:
+  - name: DocumentPort
+    kind: mcp-client
+    direction: outbound
+    inputSchemas: [ExpectedInput]
+    outputSchemas: [DocumentOutput]
+
+boundarySchemas:
+  - name: ExpectedInput
+    kind: input
+    source: effect-schema
+    fields:
+      - { name: docId, type: NonEmptyString }
+    validation:
+      required: true
+      strategy: decode
+    sanitization:
+      required: true
+      strategy: mcp-tool
+  - name: WrongInput
+    kind: input
+    source: effect-schema
+    fields:
+      - { name: otherId, type: NonEmptyString }
+    validation:
+      required: true
+      strategy: decode
+    sanitization:
+      required: true
+      strategy: mcp-tool
+  - name: DocumentOutput
+    kind: output
+    source: effect-schema
+    validation:
+      required: true
+      strategy: validate-only
+    sanitization:
+      required: true
+      strategy: external-api-response
+
+adapterBindings:
+  - name: WrongDocumentBinding
+    port: DocumentPort
+    adapter: FakeDocumentAdapter
+    target: local-demo
+    mode: fake
+    boundaryPipeline:
+      inputSchema: WrongInput
+      outputSchema: DocumentOutput
+      decode: true
+      sanitize: true
+      normalize: true
+      authorize: true
+      translateTo: ReadDocument
+      logs:
+        promotion: true
+        rejection: true
+

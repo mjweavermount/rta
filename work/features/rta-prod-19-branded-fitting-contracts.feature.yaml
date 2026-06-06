@@ -1,7 +1,7 @@
 kind: Feature
 id: rta-prod-19-branded-fitting-contracts
 name: RtaProd19BrandedFittingContracts
-status: planned
+status: demo-covered
 why: RTA wiring should be type-fitted so context IDs, port IDs, adapter IDs, schema IDs, operation IDs, entrypoint IDs, run IDs, trace IDs, and policy IDs cannot be swapped just because their runtime shape is string-like.
 ownedBy:
   internal: rta-platform
@@ -11,11 +11,12 @@ demonstratedBy:
 qaSteps:
   - do: run pnpm --filter @rta/strict test -- branded
   - do: run pnpm --filter @rta/cli rta check --brand-bloom --root ../../fixtures/golden/pass
+  - do: run pnpm --filter @rta/cli rta check --brand-bloom --root ../../fixtures/golden/fail/brand-bloom-wrong-fitting and confirm it exits non-zero
   - see: bad fixture fails when an adapter binding uses the wrong branded port or boundary schema ID
   - see: generated brand manifest exports typed fittings for every cross-referenceable vocab object
 requires:
   - RtaProd17RepositoryEdgeSecretVocab
-  - RtaProd18AppWiringEntrypoints
+  - RtaProd20SanitizationBoundaryContracts
 produces:
   - branded ID helpers
   - generated brand manifest

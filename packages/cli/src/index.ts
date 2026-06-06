@@ -30,6 +30,7 @@ export { checkReleaseHygiene, runReleaseHygieneCheck } from "./check-release-hyg
 export { checkWorkLedger, runWorkLedgerCheck } from "./check-work-ledger.js"
 export { checkCoverageWaivers, runCoverageWaiverCheck } from "./check-coverage-waivers.js"
 export { checkBoundarySanitization } from "./check-boundary-sanitization.js"
+export { checkBrandBloom, buildBrandManifest } from "./check-brand-bloom.js"
 export { findWorkItem, loadWorkLedger, parseLedgerYaml, summarizeWorkItem } from "./work-ledger.js"
 export { runGenerate } from "./generate.js"
 export { runContext } from "./context.js"

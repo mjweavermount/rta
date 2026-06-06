@@ -98,6 +98,7 @@ const main = Effect.gen(function* () {
         ...(hasFlag("--demo-coverage") ? { demoCoverage: true } : {}),
         ...(hasFlag("--coverage-waivers") ? { coverageWaivers: true } : {}),
         ...(hasFlag("--boundary-sanitization") ? { boundarySanitization: true } : {}),
+        ...(hasFlag("--brand-bloom") ? { brandBloom: true } : {}),
       })
       process.exit(exitCode)
       break
@@ -200,6 +201,7 @@ Options:
   --demo-coverage       Validate work ledger cards are tied to demo coverage
   --coverage-waivers    Validate 100% authored-code coverage or explicit waivers
   --boundary-sanitization Validate boundary schemas and adapter promotion pipelines
+  --brand-bloom         Validate branded vocab manifest and adapter fittings
 `)
       process.exit(command && !wantsHelp ? 1 : 0)
     }

@@ -50,6 +50,7 @@ export * from "./process-manager.js"
 // Governed execution
 export * from "./operation-scope.js"
 export * from "./bus.js"
+export * from "./brands.js"
 
 // Reserved primitive slot:
 // `Projector` is a likely future primitive once its semantic boundary is

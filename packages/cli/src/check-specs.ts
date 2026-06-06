@@ -113,6 +113,7 @@ const VALID_T1_TESTING_CONTRACTS = new Set([
   "external-schema-drift",
   "boundary-promotion-pipeline",
   "boundary-sanitization",
+  "brand-fitting",
   "input-schema-validation",
   "openapi-contract",
   "policy-deny-coverage",
@@ -142,6 +143,7 @@ const PATTERN_PRIMITIVE_CONTRACTS: ReadonlyArray<{
       "adapter-operation-event",
       "boundary-promotion-pipeline",
       "boundary-sanitization",
+      "brand-fitting",
       "credential-redaction",
       "external-schema-drift",
       "projection-mount-coverage",
@@ -149,7 +151,7 @@ const PATTERN_PRIMITIVE_CONTRACTS: ReadonlyArray<{
       "tool-surface-safety",
     ],
     message:
-      "Adapter/EdgeBoundary patterns must extend adapter-operation-event or tool-surface-safety",
+      "Adapter/EdgeBoundary patterns must extend adapter-operation-event, brand-fitting, or tool-surface-safety",
   },
   {
     primitives: ["Policy", "Guardrail"],
@@ -179,19 +181,20 @@ const PATTERN_PRIMITIVE_CONTRACTS: ReadonlyArray<{
   },
   {
     primitives: ["Port", "AdapterBinding"],
-    contracts: ["runtime-capability-binding", "boundary-promotion-pipeline"],
-    message: "Port/AdapterBinding patterns must extend runtime-capability-binding or boundary-promotion-pipeline",
+    contracts: ["runtime-capability-binding", "boundary-promotion-pipeline", "brand-fitting"],
+    message: "Port/AdapterBinding patterns must extend runtime-capability-binding, boundary-promotion-pipeline, or brand-fitting",
   },
   {
     primitives: ["BoundarySchema"],
     contracts: [
       "boundary-promotion-pipeline",
       "boundary-sanitization",
+      "brand-fitting",
       "input-schema-validation",
       "external-schema-drift",
     ],
     message:
-      "BoundarySchema patterns must extend boundary-sanitization, input-schema-validation, boundary-promotion-pipeline, or external-schema-drift",
+      "BoundarySchema patterns must extend boundary-sanitization, brand-fitting, input-schema-validation, boundary-promotion-pipeline, or external-schema-drift",
   },
   {
     primitives: ["PublishedLanguage"],
