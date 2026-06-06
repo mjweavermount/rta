@@ -50,3 +50,43 @@ Agents should read AFFiNE projections and registry metadata, resolve projected
 docs back to source paths, then edit shared Markdown through Git branches,
 commits, PRs, or staged patches. Projection sync updates AFFiNE after source
 changes land.
+
+## Local Operator Slice
+
+The seed now includes a local operator adapter:
+
+```text
+examples/markdown-projection/src/local.ts
+```
+
+It provides:
+
+- filesystem Markdown scanning;
+- Git commit and rename evidence;
+- JSON projection registry persistence outside the source repo;
+- JSON-backed fake AFFiNE projection sink;
+- projection verification;
+- source/AFFiNE explanation lookup.
+
+The CLI entrypoint is:
+
+```text
+markdown-projection plan|apply|verify|explain|doctor
+```
+
+Example:
+
+```sh
+pnpm --filter @rta/example-markdown-projection build
+node examples/markdown-projection/dist/cli.js apply \
+  --source-root /path/to/shared-docs \
+  --source-id collective-docs \
+  --state-root tmp/markdown-projection-state
+node examples/markdown-projection/dist/cli.js verify \
+  --source-id collective-docs \
+  --state-root tmp/markdown-projection-state
+```
+
+This is intentionally not live AFFiNE yet. The JSON sink is the proof harness
+for the source/registry/custody behavior; the live AFFiNE writer should replace
+only the `AffineProjectionPort`.
