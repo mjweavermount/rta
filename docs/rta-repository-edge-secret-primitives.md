@@ -1,6 +1,6 @@
 # RTA Repository, Edge Boundary, And Secret Primitives
 
-Status: initial runtime implementation landed; boundary vocab baseline added
+Status: runtime and vocab baseline demo-covered
 
 Implemented in this slice:
 
@@ -11,12 +11,16 @@ Implemented in this slice:
   edge-boundary, and secret operations. Descendants call public methods that
   invoke the protected hook through the shared lifecycle logger.
 - `@rta/runtime`: `InMemoryRepository`, `FileBackedRepository`,
-  `SchemaEdgeBoundary`, `FileReadBoundary`, and `InMemorySecretStore`.
+  `SchemaEdgeBoundary`, `FileReadBoundary`, `SqlBoundary`,
+  `InMemorySecretStore`, `EnvironmentSecretStore`, `FileSecretStore`,
+  `ApiTokenSecretStore`, and `SecretRedactor`.
 - `@rta/vocab`: `ports`, `boundarySchemas`, `adapterBindings`, and
   `publishedLanguages` context declarations, including mandatory boundary
   sanitization metadata and adapter promotion pipelines.
 - Golden fixture patterns: `port-contract`, `boundary-schema`,
-  `adapter-binding`, `published-language`, and `anti-corruption-layer`.
+  `adapter-binding`, `published-language`, `anti-corruption-layer`,
+  `sql-boundary`, `environment-secret`, `file-secret`, and
+  `api-token-secret`.
 
 Still pending:
 
@@ -24,8 +28,6 @@ Still pending:
 - generated TypeScript brand/fitting support for boundary promotion states
 - generator support that emits concrete repositories through the new runtime
   implementations instead of ad hoc app-local repository layers
-- SQL boundary implementation
-- atomic file writes and versioned snapshot envelopes
 
 ## Port And Boundary Schema Vocabulary
 
@@ -127,7 +129,19 @@ Obligations:
 File reads are edge input. Local disk is not trusted domain data.
 
 Initial implementation: `FileBackedRepository` in `@rta/runtime`, using a
-`RepositoryCodec` for decode/encode validation.
+`RepositoryCodec` for decode/encode validation. Writes are atomic at the file
+level: the encoded payload is written to a temporary file and then renamed into
+place. Stored aggregate files use a versioned envelope:
+
+```json
+{
+  "schemaVersion": 1,
+  "payload": {}
+}
+```
+
+Reads still accept old raw payload files by decoding the raw object when no
+version envelope is present.
 
 Obligations:
 
@@ -222,6 +236,11 @@ Obligations:
 
 `T2.Pattern.SqlBoundary` extends `T1.EdgeBoundary`.
 
+Initial implementation: `SqlBoundary` in `@rta/runtime`. It does not execute
+queries. It prepares a safe query plan that SQL adapters can hand to a driver:
+SQL text contains quoted, whitelisted identifiers and `?` placeholders; values
+are returned separately as typed parameters.
+
 Obligations:
 
 - `SqlUsesPreparedStatements`
@@ -279,14 +298,18 @@ Initial implementation:
 - `FileRuntime` redacts artifacts before writing them, so review/demo artifacts
   do not persist secret refs or obvious secret-shaped fields.
 
-Still pending patterns:
+Implemented patterns:
 
-- `T2.Pattern.EnvironmentSecret`
-- `T2.Pattern.FileSecret`
+- `T2.Pattern.EnvironmentSecret`: `EnvironmentSecretStore`
+- `T2.Pattern.FileSecret`: `FileSecretStore`
+- `T2.Pattern.ApiToken`: `ApiTokenSecretStore`
+
+Still pending pattern:
+
 - `T2.Pattern.VaultSecret`
-- `T2.Pattern.ApiToken`
 
 Readable logs should show values as `[REDACTED:<SecretName>]`.
 
-Initial implementation: `InMemorySecretStore` in `@rta/runtime`; readable logs
+Initial implementation: `InMemorySecretStore`, `EnvironmentSecretStore`,
+`FileSecretStore`, and `ApiTokenSecretStore` in `@rta/runtime`; readable logs
 emit `[secret]` and do not include cleartext values.

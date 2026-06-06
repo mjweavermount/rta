@@ -1,4 +1,5 @@
 import { Effect } from "effect"
+import { readFile } from "node:fs/promises"
 import {
   SecretError,
   isSecretRef,
@@ -18,6 +19,10 @@ type SecretOperation =
 type SecretResult =
   | { readonly kind: "ref"; readonly secret: SecretRef }
   | { readonly kind: "value"; readonly value: string }
+
+type ExternalSecretOperation =
+  | { readonly kind: "get"; readonly key: string }
+  | { readonly kind: "reveal"; readonly secret: SecretRef; readonly token: PolicyToken }
 
 export interface Redactor {
   readonly redact: (value: unknown) => unknown
@@ -121,6 +126,158 @@ export class InMemorySecretStore
     return value === undefined
       ? Effect.fail(new SecretError({ message: "secret not found", secret: input.secret.key }))
       : Effect.succeed({ kind: "value" as const, value })
+  }
+}
+
+export class EnvironmentSecretStore
+  extends InstrumentedSecret<ExternalSecretOperation, SecretResult, SecretError>
+  implements Pick<SecretStore, "get" | "reveal"> {
+  constructor(readonly options: {
+    readonly env?: Record<string, string | undefined>
+    readonly name?: string
+  } = {}) {
+    super(options.name ?? "EnvironmentSecretStore", "Runtime")
+  }
+
+  get(key: string): Effect.Effect<SecretRef, SecretError> {
+    return this.invoke({ kind: "get", key }, createRuntimeScope("EnvironmentSecretStore")).pipe(
+      Effect.map((result) => result.kind === "ref" ? result.secret : makeSecretRef(key)),
+    )
+  }
+
+  reveal(secret: SecretRef, token: PolicyToken): Effect.Effect<string, SecretError> {
+    return this.invoke({ kind: "reveal", secret, token }, createRuntimeScope("EnvironmentSecretStore")).pipe(
+      Effect.flatMap((result) =>
+        result.kind === "value"
+          ? Effect.succeed(result.value)
+          : Effect.fail(new SecretError({ message: "environment secret reveal returned no value", secret: secret.key })),
+      ),
+    )
+  }
+
+  protected summarize(input: ExternalSecretOperation): OperationSummary {
+    if (input.kind === "reveal") {
+      return {
+        action: `Reveal environment secret ${input.secret.key}`,
+        reason: `policy ${input.token.policy} authorized environment secret reveal`,
+        with: [this.primitiveName],
+        input: input.secret.key,
+        output: "[secret]",
+        lineage: ["primitive:secret", "pattern:environment-secret"],
+      }
+    }
+    return {
+      action: `Load environment secret ${input.key}`,
+      reason: "application code requested an environment-backed secret reference",
+      with: [this.primitiveName],
+      input: input.key,
+      output: "[secret]",
+      lineage: ["primitive:secret", "pattern:environment-secret"],
+    }
+  }
+
+  protected execute(input: ExternalSecretOperation): Effect.Effect<SecretResult, SecretError> {
+    if (input.kind === "reveal") {
+      const env = this.options.env ?? process.env
+      const value = env[input.secret.key]
+      return value === undefined
+        ? Effect.fail(new SecretError({ message: "environment secret not found", secret: input.secret.key }))
+        : Effect.succeed({ kind: "value" as const, value })
+    }
+    const env = this.options.env ?? process.env
+    return env[input.key] === undefined
+      ? Effect.fail(new SecretError({ message: "environment secret not found", secret: input.key }))
+      : Effect.succeed({ kind: "ref" as const, secret: makeSecretRef(input.key) })
+  }
+}
+
+export class FileSecretStore
+  extends InstrumentedSecret<ExternalSecretOperation, SecretResult, SecretError>
+  implements Pick<SecretStore, "get" | "reveal"> {
+  constructor(readonly options: {
+    readonly files: Readonly<Record<string, string>>
+    readonly name?: string
+  }) {
+    super(options.name ?? "FileSecretStore", "Runtime")
+  }
+
+  get(key: string): Effect.Effect<SecretRef, SecretError> {
+    return this.invoke({ kind: "get", key }, createRuntimeScope("FileSecretStore")).pipe(
+      Effect.map((result) => result.kind === "ref" ? result.secret : makeSecretRef(key)),
+    )
+  }
+
+  reveal(secret: SecretRef, token: PolicyToken): Effect.Effect<string, SecretError> {
+    return this.invoke({ kind: "reveal", secret, token }, createRuntimeScope("FileSecretStore")).pipe(
+      Effect.flatMap((result) =>
+        result.kind === "value"
+          ? Effect.succeed(result.value)
+          : Effect.fail(new SecretError({ message: "file secret reveal returned no value", secret: secret.key })),
+      ),
+    )
+  }
+
+  protected summarize(input: ExternalSecretOperation): OperationSummary {
+    if (input.kind === "reveal") {
+      return {
+        action: `Reveal file secret ${input.secret.key}`,
+        reason: `policy ${input.token.policy} authorized file secret reveal`,
+        with: [this.primitiveName],
+        input: input.secret.key,
+        output: "[secret]",
+        lineage: ["primitive:secret", "pattern:file-secret"],
+      }
+    }
+    return {
+      action: `Load file secret ${input.key}`,
+      reason: "application code requested a file-backed secret reference",
+      with: [this.primitiveName],
+      input: input.key,
+      output: "[secret]",
+      lineage: ["primitive:secret", "pattern:file-secret"],
+    }
+  }
+
+  protected execute(input: ExternalSecretOperation): Effect.Effect<SecretResult, SecretError> {
+    if (input.kind === "reveal") {
+      return this.fileFor(input.secret.key).pipe(
+        Effect.flatMap((path) =>
+          Effect.tryPromise({
+            try: async () => ({ kind: "value" as const, value: (await readFile(path, "utf8")).trimEnd() }),
+            catch: (cause) => new SecretError({ message: "file secret read failed", secret: input.secret.key, cause }),
+          }),
+        ),
+      )
+    }
+    return this.fileFor(input.key).pipe(
+      Effect.map(() => ({ kind: "ref" as const, secret: makeSecretRef(input.key) })),
+    )
+  }
+
+  private fileFor(key: string): Effect.Effect<string, SecretError> {
+    const path = this.options.files[key]
+    return path
+      ? Effect.succeed(path)
+      : Effect.fail(new SecretError({ message: "file secret not configured", secret: key }))
+  }
+}
+
+export class ApiTokenSecretStore implements Pick<SecretStore, "get" | "reveal"> {
+  constructor(readonly options: {
+    readonly delegate: Pick<SecretStore, "get" | "reveal">
+    readonly prefix?: string
+  }) {}
+
+  get(key: string): Effect.Effect<SecretRef, SecretError> {
+    return this.options.delegate.get(this.keyFor(key))
+  }
+
+  reveal(secret: SecretRef, token: PolicyToken): Effect.Effect<string, SecretError> {
+    return this.options.delegate.reveal(secret, token)
+  }
+
+  private keyFor(key: string): string {
+    return `${this.options.prefix ?? "api"}:${key}`
   }
 }
 

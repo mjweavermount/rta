@@ -1,0 +1,12 @@
+kind: PatternSpec
+name: sql-boundary
+requiredPrimitives: [EdgeBoundary, BoundarySchema]
+testingContract:
+  extends: boundary-promotion-pipeline
+  adds:
+    - prepared-values: values are emitted as parameters, not interpolated into SQL text
+    - identifier-whitelist: tables, columns, and sort directions are selected from allowlists
+    - scalar-typecast: parameters are typecast before trust promotion
+vocabHint: Use for SQL rows and query plans; SQL adapters consume prepared query plans from this boundary rather than raw SQL strings.
+visualConcepts: [sql, prepared-statement, whitelist, typecast, boundary]
+narrativeLabel: "(sql-boundary) {name} — prepares {table} through whitelisted identifiers and typed parameters"

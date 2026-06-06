@@ -18,16 +18,20 @@ import { createReadableLogBuffer } from "@rta/strict"
 import {
   CreateReviewItem,
   EnqueueScenarioJob,
+  EnvironmentSecretStore,
+  ApiTokenSecretStore,
   FileBackedRepository,
   FileReadBoundary,
   FileQueue,
   FileRuntime,
+  FileSecretStore,
   InMemoryRepository,
   InMemorySecretStore,
   ReviewQueue,
   RunQueuedScenarioJob,
   SchemaEdgeBoundary,
   SecretRedactor,
+  SqlBoundary,
   createRunId,
 } from "../src/index.js"
 
@@ -161,8 +165,18 @@ describe("@rta/runtime", () => {
       const fileId = await run(fileRepo.nextId())
       await run(fileRepo.save(makeCounter(fileId, 7)))
       expect((await run(fileRepo.findById(fileId))).data.count).toBe(7)
+      const stored = JSON.parse(
+        await readFile(join(root, ".rta", "repositories", "Counter", `${fileId}.json`), "utf8"),
+      )
       logs.stop()
 
+      expect(stored).toEqual({
+        schemaVersion: 1,
+        payload: {
+          id: fileId,
+          data: { count: 7 },
+        },
+      })
       expect(logs.entries.some((entry) =>
         entry.event.primitiveType === "repository" &&
         entry.line.includes("Save Counter"),
@@ -214,6 +228,42 @@ describe("@rta/runtime", () => {
     }
   })
 
+  it("prepares SQL through whitelisted identifiers and typed parameters", async () => {
+    const logs = createReadableLogBuffer({ verbosity: "trace" })
+    const boundary = new SqlBoundary({
+      policy: {
+        tables: ["invoice"],
+        columns: {
+          invoice: ["id", "status", "amountCents"],
+        },
+        sortDirections: ["asc"],
+      },
+    })
+    const query = await run(boundary.parse({
+      table: "invoice",
+      columns: ["id", "status"],
+      where: {
+        status: "open",
+        amountCents: 1200,
+      },
+      orderBy: { column: "id", direction: "asc" },
+      limit: 50,
+    }, { message: "SQL rows must be reached through a prepared statement plan" }))
+    const rejected = await Effect.runPromise(Effect.either(boundary.parse({
+      table: "invoice; drop table invoice",
+      columns: ["id"],
+    }, { message: "reject raw SQL fragments" })))
+    logs.stop()
+
+    expect(query.sql).toBe("SELECT \"id\", \"status\" FROM \"invoice\" WHERE \"status\" = ? AND \"amountCents\" = ? ORDER BY \"id\" ASC LIMIT 50")
+    expect(query.params).toEqual(["open", 1200])
+    expect(rejected._tag).toBe("Left")
+    expect(logs.entries.some((entry) =>
+      entry.event.primitiveType === "edge-boundary" &&
+      entry.line.includes("Prepare SQL query for invoice"),
+    )).toBe(true)
+  })
+
   it("stores secrets as redacted refs and reveals only through a policy token", async () => {
     const logs = createReadableLogBuffer({ verbosity: "trace" })
     const scope = new ContextFactory(undefined, new SimulatedRandom(["trace", "span"]))
@@ -237,6 +287,54 @@ describe("@rta/runtime", () => {
       entry.event.primitiveType === "secret" &&
       entry.line.includes("Reveal secret otter.api_key"),
     )).toBe(true)
+  })
+
+  it("loads environment and file secrets as redacted refs", async () => {
+    const root = await mkdtemp(join(tmpdir(), "rta-runtime-secret-source-test-"))
+    try {
+      const scope = new ContextFactory(undefined, new SimulatedRandom(["trace", "span"]))
+        .createExternal({ actorId: "codex" })
+        .promote("internal", { message: "secret source test" })
+      const token = scope.authorize("secrets.reveal", { message: "test needs cleartext" })
+      const logs = createReadableLogBuffer({ verbosity: "trace" })
+
+      const envStore = new EnvironmentSecretStore({ env: { AFFINE_TOKEN: "env-secret" } })
+      const envRef = await run(envStore.get("AFFINE_TOKEN"))
+      const envSecret = await run(envStore.reveal(envRef, token))
+
+      const secretPath = join(root, "plane-token.txt")
+      await writeFile(secretPath, "cleartext-from-file\n", "utf8")
+      const fileStore = new FileSecretStore({ files: { PLANE_TOKEN: secretPath } })
+      const fileRef = await run(fileStore.get("PLANE_TOKEN"))
+      const fileSecret = await run(fileStore.reveal(fileRef, token))
+      logs.stop()
+
+      expect(String(envRef)).toBe("[secret]")
+      expect(String(fileRef)).toBe("[secret]")
+      expect(envSecret).toBe("env-secret")
+      expect(fileSecret).toBe("cleartext-from-file")
+      expect(logs.entries.map((entry) => entry.line).join("\n")).not.toContain("env-secret")
+      expect(logs.entries.map((entry) => entry.line).join("\n")).not.toContain("cleartext-from-file")
+      expect(logs.entries.some((entry) => entry.line.includes("Reveal environment secret AFFINE_TOKEN"))).toBe(true)
+      expect(logs.entries.some((entry) => entry.line.includes("Reveal file secret PLANE_TOKEN"))).toBe(true)
+    } finally {
+      await rm(root, { recursive: true, force: true })
+    }
+  })
+
+  it("namespaces API token secrets through a backing secret store", async () => {
+    const scope = new ContextFactory(undefined, new SimulatedRandom(["trace", "span"]))
+      .createExternal({ actorId: "codex" })
+      .promote("internal", { message: "api token secret test" })
+    const token = scope.authorize("secrets.reveal", { message: "test needs cleartext" })
+    const backing = new InMemorySecretStore({ initial: { "api:affine": "affine-token" } })
+    const apiTokens = new ApiTokenSecretStore({ delegate: backing })
+
+    const ref = await run(apiTokens.get("affine"))
+    const revealed = await run(apiTokens.reveal(ref, token))
+
+    expect(ref.key).toBe("api:affine")
+    expect(revealed).toBe("affine-token")
   })
 
   it("redacts secret refs and secret-shaped fields before writing artifacts", async () => {

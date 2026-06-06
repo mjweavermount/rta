@@ -140,6 +140,9 @@ const PATTERN_PRIMITIVE_CONTRACTS: ReadonlyArray<{
     primitives: ["InboundAdapter", "OutboundAdapter", "EdgeBoundary"],
     contracts: [
       "adapter-operation-event",
+      "boundary-promotion-pipeline",
+      "boundary-sanitization",
+      "credential-redaction",
       "external-schema-drift",
       "projection-mount-coverage",
       "runtime-capability-binding",

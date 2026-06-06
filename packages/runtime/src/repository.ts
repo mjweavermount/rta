@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto"
-import { mkdir, readFile, writeFile } from "node:fs/promises"
+import { mkdir, readFile, rename, writeFile } from "node:fs/promises"
 import { dirname, join } from "node:path"
 import { Effect } from "effect"
 import {
@@ -24,6 +24,11 @@ type RepositoryOperationResult<A extends AggregateRoot<any, any, any>> =
   | { readonly kind: "found"; readonly aggregate: A }
   | { readonly kind: "saved" }
   | { readonly kind: "nextId"; readonly id: GetId<A> }
+
+interface VersionedRepositoryEnvelope {
+  readonly schemaVersion: 1
+  readonly payload: unknown
+}
 
 export interface RuntimeRepositoryOptions<A extends AggregateRoot<any, any, any>> {
   readonly entityType: string
@@ -217,7 +222,7 @@ export class FileBackedRepository<A extends AggregateRoot<any, any, any>>
           : new RepositoryError({ message: "failed to read aggregate file", cause })
       },
     }).pipe(
-      Effect.flatMap((raw) => this.fileOptions.codec.decode(raw)),
+      Effect.flatMap((raw) => this.fileOptions.codec.decode(unwrapEnvelope(raw))),
     )
   }
 
@@ -225,8 +230,10 @@ export class FileBackedRepository<A extends AggregateRoot<any, any, any>>
     return Effect.tryPromise({
       try: async () => {
         const path = this.pathFor(aggregate.id)
+        const tempPath = `${path}.${randomUUID()}.tmp`
         await mkdir(dirname(path), { recursive: true })
-        await writeFile(path, JSON.stringify(this.fileOptions.codec.encode(aggregate), null, 2), "utf8")
+        await writeFile(tempPath, JSON.stringify(wrapEnvelope(this.fileOptions.codec.encode(aggregate)), null, 2), "utf8")
+        await rename(tempPath, path)
       },
       catch: (cause) => new RepositoryError({ message: "failed to write aggregate file", cause }),
     })
@@ -244,3 +251,18 @@ export class FileBackedRepository<A extends AggregateRoot<any, any, any>>
     return join(this.fileOptions.root, ".rta", "repositories", this.fileOptions.entityType, `${String(id)}.json`)
   }
 }
+
+const isVersionedEnvelope = (value: unknown): value is VersionedRepositoryEnvelope =>
+  typeof value === "object" &&
+  value !== null &&
+  "schemaVersion" in value &&
+  (value as { readonly schemaVersion?: unknown }).schemaVersion === 1 &&
+  "payload" in value
+
+const wrapEnvelope = (payload: unknown): VersionedRepositoryEnvelope => ({
+  schemaVersion: 1,
+  payload,
+})
+
+const unwrapEnvelope = (value: unknown): unknown =>
+  isVersionedEnvelope(value) ? value.payload : value
