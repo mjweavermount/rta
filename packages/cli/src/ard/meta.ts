@@ -5,13 +5,20 @@ export interface ArdMetaIssue {
   readonly message: string
 }
 
-const FAMILY_PREFIX: Record<ArdDeclaration["family"], string | null> = {
+const FAMILY_PREFIX: Record<string, string | null> = {
   ci: "CI",
   t1: "T1",
   t2: "T2",
   t3: "T3",
   fixture: null,
   custom: null,
+  app: null,
+  extensions: null,
+  review: null,
+  runtime: null,
+  trace: null,
+  "ard-system": null,
+  "use-cases": null,
 }
 
 export const validateArdMetadata = (
@@ -28,19 +35,29 @@ export const validateArdMetadata = (
     }
     byId.set(ard.id, ard)
 
-    if (ard.kind === "letter" && ard.checks.length === 0) {
-      issues.push({ ardId: ard.id, message: "letter ARDs must declare at least one check" })
+    const enforcement = ard.enforcement ?? []
+    const isAccepted = ard.status === undefined || ard.status === "accepted"
+
+    if (ard.kind === "letter" && isAccepted && ard.checks.length === 0 && enforcement.length === 0) {
+      issues.push({
+        ardId: ard.id,
+        message: "accepted letter ARDs must declare at least one check, enforcement item, or waiver",
+      })
     }
 
-    if (ard.kind === "spirit" && (!ard.letters || ard.letters.length === 0)) {
-      issues.push({ ardId: ard.id, message: "spirit ARDs must declare at least one letter reference" })
+    if (ard.kind === "spirit" && isAccepted && (!ard.letters || ard.letters.length === 0)) {
+      issues.push({ ardId: ard.id, message: "accepted spirit ARDs must declare at least one letter reference" })
     }
 
     if (ard.kind === "letter" && ard.letters && ard.letters.length > 0) {
       issues.push({ ardId: ard.id, message: "letter ARDs may not declare letters" })
     }
 
-    const prefix = FAMILY_PREFIX[ard.family]
+    if (enforcement.some((item) => item.kind === "waiver" && item.reason.trim().length === 0)) {
+      issues.push({ ardId: ard.id, message: "waiver enforcement items must declare a reason" })
+    }
+
+    const prefix = FAMILY_PREFIX[ard.family] ?? null
     if (prefix && !ard.id.startsWith(`ARD-${prefix}-`)) {
       issues.push({
         ardId: ard.id,

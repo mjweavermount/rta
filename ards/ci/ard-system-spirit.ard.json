@@ -1,0 +1,10 @@
+{
+  "id": "ARD-RTA-ARD-SYSTEM-000",
+  "kind": "spirit",
+  "family": "ard-system",
+  "title": "Architecture Claims Become Enforceable Contracts",
+  "status": "accepted",
+  "letters": ["ARD-RTA-ARD-SCHEMA", "ARD-RTA-ARD-ENFORCEMENT"],
+  "supports": ["rta-prod-03-ard-spirit-letter-loop", "vocab-ard-cli-skeleton"],
+  "decision": "Accepted ARDs are not merely architecture memory; they must describe how the claim is validated, waived, or proven by fixtures."
+}

@@ -1,0 +1,24 @@
+{
+  "id": "ARD-RTA-TRACE-ENVELOPE",
+  "kind": "letter",
+  "family": "trace",
+  "title": "Primitive Events Carry Canonical Execution IDs",
+  "status": "accepted",
+  "spirit": ["ARD-RTA-TRACE-000"],
+  "supports": ["rta-prod-09-observability-telemetry"],
+  "checks": [
+    {
+      "description": "primitive events carry canonical trace context",
+      "command": "rta check --trace-context"
+    }
+  ],
+  "enforcement": [
+    {
+      "kind": "command",
+      "description": "primitive events carry canonical trace context",
+      "command": "rta check --trace-context",
+      "expected": "pass"
+    }
+  ],
+  "decision": "Every structured operation event must carry run, trace, span, operation, correlation, causation, primitive, and invocation identity."
+}

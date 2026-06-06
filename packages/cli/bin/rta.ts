@@ -58,6 +58,7 @@ const main = Effect.gen(function* () {
       const exitCode = yield* runCheck({
         ...withRoot(flagValue("--root")),
         ...(hasFlag("--ard-meta")          ? { ardMeta: true }          : {}),
+        ...(hasFlag("--ard-enforcement")   ? { ardEnforcement: true }   : {}),
         ...(hasFlag("--pattern-specs")      ? { patternSpecs: true }      : {}),
         ...(hasFlag("--pattern-contracts")  ? { patternContracts: true }  : {}),
         ...(hasFlag("--archetype-specs")    ? { archetypeSpecs: true }    : {}),
@@ -157,6 +158,7 @@ Options:
   --strict              Use @rta/strict factories instead of @rta/core (generate only)
   --kind <kind>         Coverage kind: ${COVERAGE_KINDS.join(" | ")} (coverage only)
   --ard-meta            Validate ARD spirit/letter metadata (check only)
+  --ard-enforcement     Validate accepted ARDs declare enforcement (check only)
   --pattern-specs       Validate PatternSpec YAML structure (check only)
   --pattern-contracts   Validate PatternSpec testing contracts (check only)
   --archetype-specs     Validate ArchetypeSpec YAML structure (check only)

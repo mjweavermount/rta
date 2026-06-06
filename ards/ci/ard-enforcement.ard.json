@@ -1,0 +1,24 @@
+{
+  "id": "ARD-RTA-ARD-ENFORCEMENT",
+  "kind": "letter",
+  "family": "ard-system",
+  "title": "Accepted ARDs Declare Enforcement",
+  "status": "accepted",
+  "spirit": ["ARD-RTA-ARD-SYSTEM-000"],
+  "supports": ["rta-prod-03-ard-spirit-letter-loop"],
+  "checks": [
+    {
+      "description": "accepted ARDs declare checks, enforcement, or waivers",
+      "command": "rta check --ard-enforcement"
+    }
+  ],
+  "enforcement": [
+    {
+      "kind": "command",
+      "description": "accepted ARDs declare checks, enforcement, or waivers",
+      "command": "rta check --ard-enforcement",
+      "expected": "pass"
+    }
+  ],
+  "decision": "Every accepted letter ARD must explain how it is enforced, and this rule is itself enforced by an ARD."
+}

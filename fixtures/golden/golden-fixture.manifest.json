@@ -17,6 +17,7 @@
   ],
   "required_check_modes": [
     "ard-meta",
+    "ard-enforcement",
     "generated-sync",
     "telemetry-sync",
     "decision-shapes",

@@ -1,0 +1,9 @@
+id: GOLDEN-ARD-017
+kind: letter
+family: fixture
+name: Golden fixture ARD enforcement
+spirit: [GOLDEN-ARD-000]
+severity: error
+checks:
+  - description: accepted ARDs declare checks or enforcement
+    command: node ../../../packages/cli/dist/rta.js check --ard-enforcement --root .

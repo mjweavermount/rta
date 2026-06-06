@@ -1,0 +1,10 @@
+{
+  "id": "ARD-RTA-TRACE-000",
+  "kind": "spirit",
+  "family": "trace",
+  "title": "Every Operation Is Followable",
+  "status": "accepted",
+  "letters": ["ARD-RTA-TRACE-ENVELOPE", "ARD-RTA-TRACE-LOGS"],
+  "supports": ["rta-prod-09-observability-telemetry"],
+  "decision": "Every primitive invocation must be reconstructable from canonical execution IDs so operators and agents can follow cause, correlation, and span ancestry."
+}

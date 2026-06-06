@@ -1,0 +1,24 @@
+{
+  "id": "ARD-RTA-TRACE-LOGS",
+  "kind": "letter",
+  "family": "trace",
+  "title": "Readable Trace Logs Project Execution IDs",
+  "status": "accepted",
+  "spirit": ["ARD-RTA-TRACE-000"],
+  "supports": ["rta-prod-09-observability-telemetry", "rta-monitor-local-artifact-app"],
+  "checks": [
+    {
+      "description": "operation event and trace log projections expose ID context",
+      "command": "rta check --operation-event && rta check --trace-log-projection"
+    }
+  ],
+  "enforcement": [
+    {
+      "kind": "command",
+      "description": "operation event and trace log projections expose ID context",
+      "command": "rta check --operation-event && rta check --trace-log-projection",
+      "expected": "pass"
+    }
+  ],
+  "decision": "Readable logs are a projection of structured operation events and trace verbosity must expose the canonical execution IDs."
+}

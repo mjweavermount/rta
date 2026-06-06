@@ -88,6 +88,50 @@ checks:
     expect(ard.checks).toHaveLength(2)
   })
 
+  it("parses root JSON-style ARDs and normalizes checks into enforcement", async () => {
+    const ard = await run(
+      parseArdContent(JSON.stringify({
+        id: "ARD-RTA-ARD-SCHEMA",
+        kind: "letter",
+        family: "ard-system",
+        title: "ARDs Validate Against The Canonical Schema",
+        status: "accepted",
+        spirit: ["ARD-RTA-ARD-SYSTEM-000"],
+        checks: [
+          {
+            description: "ARD schema and metadata are valid",
+            command: "rta check --ard-meta",
+          },
+        ],
+        decision: "The ARD schema is a first-class contract.",
+      })),
+    )
+    expect(ard.name).toBe("ARDs Validate Against The Canonical Schema")
+    expect(ard.family).toBe("ard-system")
+    expect(ard.status).toBe("accepted")
+    expect(ard.enforcement?.[0]).toMatchObject({
+      kind: "command",
+      command: "rta check --ard-meta",
+      expected: "pass",
+    })
+  })
+
+  it("parses root JSON-style spirit ARDs without a handwritten spirit field", async () => {
+    const ard = await run(
+      parseArdContent(JSON.stringify({
+        id: "ARD-RTA-ARD-SYSTEM-000",
+        kind: "spirit",
+        family: "ard-system",
+        title: "Architecture Claims Become Enforceable Contracts",
+        status: "accepted",
+        letters: ["ARD-RTA-ARD-SCHEMA"],
+        decision: "Accepted ARDs must explain enforcement.",
+      })),
+    )
+    expect(ard.kind).toBe("spirit")
+    expect(ard.spirit[0]).toContain("philosophical-heart")
+  })
+
   it("fails with ArdParseError for missing id", async () => {
     const err = await runFail(
       parseArdContent(`

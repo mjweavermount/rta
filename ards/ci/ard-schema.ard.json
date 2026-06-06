@@ -1,0 +1,24 @@
+{
+  "id": "ARD-RTA-ARD-SCHEMA",
+  "kind": "letter",
+  "family": "ard-system",
+  "title": "ARDs Validate Against The Canonical Schema",
+  "status": "accepted",
+  "spirit": ["ARD-RTA-ARD-SYSTEM-000"],
+  "supports": ["rta-prod-03-ard-spirit-letter-loop"],
+  "checks": [
+    {
+      "description": "ARD schema and metadata are valid",
+      "command": "rta check --ard-meta"
+    }
+  ],
+  "enforcement": [
+    {
+      "kind": "command",
+      "description": "ARD schema and metadata are valid",
+      "command": "rta check --ard-meta",
+      "expected": "pass"
+    }
+  ],
+  "decision": "The ARD schema is a first-class contract and the ARDs that describe it must themselves validate through that schema."
+}

@@ -27,15 +27,21 @@ import { runWorkLedgerCheck } from "./check-work-ledger.js"
 import { runCoverageWaiverCheck } from "./check-coverage-waivers.js"
 
 // ---------------------------------------------------------------------------
-// Discover *.ard.yaml files under a root directory (non-recursive for v1)
+// Discover ARD files under a root directory.
 // ---------------------------------------------------------------------------
 
-const discoverArdFiles = (root: string): Effect.Effect<ReadonlyArray<string>> =>
+const discoverArdFiles = (
+  root: string,
+  options: { readonly includeJson?: boolean } = {},
+): Effect.Effect<ReadonlyArray<string>> =>
   Effect.promise(async () => {
     try {
       const entries = await readdir(root, { recursive: true })
       return entries
-        .filter((e) => e.endsWith(".ard.yaml") && !e.includes("node_modules"))
+        .filter((e) =>
+          (e.endsWith(".ard.yaml") || (options.includeJson === true && e.endsWith(".ard.json"))) &&
+          !e.includes("node_modules")
+        )
         .filter((e) => !isGoldenFixturePath(e))
         .map((e) => join(root, e))
     } catch {
@@ -76,6 +82,7 @@ const loadArds = (paths: ReadonlyArray<string>) =>
 export interface CheckOptions {
   readonly root?: string
   readonly ardMeta?: boolean
+  readonly ardEnforcement?: boolean
   readonly patternSpecs?: boolean
   readonly patternContracts?: boolean
   readonly archetypeSpecs?: boolean
@@ -157,7 +164,7 @@ export const runCheck = (options: CheckOptions = {}): Effect.Effect<number> =>
       return yield* Effect.promise(() => checkPrimitiveBoundaries(cwd))
     }
     if (options.production) {
-      const productionArdPaths = yield* discoverArdFiles(cwd)
+      const productionArdPaths = yield* discoverArdFiles(cwd, { includeJson: true })
       const productionArds = yield* loadArds(productionArdPaths)
       if (productionArds.length === 0) {
         console.error("production check failed: no valid ARDs found")
@@ -165,6 +172,14 @@ export const runCheck = (options: CheckOptions = {}): Effect.Effect<number> =>
       }
       const checks = [
         ["ard-meta", () => Effect.sync(() => {
+          const metaIssues = validateArdMetadata(productionArds)
+          if (metaIssues.length > 0) {
+            console.error(formatArdMetaReport(metaIssues))
+            return 1
+          }
+          return 0
+        })],
+        ["ard-enforcement", () => Effect.sync(() => {
           const metaIssues = validateArdMetadata(productionArds)
           if (metaIssues.length > 0) {
             console.error(formatArdMetaReport(metaIssues))
@@ -200,10 +215,10 @@ export const runCheck = (options: CheckOptions = {}): Effect.Effect<number> =>
       return 1
     }
 
-    const paths = yield* discoverArdFiles(cwd)
+    const paths = yield* discoverArdFiles(cwd, { includeJson: options.ardMeta === true || options.ardEnforcement === true })
 
     if (paths.length === 0) {
-      console.log("No *.ard.yaml files found.")
+      console.log("No *.ard.yaml or *.ard.json files found.")
       return 0
     }
 
@@ -220,7 +235,7 @@ export const runCheck = (options: CheckOptions = {}): Effect.Effect<number> =>
       return 1
     }
 
-    if (options.ardMeta) {
+    if (options.ardMeta || options.ardEnforcement) {
       console.log(formatArdMetaReport([]))
       return 0
     }

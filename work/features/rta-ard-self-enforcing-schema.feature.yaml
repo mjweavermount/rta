@@ -1,0 +1,28 @@
+kind: Feature
+id: rta-ard-self-enforcing-schema
+name: RtaArdSelfEnforcingSchema
+status: demo-covered
+why: ARDs should define architectural claims, declare enforcement, and be linted by the same ARD system they justify.
+ownedBy:
+  internal: rta-platform
+demonstratedBy:
+  - command: rta check --ard-meta
+  - command: rta check --ard-enforcement
+  - test: packages/cli/test/ard-schema.test.ts
+  - test: packages/cli/test/ard-meta.test.ts
+qaSteps:
+  - do: run nix develop --command pnpm --filter @rta/cli rta check --ard-meta --root ../..
+  - see: root JSON ARDs and YAML ARDs validate through one canonical parser
+  - do: run nix develop --command pnpm --filter @rta/cli rta check --ard-enforcement --root ../..
+  - see: accepted ARDs require checks, enforcement records, or waivers
+requires:
+  - rta-prod-03-ard-spirit-letter-loop
+produces:
+  - canonical ARD schema
+  - JSON/YAML ARD normalization
+  - accepted ARD enforcement validation
+  - ARD-system spirit/letter records
+selfAudit:
+  - "@does the ARD system lint the ARDs that justify the linter?"
+  - "@can accepted ARDs still be only vibes?"
+  - "@are root ARDs included in validation instead of only fixture YAML?"

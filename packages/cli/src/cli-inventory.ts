@@ -35,6 +35,7 @@ export type CoverageKind = (typeof COVERAGE_KINDS)[number]
 
 export const CHECK_MODES = [
   "ard-meta",
+  "ard-enforcement",
   "generated-sync",
   "telemetry-sync",
   "decision-shapes",

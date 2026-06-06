@@ -44,4 +44,19 @@ describe("validateArdMetadata", () => {
     ])
     expect(issues.some((issue) => issue.message.includes("reciprocally"))).toBe(true)
   })
+
+  it("rejects accepted letter ARDs without checks, enforcement, or waivers", () => {
+    const issues = validateArdMetadata([
+      SPIRIT,
+      { ...LETTER, checks: [], enforcement: [] },
+    ])
+    expect(issues.some((issue) => issue.message.includes("accepted letter"))).toBe(true)
+  })
+
+  it("allows proposed letter ARDs to document intent before enforcement exists", () => {
+    expect(validateArdMetadata([
+      SPIRIT,
+      { ...LETTER, status: "proposed", checks: [], enforcement: [] },
+    ])).toEqual([])
+  })
 })
