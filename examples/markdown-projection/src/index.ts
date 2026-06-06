@@ -110,6 +110,31 @@ export interface MarkdownProjectionRunReceipt {
   readonly registryRecords: ReadonlyArray<ProjectionRecord>
 }
 
+export const assertReadOnlyProjectionReceipt = (
+  projection: ReadonlyProjectionDoc,
+  receipt: AffineProjectionReceipt,
+): Effect.Effect<AffineProjectionReceipt, DomainError> => {
+  if (receipt.affineDocId !== projection.affineDocId) {
+    return Effect.fail(new DomainError({
+      message: "AFFiNE projection receipt returned a different document ID",
+      context: { expected: projection.affineDocId, actual: receipt.affineDocId },
+    }))
+  }
+  if (receipt.owner !== "projection-bot") {
+    return Effect.fail(new DomainError({
+      message: "AFFiNE projection receipt is not owned by projection-bot",
+      context: { affineDocId: receipt.affineDocId, owner: receipt.owner },
+    }))
+  }
+  if (receipt.editableInAffine !== false) {
+    return Effect.fail(new DomainError({
+      message: "AFFiNE projection receipt is editable in AFFiNE",
+      context: { affineDocId: receipt.affineDocId },
+    }))
+  }
+  return Effect.succeed(receipt)
+}
+
 const titleFromMarkdown = (file: MarkdownFile): string => {
   const heading = file.markdown.split(/\r?\n/).find((line) => /^#\s+/.test(line))
   if (heading) return heading.replace(/^#\s+/, "").trim()
@@ -302,34 +327,38 @@ export class AffineReadonlyProjectionAdapter extends InstrumentedOutboundAdapter
     readonly resolved: ReadonlyArray<ResolvedProjection>
     readonly docs: ReadonlyArray<ReadonlyProjectionDoc>
     readonly deps: MarkdownProjectionDeps
-  }): Effect.Effect<MarkdownProjectionRunReceipt> {
-    const registryRecords: ProjectionRecord[] = []
-    const projected = input.docs.map((doc) => {
-      const receipt = input.deps.affine.upsertReadOnly(doc)
-      const resolved = input.resolved.find((item) => item.affineDocId === doc.affineDocId)
-      const record = input.deps.registry.save({
-        sourceId: input.source.sourceId,
-        sourcePath: doc.sourcePath,
-        contentHash: doc.contentHash,
-        affineDocId: doc.affineDocId,
-        title: doc.title,
-        owner: "projection-bot",
-        editableInAffine: false,
-        lastProjectedCommit: resolved?.file.commit,
-        knownAliases: resolved?.knownAliases ?? [],
-      })
-      registryRecords.push(record)
-      return {
-        sourcePath: doc.sourcePath,
-        affineDocId: receipt.affineDocId,
-        action: receipt.action,
-        editableInAffine: receipt.editableInAffine,
+  }): Effect.Effect<MarkdownProjectionRunReceipt, DomainError> {
+    return Effect.gen(function* () {
+      const registryRecords: ProjectionRecord[] = []
+      const projected: Array<MarkdownProjectionRunReceipt["projected"][number]> = []
+      for (const doc of input.docs) {
+        const receipt = input.deps.affine.upsertReadOnly(doc)
+        const validatedReceipt = yield* assertReadOnlyProjectionReceipt(doc, receipt)
+        const resolved = input.resolved.find((item) => item.affineDocId === doc.affineDocId)
+        const record = input.deps.registry.save({
+          sourceId: input.source.sourceId,
+          sourcePath: doc.sourcePath,
+          contentHash: doc.contentHash,
+          affineDocId: doc.affineDocId,
+          title: doc.title,
+          owner: "projection-bot",
+          editableInAffine: false,
+          lastProjectedCommit: resolved?.file.commit,
+          knownAliases: resolved?.knownAliases ?? [],
+        })
+        registryRecords.push(record)
+        projected.push({
+          sourcePath: doc.sourcePath,
+          affineDocId: validatedReceipt.affineDocId,
+          action: validatedReceipt.action,
+          editableInAffine: validatedReceipt.editableInAffine,
+        })
       }
-    })
-    return Effect.succeed({
-      sourceId: input.source.sourceId,
-      projected,
-      registryRecords,
+      return {
+        sourceId: input.source.sourceId,
+        projected,
+        registryRecords,
+      }
     })
   }
 }

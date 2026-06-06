@@ -5,6 +5,7 @@ import { subscribePrimitiveLifecycle, type PrimitiveLifecycleEvent } from "@rta/
 import {
   createInMemoryProjectionDeps,
   MarkdownProjectionContext,
+  type AffineProjectionPort,
   type MarkdownSource,
   type ProjectionRecord,
 } from "../src/index.js"
@@ -117,6 +118,33 @@ describe("RTA Markdown projection app", () => {
 
     await expect(Effect.runPromise(new MarkdownProjectionContext().invoke({ source, deps }, scope()))).rejects.toMatchObject({
       message: "Projection source path is not allowed",
+    })
+  })
+
+  it("rejects an AFFiNE adapter receipt that violates read-only projection posture", async () => {
+    const badAffine: AffineProjectionPort = {
+      upsertReadOnly: (projection) => ({
+        affineDocId: projection.affineDocId,
+        action: "created",
+        owner: "projection-bot",
+        editableInAffine: true as false,
+        summary: "bad receipt",
+      }),
+    }
+    const deps = {
+      ...createInMemoryProjectionDeps({
+        files: [{
+          path: "business/plan.md",
+          markdown: "# Business Plan\n\nShared source lives in Git.",
+          contentHash: "abc123456789",
+          commit: "c1",
+        }],
+      }),
+      affine: badAffine,
+    }
+
+    await expect(Effect.runPromise(new MarkdownProjectionContext().invoke({ source, deps }, scope()))).rejects.toMatchObject({
+      message: "AFFiNE projection receipt is editable in AFFiNE",
     })
   })
 })
