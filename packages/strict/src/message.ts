@@ -41,10 +41,12 @@ export interface StrictDomainEvent<Tag extends string, TPayload>
 
 /**
  * A query with mandatory correlation context.
- * Allows tracing read-path operations back to their originating request.
+ * Allows tracing read-path operations back to their originating request and
+ * immediate cause. Queries do not mutate state, but they still participate in
+ * the same execution envelope as commands and events.
  */
 export interface StrictQuery<Tag extends string, TPayload, TResult>
-  extends Query<Tag, TPayload, TResult> {
-  readonly correlationId: MessageContext["correlationId"]
-  readonly issuedBy: MessageContext["issuedBy"]
+  extends Query<Tag, TPayload, TResult>,
+    MessageContext {
+  readonly messageId: string
 }

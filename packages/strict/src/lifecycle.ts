@@ -41,6 +41,8 @@ export interface QueryHandlerLifecycleEvent {
   readonly messageTag: string
   readonly context: string
   readonly correlationId: string
+  readonly causationId: string
+  readonly messageId: string
   readonly summary?: PrimitiveOperationSummary
 }
 

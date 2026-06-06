@@ -114,15 +114,16 @@ describe("StrictDomainEvent", () => {
 // ---------------------------------------------------------------------------
 
 describe("StrictQuery", () => {
-  it("creates a query with correlationId", async () => {
+  it("creates a query with the full execution ID envelope", async () => {
     const ctx = makeRootContext("user-1")
-    const q = await run(
-      GetOrder.make({ id: "ord-1" }, { correlationId: ctx.correlationId, issuedBy: ctx.issuedBy }),
-    )
+    const q = await run(GetOrder.make({ id: "ord-1" }, ctx))
 
     expect(q._tag).toBe("GetOrder")
     expect(q.payload.id).toBe("ord-1")
+    expect(q.messageId).toEqual(expect.any(String))
     expect(q.correlationId).toBe(ctx.correlationId)
+    expect(q.causationId).toBe(ctx.causationId)
+    expect(q.issuedAt).toBeInstanceOf(Date)
     expect(q.issuedBy).toBe("user-1")
     // It is also a core Query
     expect(isQuery(q)).toBe(true)

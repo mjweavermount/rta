@@ -1,6 +1,6 @@
 # RTA ID Story And ARD Cleanup
 
-Status: design note for the next implementation pass
+Status: implemented baseline plus next migration notes
 
 ## Why This Exists
 
@@ -8,19 +8,24 @@ RTA needs an ID story strong enough that an operator can follow a run through
 primitive invocations, messages, queues, adapters, readable logs, monitor views,
 and future hosted observability without guessing.
 
-The current implementation has a useful seed:
+The current implementation now has an enforced baseline:
 
 - `OperationScope` has `operationId`, `traceId`, and `spanId`.
-- instrumented generic primitives emit `correlationId`, `causationId`, and
-  `messageId` derived from the scope.
+- strict commands, queries, and domain events carry `correlationId`,
+  `causationId`, and `messageId`.
+- instrumented primitives and handlers emit `correlationId`, `causationId`,
+  and `messageId` derived from the scope or strict message.
 - runtime runs have `runId`, unit-of-work IDs, provenance nodes, and parent step
   links.
-- readable trace logs project some correlation fields.
+- readable trace logs and OTEL span/span-event descriptors project the same
+  canonical IDs.
+- `rta check --trace-context` is a real production check and
+  `ARD-RTA-TRACE-ENVELOPE` is accepted again.
 
-That is not yet RTA-grade. Some primitive families do not carry the full ID
-envelope, generated handlers use weak placeholder trace values in places, and
-local app artifacts such as the AFFiNE gateway do not yet use the same canonical
-execution IDs.
+That is still not the final RTA-grade shape. The next migration should collapse
+the separate top-level fields into a nested `ids` envelope, add `runId`,
+`parentSpanId`, `primitiveId`, and `invocationId`, and wire local app artifacts
+such as the AFFiNE gateway into the same canonical envelope.
 
 ## Canonical ID Envelope
 
@@ -97,19 +102,25 @@ Additional phases may exist for specialized primitives:
 
 ## Required Enforcement
 
-Add a production check:
+Implemented production check:
 
 ```bash
 rta check --trace-context
 ```
 
-The check should fail when:
+The current check fails when the enforced baseline loses:
 
-- any primitive lifecycle event type lacks `ids`.
-- any event omits required ID fields.
-- any child invocation drops `traceId`.
+- scope-level `operationId`, `traceId`, or `spanId`.
+- strict command/query/event `correlationId`, `causationId`, or `messageId`.
+- primitive lifecycle emission from `OperationScope`.
+- generated registry dispatch message context.
+- OTEL/readable-log projection of correlation, causation, and message IDs.
+- tests proving strict queries and trace log projections carry those IDs.
+
+Future versions should extend this check to fail when:
+
+- any primitive lifecycle event type lacks nested `ids`.
 - any child invocation omits `parentSpanId`.
-- any emitted message lacks `messageId`.
 - any queued job drops `correlationId` or `causationId`.
 - generated code uses command/query/event tags as fake trace IDs.
 - app source writes readable logs manually instead of projecting structured
@@ -235,9 +246,9 @@ Implement in this order:
 
 1. ARD parser/schema cleanup.
 2. root ARD metadata check.
-3. trace-context ARDs.
+3. trace-context ARDs. Done for the baseline.
 4. `ExecutionIds` type and scope forking with `parentSpanId`.
-5. lifecycle event schema migration to `ids`.
+5. lifecycle event schema migration to nested `ids`.
 6. readable log trace projection upgrade.
 7. generated code update.
 8. AFFiNE gateway artifact update.

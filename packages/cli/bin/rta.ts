@@ -89,6 +89,7 @@ const main = Effect.gen(function* () {
         ...(hasFlag("--execution-telemetry") ? { executionTelemetry: true } : {}),
         ...(hasFlag("--operation-event") ? { operationEvent: true } : {}),
         ...(hasFlag("--primitive-boundaries") ? { primitiveBoundaries: true } : {}),
+        ...(hasFlag("--trace-context") ? { traceContext: true } : {}),
         ...(hasFlag("--production") ? { production: true } : {}),
         ...(hasFlag("--telemetry-sync") ? { telemetrySync: true } : {}),
         ...(hasFlag("--pure-ts") ? { pureTs: true } : {}),
@@ -189,6 +190,7 @@ Options:
   --execution-telemetry Validate execution-telemetry markers in tests (check only)
   --operation-event    Validate readable operation-event contract markers in tests (check only)
   --primitive-boundaries Validate app source exports go through RTA primitives (check only)
+  --trace-context      Validate canonical execution IDs across scope, messages, primitives, and projections
   --production          Run production-readiness checks as one aggregate gate (check only)
   --telemetry-sync      Validate generated telemetry stub headers (check only)
   --pure-ts             Fail on tracked JS/MJS/CJS source outside the migration allowlist

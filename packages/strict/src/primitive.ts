@@ -278,6 +278,8 @@ export abstract class InstrumentedQueryHandler<
       messageTag: query._tag,
       context: this.context,
       correlationId: scope.traceId,
+      causationId: scope.operationId,
+      messageId: scope.spanId,
       summary,
     })
     emitPrimitiveLifecycle({
@@ -287,6 +289,8 @@ export abstract class InstrumentedQueryHandler<
       messageTag: query._tag,
       context: this.context,
       correlationId: scope.traceId,
+      causationId: scope.operationId,
+      messageId: scope.spanId,
       summary,
     })
 
@@ -300,6 +304,8 @@ export abstract class InstrumentedQueryHandler<
             messageTag: query._tag,
             context: this.context,
             correlationId: scope.traceId,
+            causationId: scope.operationId,
+            messageId: scope.spanId,
             summary,
           })
         }),
@@ -313,6 +319,8 @@ export abstract class InstrumentedQueryHandler<
             messageTag: query._tag,
             context: this.context,
             correlationId: scope.traceId,
+            causationId: scope.operationId,
+            messageId: scope.spanId,
             summary,
           })
         }).pipe(Effect.flatMap(() => Effect.fail(error))),

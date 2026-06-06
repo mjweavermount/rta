@@ -20,6 +20,7 @@ import { checkObligationCoverage } from "./check-obligations.js"
 import { checkOperationEvents } from "./check-operation-events.js"
 import { checkPrimitiveBoundaries } from "./check-primitive-boundaries.js"
 import { checkExecutionTelemetry } from "./check-telemetry.js"
+import { checkTraceContext } from "./check-trace-context.js"
 import { checkGeneratedSync } from "./generated-sync.js"
 import { isGoldenFixturePath } from "./discovery.js"
 import { runPureTsCheck } from "./check-pure-ts.js"
@@ -95,6 +96,7 @@ export interface CheckOptions {
   readonly executionTelemetry?: boolean
   readonly operationEvent?: boolean
   readonly primitiveBoundaries?: boolean
+  readonly traceContext?: boolean
   readonly production?: boolean
   readonly telemetrySync?: boolean
   readonly pureTs?: boolean
@@ -164,6 +166,9 @@ export const runCheck = (options: CheckOptions = {}): Effect.Effect<number> =>
     if (options.primitiveBoundaries) {
       return yield* Effect.promise(() => checkPrimitiveBoundaries(cwd))
     }
+    if (options.traceContext) {
+      return yield* Effect.promise(() => checkTraceContext(cwd))
+    }
     if (options.production) {
       const productionArdPaths = yield* discoverArdFiles(cwd, { includeJson: true })
       const productionArds = yield* loadArds(productionArdPaths)
@@ -195,6 +200,7 @@ export const runCheck = (options: CheckOptions = {}): Effect.Effect<number> =>
         ["execution-telemetry", () => Effect.promise(() => checkExecutionTelemetry(cwd))],
         ["operation-event", () => Effect.promise(() => checkOperationEvents(cwd))],
         ["primitive-boundaries", () => Effect.promise(() => checkPrimitiveBoundaries(cwd))],
+        ["trace-context", () => Effect.promise(() => checkTraceContext(cwd))],
         ["pattern-specs", () => Effect.promise(() => checkPatternSpecs(cwd))],
         ["pattern-contracts", () => Effect.promise(() => checkPatternContracts(cwd))],
         ["archetype-specs", () => Effect.promise(() => checkArchetypeSpecs(cwd))],

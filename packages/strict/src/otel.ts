@@ -94,7 +94,7 @@ export const withOtelCommandHandler = <C extends StrictCommand<string, any>>(
 /**
  * Wrap a QueryHandler with an OTEL span.
  * Span name: "query.<Tag>"
- * Attributes: query tag, correlation ID, issuedBy actor.
+ * Attributes: query tag, correlation/causation IDs, message ID, issuedBy actor.
  */
 export const withOtelQueryHandler = <Q extends StrictQuery<string, any, any>>(
   handler: QueryHandler<Q>,
@@ -112,6 +112,8 @@ export const withOtelQueryHandler = <Q extends StrictQuery<string, any, any>>(
       messageTag: query._tag,
       context,
       correlationId: query.correlationId,
+      causationId: query.causationId,
+      messageId: query.messageId,
     })
     return Effect.sync(() => {
       emitPrimitiveLifecycle({
@@ -121,6 +123,8 @@ export const withOtelQueryHandler = <Q extends StrictQuery<string, any, any>>(
         messageTag: query._tag,
         context,
         correlationId: query.correlationId,
+        causationId: query.causationId,
+        messageId: query.messageId,
       })
     }).pipe(
       Effect.zipRight(handler.handle(query)),
@@ -133,6 +137,8 @@ export const withOtelQueryHandler = <Q extends StrictQuery<string, any, any>>(
             messageTag: query._tag,
             context,
             correlationId: query.correlationId,
+            causationId: query.causationId,
+            messageId: query.messageId,
           })
         }),
       ),
@@ -145,6 +151,8 @@ export const withOtelQueryHandler = <Q extends StrictQuery<string, any, any>>(
             messageTag: query._tag,
             context,
             correlationId: query.correlationId,
+            causationId: query.causationId,
+            messageId: query.messageId,
           })
           void error
         }),

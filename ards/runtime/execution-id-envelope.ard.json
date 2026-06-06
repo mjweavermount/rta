@@ -3,7 +3,7 @@
   "kind": "letter",
   "family": "trace",
   "title": "Primitive Events Carry Canonical Execution IDs",
-  "status": "proposed",
+  "status": "accepted",
   "spirit": ["ARD-RTA-TRACE-000"],
   "supports": ["rta-prod-09-observability-telemetry"],
   "checks": [

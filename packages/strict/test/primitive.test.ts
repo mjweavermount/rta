@@ -147,6 +147,8 @@ describe("InstrumentedPrimitive", () => {
       "[trace] PUBLISH_DIGEST_ADAPTER Started outbound adapter Stage publication digest-1 because human review approved the digest with AFFiNE and Plane",
     )
     expect(logs.entries[1]?.line).toContain("correlationId=fixed-id")
+    expect(logs.entries[1]?.line).toContain("causationId=fixed-id")
+    expect(logs.entries[1]?.line).toContain("messageId=fixed-id")
   })
 })
 

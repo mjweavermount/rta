@@ -100,7 +100,7 @@ export const defineStrictDomainEvent = <
 // ---------------------------------------------------------------------------
 // defineStrictQuery
 //
-// Like @rta/core's defineQuery, but make() requires a correlationId.
+// Like @rta/core's defineQuery, but make() requires a MessageContext.
 // The result schema is still stored for @rta/strict response validation.
 // ---------------------------------------------------------------------------
 
@@ -118,14 +118,17 @@ export const defineStrictQuery = <
   resultSchema,
   make: (
     raw: unknown,
-    context: Pick<MessageContext, "correlationId" | "issuedBy">,
+    context: MessageContext,
   ): Effect.Effect<StrictQuery<Tag, Schema.Schema.Type<S>, Schema.Schema.Type<R>>, ParseResult.ParseError> =>
     Schema.decodeUnknown(schema)(raw).pipe(
       Effect.map((payload) => ({
         [QueryTypeId]: QueryTypeId,
         _tag,
         payload,
+        messageId: crypto.randomUUID(),
         correlationId: context.correlationId,
+        causationId: context.causationId,
+        issuedAt: context.issuedAt,
         issuedBy: context.issuedBy,
       })),
     ),
@@ -134,5 +137,7 @@ export const defineStrictQuery = <
     u !== null &&
     QueryTypeId in u &&
     typeof (u as any).correlationId === "string" &&
+    typeof (u as any).causationId === "string" &&
+    typeof (u as any).messageId === "string" &&
     (u as any)._tag === _tag,
 })

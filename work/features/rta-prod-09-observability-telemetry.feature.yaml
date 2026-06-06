@@ -7,9 +7,11 @@ ownedBy:
   internal: rta-platform
 demonstratedBy:
   - command: rta check --telemetry-coverage
+  - command: rta check --trace-context
   - command: rta scenario watch meeting-digest.integrated.fixture
 qaSteps:
   - do: node scripts/rta.mjs check --telemetry-coverage
+  - do: pnpm --filter @rta/cli rta check --trace-context --root ../..
   - do: node scripts/rta.mjs scenario watch meeting-digest.integrated.fixture --input tests/fixtures/custom-transcript.txt
   - do: node scripts/rta.mjs grafana render meeting-digest
   - see: RtaProd09ObservabilityTelemetry produces visible evidence or a successful check result
@@ -19,6 +21,7 @@ requires:
 produces:
   - telemetry coverage check
   - operation event contract derivation
+  - trace context check
   - dashboard provisioning contract
 selfAudit:
   - "@are logs and telemetry generated from obligations, or did I hand-author one happy path?"

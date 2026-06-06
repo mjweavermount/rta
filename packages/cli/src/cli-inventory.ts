@@ -44,6 +44,7 @@ export const CHECK_MODES = [
   "execution-telemetry",
   "operation-event",
   "primitive-boundaries",
+  "trace-context",
   "production",
   "pattern-specs",
   "pattern-contracts",

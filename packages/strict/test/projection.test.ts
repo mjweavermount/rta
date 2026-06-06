@@ -2,10 +2,12 @@ import { describe, expect, it } from "vitest"
 import {
   createReadableLogBuffer,
   projectCommandHandlerSpan,
+  projectQueryHandlerSpan,
   projectExecutionEventToLogLine,
   projectExecutionEventToOtelSpanEvent,
   projectValidatedExecutionEventToOtelSpanEvent,
   projectValidatedCommandHandlerSpan,
+  projectValidatedQueryHandlerSpan,
   validateOtelSpanDescriptor,
 } from "../src/index.js"
 import { emitPrimitiveLifecycle } from "../src/index.js"
@@ -34,6 +36,33 @@ describe("execution telemetry projections", () => {
       issuedBy: "user-1",
       issuedAt: new Date(),
     })).name).toBe("cmd.PlaceOrder")
+  })
+
+  it("projects query handler spans with the full execution ID envelope", () => {
+    const span = projectValidatedQueryHandlerSpan({
+      _tag: "GetOrder",
+      payload: { orderId: "ord-1" },
+      messageId: "msg-1",
+      correlationId: "corr-1",
+      causationId: "cause-1",
+      issuedBy: "user-1",
+      issuedAt: new Date(),
+    })
+
+    expect(span.name).toBe("query.GetOrder")
+    expect(span.attributes["rta.query.tag"]).toBe("GetOrder")
+    expect(span.attributes["rta.message.id"]).toBe("msg-1")
+    expect(span.attributes["rta.correlation.id"]).toBe("corr-1")
+    expect(span.attributes["rta.causation.id"]).toBe("cause-1")
+    expect(validateOtelSpanDescriptor(projectQueryHandlerSpan({
+      _tag: "GetOrder",
+      payload: { orderId: "ord-1" },
+      messageId: "msg-1",
+      correlationId: "corr-1",
+      causationId: "cause-1",
+      issuedBy: "user-1",
+      issuedAt: new Date(),
+    })).name).toBe("query.GetOrder")
   })
 
   it("projects execution events into OTEL span-event descriptors", () => {
@@ -107,6 +136,8 @@ describe("execution telemetry projections", () => {
     expect(line).toContain("[trace] DIGEST_MEETING_HANDLER Started command Digest meeting-1 because the transcript is ready")
     expect(line).toContain("context=MeetingDigest")
     expect(line).toContain("correlationId=trace-1")
+    expect(line).toContain("causationId=op-1")
+    expect(line).toContain("messageId=span-1")
     expect(line).toContain("input=1200 transcript chars")
   })
 

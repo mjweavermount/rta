@@ -65,7 +65,9 @@ export const projectQueryHandlerSpan = <Q extends StrictQuery<string, any, any>>
     "messaging.system": "rta",
     "rta.message.kind": "query",
     "rta.query.tag": query._tag,
+    "rta.message.id": query.messageId,
     "rta.correlation.id": query.correlationId,
+    "rta.causation.id": query.causationId,
     "rta.issued.by": query.issuedBy,
   },
 })
@@ -134,9 +136,8 @@ export const projectExecutionEventToOtelSpanEvent = (
       base["rta.context"] = event.context
       base["rta.message.tag"] = event.messageTag
       base["rta.correlation.id"] = event.correlationId
-      if ("causationId" in event) {
-        base["rta.causation.id"] = event.causationId
-      }
+      base["rta.causation.id"] = event.causationId
+      base["rta.message.id"] = event.messageId
       return { name: `${event.primitiveType}.${event.phase}`, attributes: base }
     case "inbound-adapter":
     case "outbound-adapter":
@@ -152,6 +153,7 @@ export const projectExecutionEventToOtelSpanEvent = (
       base["rta.context"] = event.context
       base["rta.correlation.id"] = event.correlationId
       base["rta.causation.id"] = event.causationId
+      base["rta.message.id"] = event.messageId
       return { name: `${event.primitiveType}.${event.phase}`, attributes: base }
   }
 }

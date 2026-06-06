@@ -34,13 +34,13 @@ describe("validateArdEnforcement", () => {
 
   it("rejects accepted ARDs that point at unknown check modes", () => {
     const issues = validateArdEnforcement([
-      acceptedLetter("rta check --trace-context"),
+      acceptedLetter("rta check --missing-contract"),
     ])
     expect(issues).toEqual([
       {
         ardId: "ARD-CI-001",
-        command: "rta check --trace-context",
-        message: 'unknown rta check mode "--trace-context"',
+        command: "rta check --missing-contract",
+        message: 'unknown rta check mode "--missing-contract"',
       },
     ])
     expect(formatArdEnforcementReport(issues)).toContain("ARD enforcement violations")
@@ -48,7 +48,7 @@ describe("validateArdEnforcement", () => {
 
   it("allows proposed ARDs to name future enforcement without fake green", () => {
     expect(validateArdEnforcement([
-      { ...acceptedLetter("rta check --trace-context"), status: "proposed" },
+      { ...acceptedLetter("rta check --missing-contract"), status: "proposed" },
     ])).toEqual([])
   })
 })
