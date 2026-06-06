@@ -71,7 +71,7 @@ It provides:
 The CLI entrypoint is:
 
 ```text
-markdown-projection plan|apply|verify|explain|doctor
+markdown-projection plan|apply|verify|explain|demo|doctor
 ```
 
 Example:
@@ -90,3 +90,31 @@ node examples/markdown-projection/dist/cli.js verify \
 This is intentionally not live AFFiNE yet. The JSON sink is the proof harness
 for the source/registry/custody behavior; the live AFFiNE writer should replace
 only the `AffineProjectionPort`.
+
+## End-To-End Demo
+
+Run:
+
+```sh
+pnpm demo:markdown-projection
+```
+
+The demo creates a mock naked Markdown repo under
+`tmp/markdown-projection-demo/mock-rta-docs` with:
+
+- `README.md`;
+- `rta/concept.md`;
+- `rta/status.md`, later renamed through Git to
+  `rta/reports/current-status.md`.
+
+Those files explain RTA conceptually and describe its status as a demo, not an
+exhaustive status report. The operator then:
+
+1. initializes the mock repo;
+2. projects the Markdown files into the JSON AFFiNE stand-in;
+3. saves registry state outside the source repo;
+4. renames the status doc through Git;
+5. projects again;
+6. verifies that the renamed doc keeps the same AFFiNE projection identity.
+
+The important proof is `renamedDocIdStable: true`.

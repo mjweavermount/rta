@@ -28,6 +28,7 @@
     "check:sample-app-loop": "pnpm --filter @rta/cli test",
     "test": "pnpm --filter @rta/vocab test && pnpm --filter @rta/core test && pnpm --filter @rta/strict test && pnpm --filter @rta/runtime test && pnpm --filter @rta/cli test && pnpm --filter @rta/scenario test && pnpm --filter @rta/example-meeting-digest test && pnpm --filter @rta/example-affine-ops-gateway test && pnpm --filter @rta/example-mcp-auth-layer test && pnpm --filter @rta/example-affine-mcp-rta test && pnpm --filter @rta/example-markdown-projection test && pnpm --filter @rta/example-rta-monitor test",
     "demo:affine-monitor": "pnpm --filter @rta/example-affine-ops-gateway build && pnpm --filter @rta/example-rta-monitor build && rm -rf tmp/affine-monitor-demo && mkdir -p tmp/affine-monitor-demo && node examples/affine-ops-gateway/dist/cli.js run affine.current_user --root tmp/affine-monitor-demo --profile fake && node examples/rta-monitor/dist/cli.js runs --root tmp/affine-monitor-demo && node examples/rta-monitor/dist/cli.js tail --root tmp/affine-monitor-demo",
+    "demo:markdown-projection": "pnpm --filter @rta/example-markdown-projection build && node examples/markdown-projection/dist/cli.js demo",
     "typecheck": "pnpm build && pnpm -r typecheck",
     "audit": "pnpm audit --audit-level high",
     "doctor": "pnpm check:production",

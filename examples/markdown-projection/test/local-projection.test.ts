@@ -5,6 +5,7 @@ import { tmpdir } from "node:os"
 import { afterEach, describe, expect, it } from "vitest"
 import {
   explainProjection,
+  runMarkdownProjectionDemo,
   runLocalProjection,
   statePaths,
   verifyLocalProjection,
@@ -122,5 +123,34 @@ describe("local Markdown projection operator", () => {
     expect(runCli(["verify", ...common], io)).toBe(0)
     expect(runCli(["explain", ...common, "--path", "agenda.md"], io)).toBe(0)
     expect(output.at(-1)).toContain("projection-bot")
+  })
+
+  it("runs the end-to-end mock RTA docs demo", () => {
+    const root = tempDir()
+    const result = runMarkdownProjectionDemo(join(root, "demo"))
+
+    expect(result.verification.ok).toBe(true)
+    expect(result.firstProjectedDocs).toBe(3)
+    expect(result.secondProjectedDocs).toBe(3)
+    expect(result.renamedDocIdStable).toBe(true)
+    expect(result.projectedPaths).toEqual([
+      "README.md",
+      "rta/concept.md",
+      "rta/reports/current-status.md",
+    ])
+    expect(readFileSync(join(result.sourceRoot, "rta", "concept.md"), "utf8")).toContain("RTA Conceptual Overview")
+    expect(readFileSync(join(result.sourceRoot, "rta", "reports", "current-status.md"), "utf8")).toContain("not an exhaustive status report")
+  })
+
+  it("exposes the demo through the CLI runner", () => {
+    const root = tempDir()
+    const output: string[] = []
+    const code = runCli(["demo", "--demo-root", join(root, "demo")], {
+      log: (line) => { output.push(line) },
+    })
+
+    expect(code).toBe(0)
+    expect(output.at(-1)).toContain("renamedDocIdStable")
+    expect(output.at(-1)).toContain("Demo only")
   })
 })

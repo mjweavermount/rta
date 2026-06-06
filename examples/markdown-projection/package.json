@@ -18,6 +18,7 @@
   },
   "scripts": {
     "build": "tsup",
+    "demo": "node dist/cli.js demo",
     "test": "vitest run",
     "typecheck": "tsc --noEmit"
   },

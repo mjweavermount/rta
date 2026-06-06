@@ -2,6 +2,7 @@
 import {
   createFilesystemMarkdownSourcePort,
   explainProjection,
+  runMarkdownProjectionDemo,
   runLocalProjection,
   statePaths,
   verifyLocalProjection,
@@ -37,6 +38,11 @@ export const runCli = (
       sourceId: options.sourceId,
       liveAffine: false,
     }, null, 2))
+    return 0
+  }
+
+  if (command === "demo") {
+    io.log(JSON.stringify(runMarkdownProjectionDemo(valueAfter(argv, "--demo-root")), null, 2))
     return 0
   }
 

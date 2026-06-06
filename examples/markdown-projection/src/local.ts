@@ -5,6 +5,7 @@ import {
   mkdirSync,
   readFileSync,
   readdirSync,
+  rmSync,
   statSync,
   writeFileSync,
 } from "node:fs"
@@ -51,6 +52,20 @@ export interface ProjectionVerification {
   readonly nonBotOwnedDocs: ReadonlyArray<string>
 }
 
+export interface MarkdownProjectionDemoResult {
+  readonly demoRoot: string
+  readonly sourceRoot: string
+  readonly stateRoot: string
+  readonly sourceId: string
+  readonly firstProjectedDocs: number
+  readonly secondProjectedDocs: number
+  readonly renamedDocIdStable: boolean
+  readonly renamedDocId?: string
+  readonly verification: ProjectionVerification
+  readonly projectedPaths: ReadonlyArray<string>
+  readonly note: string
+}
+
 const readJson = <T>(path: string, fallback: T): T => {
   if (!existsSync(path)) return fallback
   return JSON.parse(readFileSync(path, "utf8")) as T
@@ -81,7 +96,7 @@ const gitRenameEvidence = (root: string): ReadonlyArray<GitRenameEvidence> => {
       "-C",
       root,
       "log",
-      "--find-renames",
+      "--find-renames=20%",
       "--diff-filter=R",
       "--name-status",
       "--format=commit:%H",
@@ -109,6 +124,14 @@ const gitRenameEvidence = (root: string): ReadonlyArray<GitRenameEvidence> => {
   } catch {
     return []
   }
+}
+
+const runGit = (root: string, args: ReadonlyArray<string>): string =>
+  execFileSync("git", ["-C", root, ...args], { encoding: "utf8" }).trim()
+
+const commitAll = (root: string, message: string): void => {
+  runGit(root, ["add", "."])
+  runGit(root, ["commit", "-m", message])
 }
 
 const walkMarkdown = (root: string, dir = root): ReadonlyArray<string> => {
@@ -273,4 +296,90 @@ export const explainProjection = (options: Pick<LocalProjectionOptions, "sourceI
     (options.sourcePath !== undefined && record.sourcePath === options.sourcePath)
     || (options.affineDocId !== undefined && record.affineDocId === options.affineDocId),
   )
+}
+
+export const runMarkdownProjectionDemo = (demoRoot = "tmp/markdown-projection-demo"): MarkdownProjectionDemoResult => {
+  const root = resolve(demoRoot)
+  const sourceRoot = join(root, "mock-rta-docs")
+  const stateRoot = join(root, "projection-state")
+  const sourceId = "mock-rta-docs"
+  rmSync(root, { recursive: true, force: true })
+  mkdirSync(join(sourceRoot, "rta"), { recursive: true })
+
+  writeFileSync(join(sourceRoot, "README.md"), [
+    "# Mock RTA Knowledge Base",
+    "",
+    "This repo is intentionally plain Markdown. It has no RTA sidecars.",
+    "The projection operator reads it as a source-owned documentation repo.",
+    "",
+  ].join("\n"))
+  writeFileSync(join(sourceRoot, "rta", "concept.md"), [
+    "# RTA Conceptual Overview",
+    "",
+    "RTA is an app-authoring vocabulary and runtime discipline.",
+    "Apps are described through primitives, patterns, archetypes, ports, policies, and adapters.",
+    "The goal is to help agents build systems with observable boundaries instead of loose vibes.",
+    "",
+  ].join("\n"))
+  writeFileSync(join(sourceRoot, "rta", "status.md"), [
+    "# RTA Status",
+    "",
+    "This is a demo status, not an exhaustive status report.",
+    "The current mock says RTA has a working Markdown projection slice with local registry persistence.",
+    "Live AFFiNE writing remains the next adapter step.",
+    "",
+  ].join("\n"))
+
+  runGit(sourceRoot, ["init"])
+  runGit(sourceRoot, ["config", "user.email", "projection-demo@example.test"])
+  runGit(sourceRoot, ["config", "user.name", "Projection Demo"])
+  commitAll(sourceRoot, "initial rta docs")
+
+  const first = runLocalProjection({
+    sourceRoot,
+    sourceId,
+    kind: "shared-git-markdown",
+    stateRoot,
+  })
+  const statusBefore = first.registryRecords.find((record) => record.sourcePath === "rta/status.md")
+
+  mkdirSync(join(sourceRoot, "rta", "reports"), { recursive: true })
+  runGit(sourceRoot, ["mv", "rta/status.md", "rta/reports/current-status.md"])
+  writeFileSync(join(sourceRoot, "rta", "reports", "current-status.md"), [
+    "# RTA Status",
+    "",
+    "This is still a demo status, not an exhaustive status report.",
+    "The current mock says RTA has a working Markdown projection slice with local registry persistence.",
+    "Live AFFiNE writing remains the next adapter step.",
+    "The rename demonstrates that Git history can preserve projection identity.",
+    "",
+  ].join("\n"))
+  commitAll(sourceRoot, "rename rta status doc")
+
+  const second = runLocalProjection({
+    sourceRoot,
+    sourceId,
+    kind: "shared-git-markdown",
+    stateRoot,
+  })
+  const statusAfter = explainProjection({
+    sourceId,
+    stateRoot,
+    sourcePath: "rta/reports/current-status.md",
+  })
+  const verification = verifyLocalProjection({ sourceId, stateRoot })
+
+  return {
+    demoRoot: root,
+    sourceRoot,
+    stateRoot,
+    sourceId,
+    firstProjectedDocs: first.projected.length,
+    secondProjectedDocs: second.projected.length,
+    renamedDocIdStable: statusBefore?.affineDocId === statusAfter?.affineDocId,
+    renamedDocId: statusAfter?.affineDocId,
+    verification,
+    projectedPaths: second.registryRecords.map((record) => record.sourcePath).sort(),
+    note: "Demo only: proves local source scan, external registry, bot-owned read-only projection sink, CLI flow, and Git rename continuity. It does not exhaustively prove live AFFiNE behavior.",
+  }
 }
