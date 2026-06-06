@@ -16,7 +16,7 @@
     "rta": "./packages/cli/dist/rta.js"
   },
   "scripts": {
-    "build": "pnpm --filter @rta/vocab build && pnpm --filter @rta/core build && pnpm --filter @rta/strict build && pnpm --filter @rta/runtime build && pnpm --filter @rta/cli build && pnpm --filter @rta/scenario build && pnpm --filter @rta/example-meeting-digest build && pnpm --filter @rta/example-affine-ops-gateway build && pnpm --filter @rta/example-rta-monitor build",
+    "build": "pnpm --filter @rta/vocab build && pnpm --filter @rta/core build && pnpm --filter @rta/strict build && pnpm --filter @rta/runtime build && pnpm --filter @rta/cli build && pnpm --filter @rta/scenario build && pnpm --filter @rta/example-meeting-digest build && pnpm --filter @rta/example-affine-ops-gateway build && pnpm --filter @rta/example-mcp-auth-layer build && pnpm --filter @rta/example-affine-mcp-rta build && pnpm --filter @rta/example-rta-monitor build",
     "check": "pnpm typecheck && pnpm test && pnpm check:affine-ops-gateway && pnpm check:pure-ts && pnpm check:work-ledger && pnpm check:demo-coverage && pnpm check:release",
     "check:production": "pnpm check && pnpm --filter @rta/cli rta check --production --root ../../fixtures/golden/pass",
     "check:release": "pnpm --filter @rta/cli build && pnpm --filter @rta/cli rta check --release-hygiene --root ../..",
@@ -26,7 +26,7 @@
     "check:affine-ops-gateway": "pnpm --filter @rta/example-affine-ops-gateway check:coverage",
     "check:golden-fixture": "pnpm --filter @rta/cli test -- test/golden-fixture-coverage.test.ts",
     "check:sample-app-loop": "pnpm --filter @rta/cli test",
-    "test": "pnpm --filter @rta/vocab test && pnpm --filter @rta/core test && pnpm --filter @rta/strict test && pnpm --filter @rta/runtime test && pnpm --filter @rta/cli test && pnpm --filter @rta/scenario test && pnpm --filter @rta/example-meeting-digest test && pnpm --filter @rta/example-affine-ops-gateway test && pnpm --filter @rta/example-rta-monitor test",
+    "test": "pnpm --filter @rta/vocab test && pnpm --filter @rta/core test && pnpm --filter @rta/strict test && pnpm --filter @rta/runtime test && pnpm --filter @rta/cli test && pnpm --filter @rta/scenario test && pnpm --filter @rta/example-meeting-digest test && pnpm --filter @rta/example-affine-ops-gateway test && pnpm --filter @rta/example-mcp-auth-layer test && pnpm --filter @rta/example-affine-mcp-rta test && pnpm --filter @rta/example-rta-monitor test",
     "demo:affine-monitor": "pnpm --filter @rta/example-affine-ops-gateway build && pnpm --filter @rta/example-rta-monitor build && rm -rf tmp/affine-monitor-demo && mkdir -p tmp/affine-monitor-demo && node examples/affine-ops-gateway/dist/cli.js run affine.current_user --root tmp/affine-monitor-demo --profile fake && node examples/rta-monitor/dist/cli.js runs --root tmp/affine-monitor-demo && node examples/rta-monitor/dist/cli.js tail --root tmp/affine-monitor-demo",
     "typecheck": "pnpm build && pnpm -r typecheck",
     "audit": "pnpm audit --audit-level high",

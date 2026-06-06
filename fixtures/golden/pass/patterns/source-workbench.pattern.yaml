@@ -1,0 +1,13 @@
+kind: PatternSpec
+name: source-workbench
+requiredPrimitives: [OutboundAdapter, EdgeBoundary, Policy]
+testingContract:
+  extends: tool-surface-safety
+  adds:
+    - explore: workbench can search and read nearby source/doc context
+    - diff-plan: workbench can produce a reviewable diff plan before applying edits
+    - inline-edit-stage: inline edits are staged with target, preview, and receipt
+    - output-surface: generated artifacts can be staged into an output destination
+vocabHint: Source workbench tools expose search, diff_plan, inline_edit_stage, and output.stage operations behind policy.
+visualConcepts: [source, diff, inline-edit, output, receipt]
+narrativeLabel: "(source-workbench) {name} — explores source and stages edits as receipts"

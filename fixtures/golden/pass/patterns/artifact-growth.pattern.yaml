@@ -1,0 +1,13 @@
+kind: PatternSpec
+name: artifact-growth
+requiredPrimitives: [BoundedContext, EdgeBoundary, Policy, OutboundAdapter]
+testingContract:
+  extends: tool-surface-safety
+  adds:
+    - no-chat-archive: conversation history is promoted into durable artifacts, not copied as raw chat
+    - context-pack: artifact growth can explain which nearby docs, indexes, and sources informed the output
+    - append-or-create: tool behavior distinguishes growing an existing artifact from creating a new one
+    - review-posture: each artifact mutation declares direct, staged, or protected write posture
+vocabHint: Context declares artifact tools, output ports, index updates, and review posture through toolSurfaces and adapterBindings.
+visualConcepts: [artifact, context-pack, index, review, output]
+narrativeLabel: "(artifact-growth) {name} — grows {artifactKind} artifacts from context"
