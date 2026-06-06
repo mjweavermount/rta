@@ -118,3 +118,49 @@ exhaustive status report. The operator then:
 6. verifies that the renamed doc keeps the same AFFiNE projection identity.
 
 The important proof is `renamedDocIdStable: true`.
+
+## Live AFFiNE Spike
+
+On 2026-06-06 the mock RTA docs demo was projected into live AFFiNE through the
+home-lab checkpointed projection operator.
+
+Checkpoint created before mutation:
+
+```text
+before-rta-mock-projection
+```
+
+Target:
+
+```text
+AFFiNE / Agent Workspace / projected-markdown / mock-rta-docs
+```
+
+Live projected documents:
+
+```text
+Mock RTA Knowledge Base
+docId: obs-7e4f7e5e777db89b
+source: README.md
+
+RTA Conceptual Overview
+docId: obs-4ebea47d834a628f
+source: rta/concept.md
+
+RTA Status
+docId: obs-b8bf8f06776754b3
+source: rta/reports/current-status.md
+```
+
+Verified database posture:
+
+```text
+public=false
+mode=0
+defaultRole=30
+summary starts with "Markdown/Git read-only projection"
+```
+
+This is still a bridge step. It proves the projection concept against live
+AFFiNE, but the live writer is currently the home-lab operator script rather
+than an RTA-owned `AffineProjectionPort` implementation.
