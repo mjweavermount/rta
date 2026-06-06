@@ -6,6 +6,7 @@ export const CLI_COMMANDS = [
   "lint",
   "coverage",
   "test-policy",
+  "wiring",
   "serve",
 ] as const
 
@@ -58,6 +59,7 @@ export const CHECK_MODES = [
   "boundary-sanitization",
   "brand-bloom",
   "deployment-contract",
+  "app-wiring",
 ] as const
 
 export type CheckMode = (typeof CHECK_MODES)[number]

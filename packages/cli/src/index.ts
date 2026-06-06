@@ -32,6 +32,7 @@ export { checkCoverageWaivers, runCoverageWaiverCheck } from "./check-coverage-w
 export { checkBoundarySanitization } from "./check-boundary-sanitization.js"
 export { checkBrandBloom, buildBrandManifest } from "./check-brand-bloom.js"
 export { checkDeploymentContract } from "./check-deployment-contract.js"
+export { checkAppWiring, printWiringGraph, buildWiringGraph } from "./app-wiring.js"
 export { findWorkItem, loadWorkLedger, parseLedgerYaml, summarizeWorkItem } from "./work-ledger.js"
 export { runGenerate } from "./generate.js"
 export { runContext } from "./context.js"

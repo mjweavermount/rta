@@ -107,6 +107,7 @@ export async function checkPatternSpecs(root: string): Promise<number> {
 
 const VALID_T1_TESTING_CONTRACTS = new Set([
   "adapter-operation-event",
+  "app-wiring-contract",
   "credential-redaction",
   "rule-two-case",
   "decision-outcome-coverage",
@@ -129,6 +130,11 @@ const PATTERN_PRIMITIVE_CONTRACTS: ReadonlyArray<{
   readonly message: string
 }> = [
   {
+    primitives: ["AppWiring", "Entrypoint"],
+    contracts: ["app-wiring-contract", "brand-fitting"],
+    message: "AppWiring/Entrypoint patterns must extend app-wiring-contract or brand-fitting",
+  },
+  {
     primitives: ["Rule"],
     contracts: ["rule-two-case"],
     message: "Rule patterns must extend rule-two-case",
@@ -144,6 +150,7 @@ const PATTERN_PRIMITIVE_CONTRACTS: ReadonlyArray<{
       "adapter-operation-event",
       "boundary-promotion-pipeline",
       "boundary-sanitization",
+      "app-wiring-contract",
       "brand-fitting",
       "credential-redaction",
       "external-schema-drift",
@@ -195,12 +202,13 @@ const PATTERN_PRIMITIVE_CONTRACTS: ReadonlyArray<{
     contracts: [
       "boundary-promotion-pipeline",
       "boundary-sanitization",
+      "app-wiring-contract",
       "brand-fitting",
       "input-schema-validation",
       "external-schema-drift",
     ],
     message:
-      "BoundarySchema patterns must extend boundary-sanitization, brand-fitting, input-schema-validation, boundary-promotion-pipeline, or external-schema-drift",
+      "BoundarySchema patterns must extend boundary-sanitization, app-wiring-contract, brand-fitting, input-schema-validation, boundary-promotion-pipeline, or external-schema-drift",
   },
   {
     primitives: ["PublishedLanguage"],

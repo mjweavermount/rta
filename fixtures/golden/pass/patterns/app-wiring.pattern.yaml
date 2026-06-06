@@ -1,0 +1,12 @@
+kind: PatternSpec
+name: app-wiring
+requiredPrimitives: [AppWiring, Entrypoint]
+testingContract:
+  extends: app-wiring-contract
+  adds:
+    - app-starts: wiring declares where an app starts before source inspection
+    - graphable-chain: wiring connects entrypoint, surface, adapter, schema, operation, runtime, deployment, and demo
+    - demo-required: every runnable entrypoint names a demo path
+vocabHint: Context declares appWiring with entrypoints that compose surfaces, adapterBindings, inputSchemas, operations, runtimeCapabilities, deploymentIntents, and demos.
+visualConcepts: [entrypoint, wiring, graph, runtime, demo]
+narrativeLabel: "(app-wiring) {name} — starts {app} through graphable entrypoints"

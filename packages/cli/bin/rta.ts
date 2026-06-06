@@ -8,6 +8,7 @@ import { runLint } from "../src/lint.js"
 import { runCoverage } from "../src/coverage.js"
 import { runTestPolicy } from "../src/test-policy.js"
 import { generateAppScaffold } from "../src/app-scaffold.js"
+import { printWiringGraph } from "../src/app-wiring.js"
 import { CHECK_MODES, COVERAGE_KINDS } from "../src/cli-inventory.js"
 
 // ---------------------------------------------------------------------------
@@ -100,6 +101,7 @@ const main = Effect.gen(function* () {
         ...(hasFlag("--boundary-sanitization") ? { boundarySanitization: true } : {}),
         ...(hasFlag("--brand-bloom") ? { brandBloom: true } : {}),
         ...(hasFlag("--deployment-contract") ? { deploymentContract: true } : {}),
+        ...(hasFlag("--app-wiring") ? { appWiring: true } : {}),
       })
       process.exit(exitCode)
       break
@@ -157,6 +159,16 @@ const main = Effect.gen(function* () {
       process.exit(exitCode)
       break
     }
+    case "wiring": {
+      if (args[1] !== "graph") {
+        console.error("rta wiring: expected subcommand graph")
+        process.exit(1)
+        break
+      }
+      const exitCode = yield* Effect.promise(() => printWiringGraph(flagValue("--root") ?? process.cwd()))
+      process.exit(exitCode)
+      break
+    }
     default: {
       console.log(`
 Ṛta CLI
@@ -170,6 +182,7 @@ Usage:
   rta lint              Check all *.context.yaml files for missing descriptions
   rta coverage          Check bidirectional coverage between vocab declarations and source implementations
   rta test-policy       Check that every declared primitive has at least one test mention
+  rta wiring graph      Render app entrypoint wiring graph
   rta serve             Start the visualizer pointed at this project
 
 Options:
@@ -204,6 +217,7 @@ Options:
   --boundary-sanitization Validate boundary schemas and adapter promotion pipelines
   --brand-bloom         Validate branded vocab manifest and adapter fittings
   --deployment-contract Validate host-neutral deployment intent and optional hosting adapters
+  --app-wiring          Validate app entrypoints wire surfaces, adapters, schemas, operations, runtime, and demos
 `)
       process.exit(command && !wantsHelp ? 1 : 0)
     }

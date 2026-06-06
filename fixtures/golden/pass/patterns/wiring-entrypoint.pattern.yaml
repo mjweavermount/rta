@@ -1,0 +1,12 @@
+kind: PatternSpec
+name: wiring-entrypoint
+requiredPrimitives: [Entrypoint, BoundarySchema]
+testingContract:
+  extends: app-wiring-contract
+  adds:
+    - not-adapter: entrypoints are app starts, not transport adapters
+    - boundary-first: each entrypoint names the boundary schema promoted before operation use
+    - operation-target: each entrypoint names the operation it invokes
+vocabHint: AppWiring entrypoints declare kind, surface/tool, adapterBinding, inputSchema, operation, runtimeCapabilities, deploymentIntent, and demo.
+visualConcepts: [start, boundary, operation, demo, graph]
+narrativeLabel: "(wiring-entrypoint) {name} — enters through {kind} and invokes {operation}"

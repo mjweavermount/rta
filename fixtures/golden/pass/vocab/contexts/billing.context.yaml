@@ -168,6 +168,23 @@ deploymentIntents:
       requiresReview: true
       writesToExternalSystem: true
 
+appWiring:
+  name: BillingAppWiring
+  app: billing
+  description: Runnable starts for the Billing fixture app; entrypoints compose surfaces, adapters, boundary schemas, operations, runtime, deployment, and demos.
+  entrypoints:
+    - name: AffineCurrentUserTool
+      kind: mcp-tool
+      description: MCP tool start that reads current AFFiNE user through the governed fake GraphQL adapter.
+      surface: AffineMcp
+      tool: affine.current_user
+      adapterBinding: LocalAffineDocumentBinding
+      inputSchema: AffineDocReadInput
+      operation: GetInvoice
+      runtimeCapabilities: [AffineGraphqlClient]
+      deploymentIntent: BillingLocalContainer
+      demo: pnpm --filter @rta/example-affine-ops-gateway run demo:fake
+
 aggregates:
   - name: Invoice
     description: A lightweight invoice aggregate used to trigger billing decisions and reactions.

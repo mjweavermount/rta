@@ -14,6 +14,7 @@ import {
   PublishedLanguageDeclaration,
 } from "./boundary.js"
 import { DeploymentIntentDeclaration } from "./deployment.js"
+import { AppWiringDeclaration } from "./wiring.js"
 
 // ---------------------------------------------------------------------------
 // Import declaration
@@ -70,6 +71,8 @@ export const BoundedContextDeclaration = Schema.Struct({
   toolSurfaces: Schema.optional(Schema.Array(ToolSurfaceDeclaration)),
   /** Host-neutral deployment intents plus optional hosting adapter targets. */
   deploymentIntents: Schema.optional(Schema.Array(DeploymentIntentDeclaration)),
+  /** Runnable app starts that wire surfaces to boundaries, operations, runtime, and demos. */
+  appWiring: Schema.optional(AppWiringDeclaration),
   // Reserved vocab slot:
   // `projectors` likely belongs here if/when Projector is promoted to a
   // first-class primitive. Keep it adjacent to decisions / process managers,

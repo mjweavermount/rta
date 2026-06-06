@@ -313,6 +313,72 @@ const validateDeploymentIntents = (
   return issues
 }
 
+const collectOperations = (context: BoundedContextDeclaration): ReadonlySet<string> => {
+  const names = new Set<string>()
+  for (const aggregate of context.aggregates ?? []) {
+    for (const command of aggregate.commands ?? []) names.add(command.name)
+    for (const event of aggregate.events ?? []) names.add(event.name)
+    for (const rule of aggregate.rules ?? []) names.add(rule.name)
+    for (const decision of aggregate.decisions ?? []) names.add(decision.name)
+  }
+  for (const query of context.queries ?? []) names.add(query.name)
+  for (const decision of context.decisions ?? []) names.add(decision.name)
+  for (const processManager of context.processManagers ?? []) names.add(processManager.name)
+  return names
+}
+
+const validateAppWiring = (
+  context: BoundedContextDeclaration,
+): ReadonlyArray<string> => {
+  const wiring = context.appWiring
+  if (!wiring) return []
+
+  const issues: string[] = []
+  const boundarySchemas = new Set((context.boundarySchemas ?? []).map((schema) => schema.name))
+  const adapterBindings = new Set((context.adapterBindings ?? []).map((binding) => binding.name))
+  const runtimeCapabilities = new Set((context.runtimeCapabilities ?? []).map((capability) => capability.name))
+  const deploymentIntents = new Set((context.deploymentIntents ?? []).map((intent) => intent.name))
+  const operations = collectOperations(context)
+  const toolSurfaces = new Map((context.toolSurfaces ?? []).map((surface) => [surface.name, surface]))
+
+  for (const entrypoint of wiring.entrypoints) {
+    const label = `${context.name}.appWiring.${wiring.name}.entrypoint.${entrypoint.name}`
+    if (!boundarySchemas.has(entrypoint.inputSchema)) {
+      issues.push(`${label}: references unknown input schema "${entrypoint.inputSchema}"`)
+    }
+    if (!operations.has(entrypoint.operation)) {
+      issues.push(`${label}: references unknown operation "${entrypoint.operation}"`)
+    }
+    if (entrypoint.adapterBinding && !adapterBindings.has(entrypoint.adapterBinding)) {
+      issues.push(`${label}: references unknown adapter binding "${entrypoint.adapterBinding}"`)
+    }
+    if (entrypoint.deploymentIntent && !deploymentIntents.has(entrypoint.deploymentIntent)) {
+      issues.push(`${label}: references unknown deployment intent "${entrypoint.deploymentIntent}"`)
+    }
+    for (const capability of entrypoint.runtimeCapabilities ?? []) {
+      if (!runtimeCapabilities.has(capability)) {
+        issues.push(`${label}: references unknown runtime capability "${capability}"`)
+      }
+    }
+    if (entrypoint.surface) {
+      const surface = toolSurfaces.get(entrypoint.surface)
+      if (!surface) {
+        issues.push(`${label}: references unknown tool surface "${entrypoint.surface}"`)
+      } else if (entrypoint.tool && !surface.tools.some((tool) => tool.name === entrypoint.tool)) {
+        issues.push(`${label}: references unknown tool "${entrypoint.tool}" on surface "${entrypoint.surface}"`)
+      }
+    }
+    if (entrypoint.kind === "mcp-tool" && (!entrypoint.surface || !entrypoint.tool)) {
+      issues.push(`${label}: mcp-tool entrypoints must name surface and tool`)
+    }
+    if (entrypoint.kind !== "demo" && entrypoint.demo.trim().length === 0) {
+      issues.push(`${label}: entrypoint must name a runnable demo path`)
+    }
+  }
+
+  return issues
+}
+
 const validateContextDeclaration = (
   context: BoundedContextDeclaration,
 ): ReadonlyArray<string> => [
@@ -334,6 +400,7 @@ const validateContextDeclaration = (
   ...validateToolSurfaces(context),
   ...validateBoundaryContracts(context),
   ...validateDeploymentIntents(context),
+  ...validateAppWiring(context),
 ]
 
 const validateConnectionsDeclaration = (

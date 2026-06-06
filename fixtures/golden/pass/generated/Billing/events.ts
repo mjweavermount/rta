@@ -1,4 +1,4 @@
-// @rta-generated vocab-hash:56c2dbca0afaac7a92ec8cb18698354a0c54afa7bc5a3f91a90b53669f3e992f
+// @rta-generated vocab-hash:09ce41eef3b5ca0cbd33460c6cc009aa0eb4f0d53a3262f2ee5dfd249a9c1435
 import { Schema } from "effect"
 import { defineStrictDomainEvent } from "@rta/strict"
 

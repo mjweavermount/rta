@@ -1,0 +1,26 @@
+kind: BoundedContext
+name: DemoWiring
+classification: supporting
+description: Fixture where app wiring references a missing operation.
+
+boundarySchemas:
+  - name: DemoInput
+    kind: input
+    source: effect-schema
+    validation:
+      required: true
+      strategy: decode
+    sanitization:
+      required: true
+      strategy: cli-input
+
+appWiring:
+  name: DemoAppWiring
+  app: demo
+  entrypoints:
+    - name: MissingOperationCli
+      kind: cli
+      inputSchema: DemoInput
+      operation: MissingOperation
+      demo: pnpm demo:demo
+

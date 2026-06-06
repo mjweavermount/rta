@@ -267,6 +267,105 @@ deploymentIntents:
     expect(result.deploymentIntents?.[1]?.adapter).toBe("workload-app")
   })
 
+  it("parses app wiring entrypoints as app starts over declared surfaces and operations", async () => {
+    const yaml = `
+kind: BoundedContext
+name: WiredApp
+classification: supporting
+runtimeCapabilities:
+  - name: HttpClient
+    kind: http-client
+boundarySchemas:
+  - name: ReadInput
+    kind: input
+    source: effect-schema
+    validation:
+      required: true
+      strategy: decode
+    sanitization:
+      required: true
+      strategy: mcp-tool
+ports:
+  - name: ReadPort
+    kind: http-client
+    direction: outbound
+    inputSchemas: [ReadInput]
+adapterBindings:
+  - name: ReadBinding
+    port: ReadPort
+    adapter: FakeReadAdapter
+    target: local-demo
+    mode: fake
+    boundaryPipeline:
+      inputSchema: ReadInput
+      decode: true
+      sanitize: true
+      normalize: true
+      authorize: true
+      translateTo: ReadThing
+      logs:
+        promotion: true
+        rejection: true
+toolSurfaces:
+  - name: WiredMcp
+    service: wired
+    protocol: mcp
+    tools:
+      - name: wired.read
+        safety: read
+        credentialMode: none
+queries:
+  - name: ReadThing
+    returns: ThingReadModel
+appWiring:
+  name: WiredAppWiring
+  app: wired-app
+  entrypoints:
+    - name: ReadTool
+      kind: mcp-tool
+      surface: WiredMcp
+      tool: wired.read
+      adapterBinding: ReadBinding
+      inputSchema: ReadInput
+      operation: ReadThing
+      runtimeCapabilities: [HttpClient]
+      demo: pnpm demo:wired
+`
+    const result = await run(parseVocabContent(yaml))
+    expect(result.kind).toBe("BoundedContext")
+    if (result.kind !== "BoundedContext") return
+    expect(result.appWiring?.entrypoints[0]?.name).toBe("ReadTool")
+  })
+
+  it("rejects app wiring that points to a missing operation", async () => {
+    const yaml = `
+kind: BoundedContext
+name: BadWiredApp
+classification: supporting
+boundarySchemas:
+  - name: ReadInput
+    kind: input
+    source: effect-schema
+    validation:
+      required: true
+      strategy: decode
+    sanitization:
+      required: true
+      strategy: mcp-tool
+appWiring:
+  name: BadWiring
+  app: bad-wired-app
+  entrypoints:
+    - name: MissingOperationEntrypoint
+      kind: cli
+      inputSchema: ReadInput
+      operation: MissingOperation
+      demo: pnpm demo:bad
+`
+    const err = await runFail(parseVocabContent(yaml))
+    expect(err._tag).toBe("VocabParseError")
+  })
+
   it("rejects home-lab deployment intents that are mandatory", async () => {
     const yaml = `
 kind: BoundedContext

@@ -9,6 +9,7 @@ export * from "./policy.js"
 export * from "./capability.js"
 export * from "./boundary.js"
 export * from "./deployment.js"
+export * from "./wiring.js"
 export * from "./context.js"
 export * from "./connections.js"
 
