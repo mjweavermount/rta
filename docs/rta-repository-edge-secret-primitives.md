@@ -261,11 +261,30 @@ Patterns:
 - `T2.Pattern.VaultSecret`
 - `T2.Pattern.ApiToken`
 
-Effect services to introduce:
+Effect services:
 
 - `SecretStore`
 - `Redactor`
 - `RevealSecretCapability`
+
+Initial implementation:
+
+- `SecretRef` is an opaque, branded, frozen reference whose string and JSON
+  representations return only its redacted form.
+- `InMemorySecretStore` stores cleartext only inside the store, returns
+  `SecretRef` for `put`/`get`, and reveals cleartext only through a
+  `PolicyToken`.
+- `SecretRedactor` recursively redacts `SecretRef` values and secret-shaped
+  object keys such as `token`, `password`, `apiKey`, and `clientSecret`.
+- `FileRuntime` redacts artifacts before writing them, so review/demo artifacts
+  do not persist secret refs or obvious secret-shaped fields.
+
+Still pending patterns:
+
+- `T2.Pattern.EnvironmentSecret`
+- `T2.Pattern.FileSecret`
+- `T2.Pattern.VaultSecret`
+- `T2.Pattern.ApiToken`
 
 Readable logs should show values as `[REDACTED:<SecretName>]`.
 

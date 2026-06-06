@@ -8,6 +8,8 @@ export interface SecretRef {
   readonly [STypeId]: SecretTypeId
   readonly key: string
   readonly redacted: string
+  readonly toString: () => string
+  readonly toJSON: () => string
 }
 
 export interface SecretStore {
@@ -16,11 +18,16 @@ export interface SecretStore {
   readonly reveal: (secret: SecretRef, token: PolicyToken) => Effect.Effect<string, SecretError>
 }
 
-export const makeSecretRef = (key: string, redacted = "[secret]"): SecretRef => ({
-  [STypeId]: STypeId,
-  key,
-  redacted,
-})
+export const makeSecretRef = (key: string, redacted = "[secret]"): SecretRef => {
+  const secret: SecretRef = {
+    [STypeId]: STypeId,
+    key,
+    redacted,
+    toString: () => redacted,
+    toJSON: () => redacted,
+  }
+  return Object.freeze(secret) as SecretRef
+}
 
 export const isSecretRef = (value: unknown): value is SecretRef =>
   typeof value === "object" && value !== null && STypeId in value

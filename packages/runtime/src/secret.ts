@@ -1,6 +1,7 @@
 import { Effect } from "effect"
 import {
   SecretError,
+  isSecretRef,
   makeSecretRef,
   type PolicyToken,
   type SecretRef,
@@ -17,6 +18,24 @@ type SecretOperation =
 type SecretResult =
   | { readonly kind: "ref"; readonly secret: SecretRef }
   | { readonly kind: "value"; readonly value: string }
+
+export interface Redactor {
+  readonly redact: (value: unknown) => unknown
+}
+
+export class SecretRedactor implements Redactor {
+  constructor(readonly options: {
+    readonly mask?: string
+    readonly secretKeys?: ReadonlyArray<string>
+  } = {}) {}
+
+  redact(value: unknown): unknown {
+    return redactValue(value, {
+      mask: this.options.mask ?? "[secret]",
+      secretKeys: this.options.secretKeys ?? defaultSecretKeys,
+    })
+  }
+}
 
 export class InMemorySecretStore
   extends InstrumentedSecret<SecretOperation, SecretResult, SecretError>
@@ -103,4 +122,49 @@ export class InMemorySecretStore
       ? Effect.fail(new SecretError({ message: "secret not found", secret: input.secret.key }))
       : Effect.succeed({ kind: "value" as const, value })
   }
+}
+
+const defaultSecretKeys = [
+  "apiKey",
+  "api_key",
+  "authorization",
+  "bearer",
+  "clientSecret",
+  "client_secret",
+  "credential",
+  "password",
+  "secret",
+  "secretKey",
+  "secret_key",
+  "token",
+] as const
+
+const isSecretKey = (key: string, secretKeys: ReadonlyArray<string>): boolean => {
+  const normalized = key.toLowerCase()
+  return secretKeys.some((candidate) => normalized.includes(candidate.toLowerCase()))
+}
+
+const redactValue = (
+  value: unknown,
+  options: { readonly mask: string; readonly secretKeys: ReadonlyArray<string> },
+  seen = new WeakSet<object>(),
+): unknown => {
+  if (isSecretRef(value)) return value.redacted
+  if (typeof value === "string") return value
+  if (typeof value !== "object" || value === null) return value
+  if (seen.has(value)) return "[circular]"
+  seen.add(value)
+
+  if (Array.isArray(value)) {
+    return value.map((item) => redactValue(item, options, seen))
+  }
+
+  return Object.fromEntries(
+    Object.entries(value as Record<string, unknown>).map(([key, item]) => [
+      key,
+      isSecretKey(key, options.secretKeys)
+        ? options.mask
+        : redactValue(item, options, seen),
+    ]),
+  )
 }

@@ -1,17 +1,22 @@
 kind: Capability
 id: pure-ts-effect-runtime
 name: PureTsEffectRuntime
-status: in-progress
+status: demo-covered
 why: RTA should use TypeScript source only, with Effect TS owning runtime behavior, IO, services, layers, typed errors, and app execution.
 ownedBy:
   internal: rta-platform
 demonstratedBy:
   - command: pnpm check:pure-ts
+  - command: nix run .#check-production
+  - command: pnpm --filter @rta/runtime test
   - doc: docs/rta-pure-ts-effect-migration.md
 qaSteps:
   - do: run pnpm check:pure-ts
+  - do: run nix run .#check-production
+  - do: run pnpm --filter @rta/runtime test
   - see: the check fails on new tracked JS/MJS/CJS source
   - see: the allowlist is empty and no tracked JS/MJS/CJS source remains
+  - see: runtime services, repositories, edge boundaries, queues, reviews, and secret redaction execute through Effect tests
 requires:
   - VocabArdCliSkeleton
   - RuntimePorts
@@ -20,3 +25,4 @@ produces:
   - docs/rta-pure-ts-allowlist.txt
   - rta check --pure-ts
   - TypeScript-only source gate
+  - Effect runtime service baseline

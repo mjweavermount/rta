@@ -2,6 +2,7 @@ import { mkdir, readFile, writeFile } from "node:fs/promises"
 import { join } from "node:path"
 import { Effect } from "effect"
 import { DomainError } from "@rta/core"
+import { SecretRedactor, type Redactor } from "./secret.js"
 
 export type RunStatus = "running" | "completed" | "failed"
 export type UnitOfWorkStatus = RunStatus
@@ -91,6 +92,7 @@ export class FileRuntime {
       readonly root: string
       readonly runId: string
       readonly clock?: RuntimeClock
+      readonly redactor?: Redactor
     },
   ) {
     this.runRoot = join(options.root, ".rta", "runs", options.runId)
@@ -102,6 +104,7 @@ export class FileRuntime {
     readonly root: string
     readonly runId: string
     readonly clock?: RuntimeClock
+    readonly redactor?: Redactor
   }): Effect.Effect<FileRuntime, RuntimeError> {
     const runtime = new FileRuntime(options)
     return runtime.ensure().pipe(
@@ -259,7 +262,8 @@ export class FileRuntime {
 
   saveArtifactRaw(name: string, data: unknown): Effect.Effect<string, RuntimeError> {
     const path = join(this.runRoot, "artifacts", name)
-    const content = typeof data === "string" ? data : JSON.stringify(data, null, 2)
+    const safeData = this.redact(data)
+    const content = typeof safeData === "string" ? safeData : JSON.stringify(safeData, null, 2)
     return this.ensure().pipe(
       Effect.flatMap(() =>
         Effect.tryPromise({
@@ -297,6 +301,10 @@ export class FileRuntime {
   private nowIso(): string {
     return (this.options.clock?.now() ?? new Date()).toISOString()
   }
+
+  private redact(value: unknown): unknown {
+    return (this.options.redactor ?? defaultRedactor).redact(value)
+  }
 }
 
 export function createRunId(prefix = "run", clock: RuntimeClock = { now: () => new Date() }): string {
@@ -320,3 +328,5 @@ const sanitizeId = (value: string): string => value.replace(/[^a-zA-Z0-9_.-]/g, 
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null && !Array.isArray(value)
+
+const defaultRedactor = new SecretRedactor()

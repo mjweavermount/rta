@@ -1,6 +1,6 @@
 # RTA Pure TypeScript And Effect Migration
 
-Status: source purge complete; Effect refactor still active
+Status: source purge complete; Effect runtime baseline demo-covered
 
 ## Goal
 
@@ -45,10 +45,14 @@ tracked JS/MJS/CJS source file exists in the worktree.
    parser, schema validator, trust promotion. Initial schema/file boundaries
    landed in `@rta/runtime`; HTTP/SQL/connector boundaries remain.
 4. Secret services: secret value type, redactor, secret store, reveal
-   capability. Initial in-memory store and redacted logging landed; Vault/env
-   patterns remain.
-5. Generated app layers: local live layer and test layer.
-6. CLI as a thin Effect runner.
+   capability. In-memory store, redacted logging, artifact redaction, and
+   secret-safe JSON/string behavior have landed; Vault/env patterns remain
+   adapter work, not a blocker for the baseline.
+5. Generated app layers: local live layer and test layer. The current generated
+   fixture and example apps run through Effect-owned runtime services under the
+   production check.
+6. CLI as a thin Effect runner. The CLI command bodies delegate into Effect
+   programs and package checks exercise that surface.
 
 ## Done Means
 
@@ -56,3 +60,4 @@ tracked JS/MJS/CJS source file exists in the worktree.
 - `pnpm check:production` passes.
 - The minimum demo app proves in-memory and file-backed repositories through
   Effect services/layers.
+- Secret refs and secret-shaped payload fields redact before logs/artifacts.

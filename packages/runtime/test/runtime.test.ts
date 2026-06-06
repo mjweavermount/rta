@@ -27,6 +27,7 @@ import {
   ReviewQueue,
   RunQueuedScenarioJob,
   SchemaEdgeBoundary,
+  SecretRedactor,
   createRunId,
 } from "../src/index.js"
 
@@ -227,6 +228,8 @@ describe("@rta/runtime", () => {
     logs.stop()
 
     expect(ref.redacted).toBe("[secret]")
+    expect(String(ref)).toBe("[secret]")
+    expect(JSON.stringify({ ref })).toBe("{\"ref\":\"[secret]\"}")
     expect(loaded.key).toBe("otter.api_key")
     expect(revealed).toBe("cleartext-value")
     expect(logs.entries.map((entry) => entry.line).join("\n")).not.toContain("cleartext-value")
@@ -234,5 +237,50 @@ describe("@rta/runtime", () => {
       entry.event.primitiveType === "secret" &&
       entry.line.includes("Reveal secret otter.api_key"),
     )).toBe(true)
+  })
+
+  it("redacts secret refs and secret-shaped fields before writing artifacts", async () => {
+    const root = await mkdtemp(join(tmpdir(), "rta-runtime-secret-artifact-test-"))
+    try {
+      const store = new InMemorySecretStore()
+      const ref = await run(store.put("affine.token", "cleartext-token"))
+      const runtime = await run(FileRuntime.create({ root, runId: "secret-run" }))
+      const artifactPath = await run(runtime.saveArtifact("payload.json", {
+        token: "raw-token-value",
+        nested: {
+          secretRef: ref,
+          ordinary: "keep-me",
+        },
+      }))
+      const artifact = await readFile(artifactPath, "utf8")
+
+      expect(artifact).toContain("\"token\": \"[secret]\"")
+      expect(artifact).toContain("\"secretRef\": \"[secret]\"")
+      expect(artifact).toContain("keep-me")
+      expect(artifact).not.toContain("cleartext-token")
+      expect(artifact).not.toContain("raw-token-value")
+    } finally {
+      await rm(root, { recursive: true, force: true })
+    }
+  })
+
+  it("redacts recursively without mutating the original payload", () => {
+    const ref = new SecretRedactor()
+    const payload = {
+      password: "pw",
+      nested: {
+        apiKey: "key",
+        label: "safe",
+      },
+    }
+
+    expect(ref.redact(payload)).toEqual({
+      password: "[secret]",
+      nested: {
+        apiKey: "[secret]",
+        label: "safe",
+      },
+    })
+    expect(payload.nested.apiKey).toBe("key")
   })
 })
