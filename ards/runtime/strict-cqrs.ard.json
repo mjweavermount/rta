@@ -1,0 +1,24 @@
+{
+  "id": "ARD-RTA-CQRS-STRICT",
+  "kind": "letter",
+  "family": "runtime",
+  "title": "Commands Queries And Events Stay Separated",
+  "status": "accepted",
+  "spirit": ["ARD-RTA-CQRS-000"],
+  "supports": ["rta-prod-11-generated-app-runtime-wiring", "rta-prod-07-usecase-scenario-boundary"],
+  "checks": [
+    {
+      "description": "generated command query and event wiring preserves CQRS roles",
+      "command": "rta check --cqrs-contracts"
+    }
+  ],
+  "enforcement": [
+    {
+      "kind": "command",
+      "description": "generated command query and event wiring preserves CQRS roles",
+      "command": "rta check --cqrs-contracts",
+      "expected": "pass"
+    }
+  ],
+  "decision": "Commands do not return business data, queries do not mutate write models, and events drive projections, reactions, process managers, notifications, and side effects."
+}

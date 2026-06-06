@@ -1,0 +1,24 @@
+{
+  "id": "ARD-RTA-HOSTING-ADAPTER",
+  "kind": "letter",
+  "family": "runtime",
+  "title": "Deployment Targets Are Adapters",
+  "status": "accepted",
+  "spirit": ["ARD-RTA-HOSTING-000"],
+  "supports": ["home-lab-hosting-adapter", "rta-prod-13-hosting-adapter-live"],
+  "checks": [
+    {
+      "description": "hosting package remains host-neutral and home-lab promotion is explicit",
+      "command": "rta check --hosting-package"
+    }
+  ],
+  "enforcement": [
+    {
+      "kind": "command",
+      "description": "hosting package remains host-neutral and home-lab promotion is explicit",
+      "command": "rta check --hosting-package",
+      "expected": "pass"
+    }
+  ],
+  "decision": "Home-lab deployment should generate or validate lab adapter artifacts, but RTA apps must remain runnable and useful without being deployed to the lab."
+}

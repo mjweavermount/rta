@@ -1,0 +1,10 @@
+{
+  "id": "ARD-RTA-HOSTING-000",
+  "kind": "spirit",
+  "family": "runtime",
+  "title": "Hosting Is Native But Optional",
+  "status": "accepted",
+  "letters": ["ARD-RTA-HOSTING-ADAPTER"],
+  "supports": ["home-lab-hosting-adapter", "rta-prod-13-hosting-adapter-live"],
+  "decision": "RTA apps should be easy to package and deploy, including to Virgil's home lab, but deployment is an adapter path rather than a requirement for app authorship."
+}

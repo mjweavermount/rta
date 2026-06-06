@@ -1,0 +1,10 @@
+{
+  "id": "ARD-T2-BLOOMING-000",
+  "kind": "spirit",
+  "family": "t2",
+  "title": "Vocabulary Blooms Without Forgetting",
+  "status": "accepted",
+  "letters": ["ARD-T2-OBLIGATION-INHERITANCE"],
+  "supports": ["rta-prod-02-tier-vocab-contracts", "local-extensions-upstreaming"],
+  "decision": "RTA vocabulary should become more concrete from primitive to pattern to archetype to app extension while preserving inherited obligations and making upstreaming possible."
+}

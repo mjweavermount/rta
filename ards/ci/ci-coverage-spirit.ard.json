@@ -1,0 +1,10 @@
+{
+  "id": "ARD-CI-COVERAGE-000",
+  "kind": "spirit",
+  "family": "ci",
+  "title": "Coverage Claims Need Explicit Proof",
+  "status": "accepted",
+  "letters": ["ARD-CI-COVERAGE-WAIVERS"],
+  "supports": ["coverage-waiver-enforcement", "ci-package-release-hygiene"],
+  "decision": "RTA-authored code should target complete test coverage, and any exception must say what proof replaces the missing coverage."
+}

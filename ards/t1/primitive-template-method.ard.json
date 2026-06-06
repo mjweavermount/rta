@@ -1,0 +1,34 @@
+{
+  "id": "ARD-T1-PRIMITIVE-TEMPLATE-METHOD",
+  "kind": "letter",
+  "family": "t1",
+  "title": "Primitive Public Invocation Cannot Be Bypassed",
+  "status": "accepted",
+  "spirit": ["ARD-T1-PRIMITIVE-INSTRUMENTATION-000"],
+  "supports": ["rta-prod-09-observability-telemetry", "rta-prod-06-check-production"],
+  "checks": [
+    {
+      "description": "exported app behavior goes through RTA primitives",
+      "command": "rta check --primitive-boundaries"
+    },
+    {
+      "description": "primitive implementations preserve the template method contract",
+      "command": "rta check --primitive-template-method"
+    }
+  ],
+  "enforcement": [
+    {
+      "kind": "command",
+      "description": "exported app behavior goes through RTA primitives",
+      "command": "rta check --primitive-boundaries",
+      "expected": "pass"
+    },
+    {
+      "kind": "command",
+      "description": "primitive implementations preserve the template method contract",
+      "command": "rta check --primitive-template-method",
+      "expected": "pass"
+    }
+  ],
+  "decision": "Primitive descendants may customize summaries, validation, execution, and redacted diagnostics, but they may not replace the public invocation path that emits lifecycle events."
+}

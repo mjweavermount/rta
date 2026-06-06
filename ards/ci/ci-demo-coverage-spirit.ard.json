@@ -1,0 +1,10 @@
+{
+  "id": "ARD-CI-DEMO-000",
+  "kind": "spirit",
+  "family": "ci",
+  "title": "Work Is Done When It Can Be Experienced",
+  "status": "accepted",
+  "letters": ["ARD-CI-DEMO-WORK-LEDGER"],
+  "supports": ["work-ledger", "rta-prod-00-rebaseline-ledger"],
+  "decision": "RTA should not accept invisible progress; every completed capability must be tied to a demo, proof-through-integration, or explicit source/doc acceptance path."
+}

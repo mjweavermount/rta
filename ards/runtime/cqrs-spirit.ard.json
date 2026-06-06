@@ -1,0 +1,10 @@
+{
+  "id": "ARD-RTA-CQRS-000",
+  "kind": "spirit",
+  "family": "runtime",
+  "title": "CQRS Is Core",
+  "status": "accepted",
+  "letters": ["ARD-RTA-CQRS-STRICT"],
+  "supports": ["rta-prod-11-generated-app-runtime-wiring"],
+  "decision": "RTA-authored apps must keep commands, queries, events, handlers, projections, and reactions in distinct roles so domain behavior stays inspectable and generated wiring remains safe."
+}

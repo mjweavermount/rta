@@ -1,0 +1,24 @@
+{
+  "id": "ARD-CI-COVERAGE-WAIVERS",
+  "kind": "letter",
+  "family": "ci",
+  "title": "Coverage Waivers Are Typed And Temporary",
+  "status": "accepted",
+  "spirit": ["ARD-CI-COVERAGE-000"],
+  "supports": ["coverage-waiver-enforcement", "ci-package-release-hygiene"],
+  "checks": [
+    {
+      "description": "authored-code coverage is complete or covered by explicit waivers",
+      "command": "rta check --coverage-waivers"
+    }
+  ],
+  "enforcement": [
+    {
+      "kind": "command",
+      "description": "authored-code coverage is complete or covered by explicit waivers",
+      "command": "rta check --coverage-waivers",
+      "expected": "pass"
+    }
+  ],
+  "decision": "A coverage waiver must identify the uncovered file, explain the reason, name replacement proof, and expire or be revisited."
+}

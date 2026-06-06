@@ -1,0 +1,24 @@
+{
+  "id": "ARD-CI-DEMO-WORK-LEDGER",
+  "kind": "letter",
+  "family": "ci",
+  "title": "Completed Work Declares Demo Coverage",
+  "status": "accepted",
+  "spirit": ["ARD-CI-DEMO-000"],
+  "supports": ["work-ledger", "rta-prod-00-rebaseline-ledger"],
+  "checks": [
+    {
+      "description": "work ledger cards have do and see QA steps and demo coverage",
+      "command": "rta check --work-ledger && rta check --demo-coverage"
+    }
+  ],
+  "enforcement": [
+    {
+      "kind": "command",
+      "description": "work ledger cards have do and see QA steps and demo coverage",
+      "command": "rta check --work-ledger && rta check --demo-coverage",
+      "expected": "pass"
+    }
+  ],
+  "decision": "Feature cards need at least one operator action and one visible result, and accepted capabilities must map to a demo surface."
+}

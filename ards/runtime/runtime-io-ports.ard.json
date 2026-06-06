@@ -1,0 +1,24 @@
+{
+  "id": "ARD-RTA-RUNTIME-IO-PORTS",
+  "kind": "letter",
+  "family": "runtime",
+  "title": "IO Time Randomness And Secrets Use Ports",
+  "status": "accepted",
+  "spirit": ["ARD-RTA-RUNTIME-PORTS-000"],
+  "supports": ["runtime-ports", "pure-ts-effect-runtime", "security-hardening"],
+  "checks": [
+    {
+      "description": "runtime IO is routed through typed ports and services",
+      "command": "rta check --runtime-ports"
+    }
+  ],
+  "enforcement": [
+    {
+      "kind": "command",
+      "description": "runtime IO is routed through typed ports and services",
+      "command": "rta check --runtime-ports",
+      "expected": "pass"
+    }
+  ],
+  "decision": "Domain and primitive code should receive time, randomness, persistence, secrets, queues, and external systems through declared ports instead of ambient process globals or ad hoc filesystem/network calls."
+}

@@ -1,0 +1,10 @@
+{
+  "id": "ARD-T1-PRIMITIVE-INSTRUMENTATION-000",
+  "kind": "spirit",
+  "family": "t1",
+  "title": "Primitives Speak Before Leaves Work",
+  "status": "accepted",
+  "letters": ["ARD-T1-PRIMITIVE-TEMPLATE-METHOD"],
+  "supports": ["rta-prod-09-observability-telemetry", "rta-prod-02-tier-vocab-contracts"],
+  "decision": "RTA primitives must own operation lifecycle instrumentation so app leaves cannot skip required structured events, readable log projection, trace context, or failure capture."
+}

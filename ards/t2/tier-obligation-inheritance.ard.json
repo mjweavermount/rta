@@ -1,0 +1,24 @@
+{
+  "id": "ARD-T2-OBLIGATION-INHERITANCE",
+  "kind": "letter",
+  "family": "t2",
+  "title": "Concrete Vocabulary Inherits Parent Obligations",
+  "status": "accepted",
+  "spirit": ["ARD-T2-BLOOMING-000"],
+  "supports": ["rta-prod-02-tier-vocab-contracts", "rta-prod-04-derivation-engine"],
+  "checks": [
+    {
+      "description": "tier pattern and archetype contracts preserve inherited obligations",
+      "command": "rta check --tier-contracts && rta check --pattern-contracts && rta check --archetype-bindings"
+    }
+  ],
+  "enforcement": [
+    {
+      "kind": "command",
+      "description": "tier pattern and archetype contracts preserve inherited obligations",
+      "command": "rta check --tier-contracts && rta check --pattern-contracts && rta check --archetype-bindings",
+      "expected": "pass"
+    }
+  ],
+  "decision": "An app-local concrete extension must state what abstract primitive, pattern, or archetype it extends and must not weaken inherited obligations without an accepted waiver."
+}
