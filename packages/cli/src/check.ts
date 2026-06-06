@@ -29,6 +29,7 @@ import { runWorkLedgerCheck } from "./check-work-ledger.js"
 import { runCoverageWaiverCheck } from "./check-coverage-waivers.js"
 import { checkBoundarySanitization } from "./check-boundary-sanitization.js"
 import { checkBrandBloom } from "./check-brand-bloom.js"
+import { checkDeploymentContract } from "./check-deployment-contract.js"
 
 // ---------------------------------------------------------------------------
 // Discover ARD files under a root directory.
@@ -108,6 +109,7 @@ export interface CheckOptions {
   readonly coverageWaivers?: boolean
   readonly boundarySanitization?: boolean
   readonly brandBloom?: boolean
+  readonly deploymentContract?: boolean
 }
 
 export const runCheck = (options: CheckOptions = {}): Effect.Effect<number> =>
@@ -157,6 +159,9 @@ export const runCheck = (options: CheckOptions = {}): Effect.Effect<number> =>
     }
     if (options.brandBloom) {
       return yield* Effect.promise(() => checkBrandBloom(cwd))
+    }
+    if (options.deploymentContract) {
+      return yield* Effect.promise(() => checkDeploymentContract(cwd))
     }
     if (options.decisionShapes) {
       return yield* Effect.promise(() => checkDecisionShapes(cwd))
@@ -213,6 +218,7 @@ export const runCheck = (options: CheckOptions = {}): Effect.Effect<number> =>
         ["trace-context", () => Effect.promise(() => checkTraceContext(cwd))],
         ["boundary-sanitization", () => Effect.promise(() => checkBoundarySanitization(cwd))],
         ["brand-bloom", () => Effect.promise(() => checkBrandBloom(cwd))],
+        ["deployment-contract", () => Effect.promise(() => checkDeploymentContract(cwd))],
         ["pattern-specs", () => Effect.promise(() => checkPatternSpecs(cwd))],
         ["pattern-contracts", () => Effect.promise(() => checkPatternContracts(cwd))],
         ["archetype-specs", () => Effect.promise(() => checkArchetypeSpecs(cwd))],

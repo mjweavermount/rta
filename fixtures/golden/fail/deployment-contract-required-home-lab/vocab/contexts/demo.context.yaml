@@ -1,0 +1,27 @@
+kind: BoundedContext
+name: DemoDeploy
+classification: supporting
+description: Fixture where home-lab deployment is incorrectly required.
+
+deploymentIntents:
+  - name: RequiredHomeLab
+    app: demo
+    target: home-lab
+    adapter: workload-app
+    optional: false
+    image:
+      repository: ghcr.io/mjweavermount/demo
+      tag: latest
+    processes:
+      - name: api
+        role: api
+        command: [node, dist/cli.js, serve]
+        ports:
+          - { name: http, port: 8080, protocol: http }
+    healthCheck:
+      process: api
+      path: /healthz
+      port: http
+    promotion:
+      requiresReview: true
+      writesToExternalSystem: true

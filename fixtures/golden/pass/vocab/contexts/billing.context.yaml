@@ -20,6 +20,13 @@ runtimeCapabilities:
       - { name: endpoint, type: Url }
       - { name: timeoutMs, type: PositiveInt }
     appBindings: [local-demo, production-lab]
+  - name: HomeLabWorkloadApp
+    kind: hosting-adapter
+    description: Optional adapter that can render this RTA app as a home-lab WorkloadApp draft.
+    configFields:
+      - { name: namespace, type: NonEmptyString }
+      - { name: routeHost, type: NonEmptyString }
+    appBindings: [production-lab]
 
 ports:
   - name: AffineDocumentPort
@@ -112,6 +119,54 @@ toolSurfaces:
         credentialMode: user-required
         runtimeCapabilities: [OperatorVault, AffineGraphqlClient]
         failClosedReason: Golden fixture has not verified AFFiNE write semantics.
+
+deploymentIntents:
+  - name: BillingLocalContainer
+    app: billing
+    target: container
+    adapter: container
+    optional: false
+    description: Local container package for exercising deployment without requiring any host.
+    image:
+      repository: ghcr.io/mjweavermount/rta-billing
+      tag: local
+    processes:
+      - name: api
+        role: api
+        command: [node, dist/cli.js, serve]
+        ports:
+          - { name: http, port: 8080, protocol: http }
+    healthCheck:
+      process: api
+      path: /healthz
+      port: http
+    configSchemas: [AffineDocReadInput]
+    promotion:
+      requiresReview: false
+      writesToExternalSystem: false
+  - name: BillingHomeLabDraft
+    app: billing
+    target: home-lab
+    adapter: workload-app
+    optional: true
+    description: Optional WorkloadApp draft output for Virgil's lab; not required for local app use.
+    runtimeCapability: HomeLabWorkloadApp
+    image:
+      repository: ghcr.io/mjweavermount/rta-billing
+      tag: latest
+    processes:
+      - name: api
+        role: api
+        command: [node, dist/cli.js, serve]
+        ports:
+          - { name: http, port: 8080, protocol: http }
+    healthCheck:
+      process: api
+      path: /healthz
+      port: http
+    promotion:
+      requiresReview: true
+      writesToExternalSystem: true
 
 aggregates:
   - name: Invoice

@@ -38,7 +38,8 @@
     "demo-coverage",
     "coverage-waivers",
     "boundary-sanitization",
-    "brand-bloom"
+    "brand-bloom",
+    "deployment-contract"
   ],
   "future_cli_checks": [
     "dep-cruise",

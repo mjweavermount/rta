@@ -196,6 +196,106 @@ publishedLanguages:
     expect(result.publishedLanguages?.[0]?.protocol).toBe("openapi")
   })
 
+  it("parses host-neutral deployment intents with optional home-lab adapter output", async () => {
+    const yaml = `
+kind: BoundedContext
+name: DeployableApp
+classification: supporting
+runtimeCapabilities:
+  - name: HomeLabWorkloadApp
+    kind: hosting-adapter
+boundarySchemas:
+  - name: AppConfig
+    kind: input
+    source: effect-schema
+    validation:
+      required: true
+      strategy: decode
+    sanitization:
+      required: true
+      strategy: cli-input
+deploymentIntents:
+  - name: LocalContainer
+    app: deployable-app
+    target: container
+    adapter: container
+    optional: false
+    image:
+      repository: ghcr.io/mjweavermount/deployable-app
+      tag: local
+    processes:
+      - name: api
+        role: api
+        command: [node, dist/cli.js, serve]
+        ports:
+          - { name: http, port: 8080, protocol: http }
+    healthCheck:
+      process: api
+      path: /healthz
+      port: http
+    configSchemas: [AppConfig]
+    promotion:
+      requiresReview: false
+      writesToExternalSystem: false
+  - name: HomeLabDraft
+    app: deployable-app
+    target: home-lab
+    adapter: workload-app
+    optional: true
+    runtimeCapability: HomeLabWorkloadApp
+    image:
+      repository: ghcr.io/mjweavermount/deployable-app
+      tag: latest
+    processes:
+      - name: api
+        role: api
+        command: [node, dist/cli.js, serve]
+        ports:
+          - { name: http, port: 8080, protocol: http }
+    healthCheck:
+      process: api
+      path: /healthz
+      port: http
+    promotion:
+      requiresReview: true
+      writesToExternalSystem: true
+`
+    const result = await run(parseVocabContent(yaml))
+    expect(result.kind).toBe("BoundedContext")
+    if (result.kind !== "BoundedContext") return
+    expect(result.deploymentIntents?.[0]?.target).toBe("container")
+    expect(result.deploymentIntents?.[1]?.adapter).toBe("workload-app")
+  })
+
+  it("rejects home-lab deployment intents that are mandatory", async () => {
+    const yaml = `
+kind: BoundedContext
+name: BadDeployableApp
+classification: supporting
+deploymentIntents:
+  - name: HomeLabRequired
+    app: bad-app
+    target: home-lab
+    adapter: workload-app
+    optional: false
+    image:
+      repository: ghcr.io/mjweavermount/bad-app
+      tag: latest
+    processes:
+      - name: api
+        role: api
+        command: [node, dist/cli.js, serve]
+    healthCheck:
+      process: api
+      path: /healthz
+    promotion:
+      requiresReview: true
+      writesToExternalSystem: true
+`
+    const err = await runFail(parseVocabContent(yaml))
+    expect(err._tag).toBe("VocabParseError")
+  })
+
   it("rejects boundary DTOs that do not require validation", async () => {
     const yaml = `
 kind: BoundedContext

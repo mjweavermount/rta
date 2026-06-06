@@ -99,6 +99,7 @@ const main = Effect.gen(function* () {
         ...(hasFlag("--coverage-waivers") ? { coverageWaivers: true } : {}),
         ...(hasFlag("--boundary-sanitization") ? { boundarySanitization: true } : {}),
         ...(hasFlag("--brand-bloom") ? { brandBloom: true } : {}),
+        ...(hasFlag("--deployment-contract") ? { deploymentContract: true } : {}),
       })
       process.exit(exitCode)
       break
@@ -202,6 +203,7 @@ Options:
   --coverage-waivers    Validate 100% authored-code coverage or explicit waivers
   --boundary-sanitization Validate boundary schemas and adapter promotion pipelines
   --brand-bloom         Validate branded vocab manifest and adapter fittings
+  --deployment-contract Validate host-neutral deployment intent and optional hosting adapters
 `)
       process.exit(command && !wantsHelp ? 1 : 0)
     }

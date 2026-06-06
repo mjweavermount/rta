@@ -114,6 +114,7 @@ const VALID_T1_TESTING_CONTRACTS = new Set([
   "boundary-promotion-pipeline",
   "boundary-sanitization",
   "brand-fitting",
+  "deployment-contract",
   "input-schema-validation",
   "openapi-contract",
   "policy-deny-coverage",
@@ -176,8 +177,13 @@ const PATTERN_PRIMITIVE_CONTRACTS: ReadonlyArray<{
   },
   {
     primitives: ["RuntimeCapability"],
-    contracts: ["runtime-capability-binding"],
-    message: "RuntimeCapability patterns must extend runtime-capability-binding",
+    contracts: ["runtime-capability-binding", "deployment-contract"],
+    message: "RuntimeCapability patterns must extend runtime-capability-binding or deployment-contract",
+  },
+  {
+    primitives: ["DeploymentIntent"],
+    contracts: ["deployment-contract"],
+    message: "DeploymentIntent patterns must extend deployment-contract",
   },
   {
     primitives: ["Port", "AdapterBinding"],

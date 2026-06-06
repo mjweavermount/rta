@@ -6,14 +6,13 @@ why: Hosting must remain optional but native, with host-neutral intent, home-lab
 ownedBy:
   internal: rta-platform
 demonstratedBy:
-  - command: rta hosting package meeting-digest
-  - command: home-lab WorkloadApp integrity check
+  - command: pnpm --filter @rta/cli rta check --deployment-contract --root ../../fixtures/golden/pass
+  - command: pnpm --filter @rta/cli rta check --deployment-contract --root ../../fixtures/golden/fail/deployment-contract-required-home-lab
 qaSteps:
-  - do: node scripts/rta.mjs hosting intent meeting-digest
-  - do: node scripts/rta.mjs hosting package meeting-digest
-  - do: node scripts/rta.mjs hosting validate meeting-digest
-  - do: node scripts/rta.mjs check --hosting-package
-  - see: live home-lab integrity is optional and requires explicit operator approval
+  - do: run pnpm --filter @rta/cli rta check --deployment-contract --root ../../fixtures/golden/pass
+  - do: run pnpm --filter @rta/cli rta check --deployment-contract --root ../../fixtures/golden/fail/deployment-contract-required-home-lab and confirm it exits non-zero
+  - see: golden fixture has a host-neutral container intent plus an optional home-lab WorkloadApp draft intent
+  - see: required home-lab deployment fails because lab promotion is optional and requires explicit operator approval
 requires:
   - HomeLabHostingAdapter
   - RtaProd11GeneratedAppRuntimeWiring
@@ -21,5 +20,8 @@ produces:
   - host-neutral deployment intent
   - containerized app path
   - home-lab promotion and validation flow
+  - deployment-contract check
+  - deployment-intent pattern
 selfAudit:
   - "@is this deployable as an RTA-authored app, or only renderable as a draft artifact?"
+  - "@is home-lab deployment optional rather than required for all RTA apps?"

@@ -14,6 +14,7 @@ type BrandKind =
   | "OperationId"
   | "PolicyId"
   | "RuntimeCapabilityId"
+  | "DeploymentIntentId"
   | "ToolSurfaceId"
   | "ToolId"
 
@@ -88,6 +89,7 @@ export function buildBrandManifest(
   for (const context of contexts) {
     entries.push(entry("ContextId", context.name, context.name))
     addNames(entries, "RuntimeCapabilityId", context.name, context.runtimeCapabilities?.map((item) => item.name))
+    addNames(entries, "DeploymentIntentId", context.name, context.deploymentIntents?.map((item) => item.name))
     addNames(entries, "PortId", context.name, context.ports?.map((item) => item.name))
     addNames(entries, "BoundarySchemaId", context.name, context.boundarySchemas?.map((item) => item.name))
     addNames(entries, "AdapterBindingId", context.name, context.adapterBindings?.map((item) => item.name))

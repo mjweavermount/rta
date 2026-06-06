@@ -1,24 +1,24 @@
 kind: Capability
 id: home-lab-hosting-adapter
 name: HomeLabHostingAdapter
-status: in-progress
+status: demo-covered
 why: RTA apps should be easy to run in Virgil's home lab without making home-lab deployment mandatory.
 ownedBy:
   internal: rta-platform
   plane: LAB-41
 demonstratedBy:
-  - artifact: generated WorkloadApp intent
-  - artifact: generated WorkloadApp draft package
-  - command: WORKLOAD_APPS_DIR=tmp/rta-workload-root/tmp/workload-apps nix develop --command scripts/test/integrity/workload-apps.rb
+  - command: pnpm --filter @rta/cli rta check --deployment-contract --root ../../fixtures/golden/pass
+  - artifact: deploymentIntents in golden Billing context
   - optionalDemo: approved home-lab deployment
 qaSteps:
-  - do: run or inspect the demonstrated evidence for HomeLabHostingAdapter
-  - see: HomeLabHostingAdapter has visible command, doc, artifact, or integration evidence
+  - do: run pnpm --filter @rta/cli rta check --deployment-contract --root ../../fixtures/golden/pass
+  - do: inspect BillingHomeLabDraft deploymentIntent in fixtures/golden/pass/vocab/contexts/billing.context.yaml
+  - see: optional deployment output is represented without writing to the live lab
+  - see: home-lab deployment is an adapter target, not a hard requirement for local app execution
 requires:
   - GeneratedAppCliRuntimeWiring
   - HostingAdapterContract
 produces:
-  - packages/hosting-adapters
-  - home-lab adapter
-  - WorkloadApp generation path
-  - .rta/hosting/workload-apps
+  - host-neutral deployment intent vocabulary
+  - home-lab WorkloadApp draft target
+  - deployment-contract CLI check

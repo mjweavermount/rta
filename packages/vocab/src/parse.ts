@@ -252,6 +252,67 @@ const validateBoundaryContracts = (
   return issues
 }
 
+const validateDeploymentIntents = (
+  context: BoundedContextDeclaration,
+): ReadonlyArray<string> => {
+  const boundarySchemas = new Set((context.boundarySchemas ?? []).map((schema) => schema.name))
+  const runtimeCapabilities = new Map(
+    (context.runtimeCapabilities ?? []).map((capability) => [capability.name, capability]),
+  )
+  const issues: string[] = []
+
+  for (const intent of context.deploymentIntents ?? []) {
+    const label = `${context.name}.deploymentIntent.${intent.name}`
+    const processNames = new Set(intent.processes.map((process) => process.name))
+    const healthProcess = intent.processes.find((process) => process.name === intent.healthCheck.process)
+
+    if (intent.target === "home-lab" && !intent.optional) {
+      issues.push(`${label}: home-lab deployment intents must be optional`)
+    }
+    if (intent.target === "home-lab" && intent.adapter !== "workload-app") {
+      issues.push(`${label}: home-lab deployment intents must use adapter "workload-app"`)
+    }
+    if ((intent.target === "container" || intent.target === "home-lab" || intent.target === "cloud") && !intent.image) {
+      issues.push(`${label}: ${intent.target} deployment intents must declare an image`)
+    }
+    if (!processNames.has(intent.healthCheck.process)) {
+      issues.push(`${label}: healthCheck references unknown process "${intent.healthCheck.process}"`)
+    }
+    if (healthProcess && intent.healthCheck.port) {
+      const ports = new Set((healthProcess.ports ?? []).map((port) => port.name))
+      if (!ports.has(intent.healthCheck.port)) {
+        issues.push(`${label}: healthCheck references unknown port "${intent.healthCheck.port}" on process "${healthProcess.name}"`)
+      }
+    }
+    for (const schemaName of intent.configSchemas ?? []) {
+      if (!boundarySchemas.has(schemaName)) {
+        issues.push(`${label}: references unknown config schema "${schemaName}"`)
+      }
+    }
+    if (intent.runtimeCapability) {
+      const capability = runtimeCapabilities.get(intent.runtimeCapability)
+      if (!capability) {
+        issues.push(`${label}: references unknown runtime capability "${intent.runtimeCapability}"`)
+      } else if (capability.kind !== "hosting-adapter") {
+        issues.push(`${label}: runtime capability "${intent.runtimeCapability}" must be kind "hosting-adapter"`)
+      }
+    }
+    for (const secret of intent.secrets ?? []) {
+      if (secret.source === "runtime-capability" && !secret.runtimeCapability) {
+        issues.push(`${label}.secret.${secret.name}: runtime-capability secrets must name runtimeCapability`)
+      }
+      if (secret.runtimeCapability && !runtimeCapabilities.has(secret.runtimeCapability)) {
+        issues.push(`${label}.secret.${secret.name}: references unknown runtime capability "${secret.runtimeCapability}"`)
+      }
+    }
+    if ((intent.target === "home-lab" || intent.target === "cloud") && !intent.promotion.requiresReview) {
+      issues.push(`${label}: external deployment targets must require review before promotion`)
+    }
+  }
+
+  return issues
+}
+
 const validateContextDeclaration = (
   context: BoundedContextDeclaration,
 ): ReadonlyArray<string> => [
@@ -272,6 +333,7 @@ const validateContextDeclaration = (
   ),
   ...validateToolSurfaces(context),
   ...validateBoundaryContracts(context),
+  ...validateDeploymentIntents(context),
 ]
 
 const validateConnectionsDeclaration = (

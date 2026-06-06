@@ -21,6 +21,7 @@ export type OperationId<Name extends string = string> = BrandedId<"OperationId",
 export type EntrypointId<Name extends string = string> = BrandedId<"EntrypointId", Name>
 export type PolicyId<Name extends string = string> = BrandedId<"PolicyId", Name>
 export type RuntimeCapabilityId<Name extends string = string> = BrandedId<"RuntimeCapabilityId", Name>
+export type DeploymentIntentId<Name extends string = string> = BrandedId<"DeploymentIntentId", Name>
 export type ScenarioId<Name extends string = string> = BrandedId<"ScenarioId", Name>
 export type RunId<Name extends string = string> = BrandedId<"RunId", Name>
 export type TraceId<Name extends string = string> = BrandedId<"TraceId", Name>
@@ -51,6 +52,7 @@ export const operationId = brandedId("OperationId")
 export const entrypointId = brandedId("EntrypointId")
 export const policyId = brandedId("PolicyId")
 export const runtimeCapabilityId = brandedId("RuntimeCapabilityId")
+export const deploymentIntentId = brandedId("DeploymentIntentId")
 export const scenarioId = brandedId("ScenarioId")
 export const runId = brandedId("RunId")
 export const traceId = brandedId("TraceId")

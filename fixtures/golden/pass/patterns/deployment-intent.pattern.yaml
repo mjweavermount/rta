@@ -1,0 +1,12 @@
+kind: PatternSpec
+name: deployment-intent
+requiredPrimitives: [DeploymentIntent, RuntimeCapability]
+testingContract:
+  extends: deployment-contract
+  adds:
+    - host-neutral-intent: apps declare deployable intent without requiring any specific host
+    - optional-home-lab: home-lab deployment is represented as an optional adapter target
+    - review-promotion: external deployment targets require explicit review before promotion
+vocabHint: Context declares deploymentIntents with target, adapter, image, processes, healthCheck, promotion, and optional runtimeCapability.
+visualConcepts: [deployment, host, adapter, healthcheck, promotion]
+narrativeLabel: "(deployment-intent) {name} — deploys {app} to optional {target} via {adapter}"

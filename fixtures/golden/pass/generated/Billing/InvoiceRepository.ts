@@ -1,4 +1,4 @@
-// @rta-generated vocab-hash:e4e6411a063cbaebccdf4b50d4cef582c5aab0c44ced24978db8c48fcfa27d3a
+// @rta-generated vocab-hash:56c2dbca0afaac7a92ec8cb18698354a0c54afa7bc5a3f91a90b53669f3e992f
 import { Context, Effect, Layer } from "effect"
 import { NotFound } from "@rta/core"
 import type { Invoice, InvoiceId } from "./Invoice.js"
