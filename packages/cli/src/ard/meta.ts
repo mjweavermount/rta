@@ -13,6 +13,7 @@ const FAMILY_PREFIX: Record<string, string | null> = {
   fixture: null,
   custom: null,
   app: null,
+  boundary: null,
   extensions: null,
   review: null,
   runtime: null,

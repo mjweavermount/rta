@@ -7,6 +7,7 @@ export * from "./rule.js"
 export * from "./decision.js"
 export * from "./policy.js"
 export * from "./capability.js"
+export * from "./boundary.js"
 export * from "./context.js"
 export * from "./connections.js"
 

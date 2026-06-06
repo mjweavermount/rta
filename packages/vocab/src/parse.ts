@@ -177,6 +177,59 @@ const validateToolSurfaces = (
   })
 }
 
+const validateBoundaryContracts = (
+  context: BoundedContextDeclaration,
+): ReadonlyArray<string> => {
+  const ports = new Set((context.ports ?? []).map((port) => port.name))
+  const boundarySchemas = new Set((context.boundarySchemas ?? []).map((schema) => schema.name))
+  const issues: string[] = []
+
+  for (const schema of context.boundarySchemas ?? []) {
+    const label = `${context.name}.boundarySchema.${schema.name}`
+    if ((schema.kind === "dto" || schema.kind === "input") && !schema.validation.required) {
+      issues.push(`${label}: input/DTO boundary schemas must require validation`)
+    }
+    if (schema.source === "openapi" && !schema.openapiRef) {
+      issues.push(`${label}: OpenAPI-sourced boundary schemas must declare openapiRef`)
+    }
+  }
+
+  for (const port of context.ports ?? []) {
+    const label = `${context.name}.port.${port.name}`
+    for (const schemaName of [...(port.inputSchemas ?? []), ...(port.outputSchemas ?? [])]) {
+      if (!boundarySchemas.has(schemaName)) {
+        issues.push(`${label}: references unknown boundary schema "${schemaName}"`)
+      }
+    }
+  }
+
+  for (const binding of context.adapterBindings ?? []) {
+    const label = `${context.name}.adapterBinding.${binding.name}`
+    if (!ports.has(binding.port)) {
+      issues.push(`${label}: references unknown port "${binding.port}"`)
+    }
+    if (binding.configSchema && !boundarySchemas.has(binding.configSchema)) {
+      issues.push(`${label}: references unknown config schema "${binding.configSchema}"`)
+    }
+  }
+
+  for (const language of context.publishedLanguages ?? []) {
+    const label = `${context.name}.publishedLanguage.${language.name}`
+    for (const schemaName of language.boundarySchemas) {
+      if (!boundarySchemas.has(schemaName)) {
+        issues.push(`${label}: references unknown boundary schema "${schemaName}"`)
+      }
+    }
+    for (const portName of language.ports ?? []) {
+      if (!ports.has(portName)) {
+        issues.push(`${label}: references unknown port "${portName}"`)
+      }
+    }
+  }
+
+  return issues
+}
+
 const validateContextDeclaration = (
   context: BoundedContextDeclaration,
 ): ReadonlyArray<string> => [
@@ -196,6 +249,7 @@ const validateContextDeclaration = (
     ),
   ),
   ...validateToolSurfaces(context),
+  ...validateBoundaryContracts(context),
 ]
 
 const validateConnectionsDeclaration = (

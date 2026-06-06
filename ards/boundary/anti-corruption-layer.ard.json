@@ -1,0 +1,16 @@
+{
+  "id": "ARD-RTA-BOUNDARY-ANTI-CORRUPTION",
+  "kind": "letter",
+  "family": "boundary",
+  "title": "Anti-Corruption Layers Protect Domain Language",
+  "status": "accepted",
+  "spirit": ["ARD-RTA-BOUNDARY-000"],
+  "supports": ["affine-ops-gateway-pre-mcp", "rta-prod-17-repository-edge-secret-vocab"],
+  "checks": [
+    {
+      "description": "anti-corruption-layer pattern is valid and production-covered",
+      "command": "rta check --pattern-specs --root fixtures/golden/pass && rta check --pattern-contracts --root fixtures/golden/pass && rta check --production --root fixtures/golden/pass"
+    }
+  ],
+  "decision": "An anti-corruption layer is a boundary pattern, not a T1 primitive. It belongs around adapters and published languages when external systems have their own model, and it translates external DTOs into RTA domain language before the domain sees them."
+}

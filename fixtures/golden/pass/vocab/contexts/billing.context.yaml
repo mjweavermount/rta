@@ -21,6 +21,58 @@ runtimeCapabilities:
       - { name: timeoutMs, type: PositiveInt }
     appBindings: [local-demo, production-lab]
 
+ports:
+  - name: AffineDocumentPort
+    kind: graphql-client
+    direction: outbound
+    description: Reads AFFiNE documents through an external connector without leaking the AFFiNE model into Billing.
+    operations: [currentUser, readDocument]
+    inputSchemas: [AffineDocReadInput]
+    outputSchemas: [AffineDocReadOutput]
+    policies: [AffineToolPolicy]
+
+boundarySchemas:
+  - name: AffineDocReadInput
+    kind: dto
+    description: Boundary DTO accepted by the AFFiNE document read adapter before it maps to internal query intent.
+    source: effect-schema
+    fields:
+      - { name: docId, type: NonEmptyString }
+    mapsTo: GetInvoice
+    validation:
+      required: true
+      strategy: decode
+    openapiRef: "#/components/schemas/AffineDocReadInput"
+  - name: AffineDocReadOutput
+    kind: output
+    description: Boundary output DTO returned by the AFFiNE document read adapter.
+    source: openapi
+    fields:
+      - { name: docId, type: NonEmptyString }
+      - { name: markdown, type: String }
+    validation:
+      required: true
+      strategy: validate-only
+    openapiRef: "#/components/schemas/AffineDocReadOutput"
+
+adapterBindings:
+  - name: LocalAffineDocumentBinding
+    port: AffineDocumentPort
+    adapter: FakeAffineGraphqlAdapter
+    target: local-demo
+    description: Local demo uses a fake adapter with the same port contract.
+    mode: fake
+    configSchema: AffineDocReadInput
+    driftCheck: affine-openapi-contract
+
+publishedLanguages:
+  - name: BillingOpenApi
+    protocol: openapi
+    description: Public API contract for the Billing boundary DTOs.
+    boundarySchemas: [AffineDocReadInput, AffineDocReadOutput]
+    ports: [AffineDocumentPort]
+    source: openapi/billing.yaml
+
 toolSurfaces:
   - name: AffineMcp
     description: Minimal governed MCP-style surface used to prove tool safety and runtime capabilities.

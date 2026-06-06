@@ -111,6 +111,8 @@ const VALID_T1_TESTING_CONTRACTS = new Set([
   "rule-two-case",
   "decision-outcome-coverage",
   "external-schema-drift",
+  "input-schema-validation",
+  "openapi-contract",
   "policy-deny-coverage",
   "projection-mount-coverage",
   "runtime-capability-binding",
@@ -171,6 +173,21 @@ const PATTERN_PRIMITIVE_CONTRACTS: ReadonlyArray<{
     message: "RuntimeCapability patterns must extend runtime-capability-binding",
   },
   {
+    primitives: ["Port", "AdapterBinding"],
+    contracts: ["runtime-capability-binding"],
+    message: "Port/AdapterBinding patterns must extend runtime-capability-binding",
+  },
+  {
+    primitives: ["BoundarySchema"],
+    contracts: ["input-schema-validation", "external-schema-drift"],
+    message: "BoundarySchema patterns must extend input-schema-validation or external-schema-drift",
+  },
+  {
+    primitives: ["PublishedLanguage"],
+    contracts: ["openapi-contract", "external-schema-drift"],
+    message: "PublishedLanguage patterns must extend openapi-contract or external-schema-drift",
+  },
+  {
     primitives: ["ExternalSchemaProbe"],
     contracts: ["external-schema-drift"],
     message: "ExternalSchemaProbe patterns must extend external-schema-drift",
@@ -212,6 +229,14 @@ export async function checkPatternContracts(root: string): Promise<number> {
     }
 
     for (const constraint of PATTERN_PRIMITIVE_CONTRACTS) {
+      const isBoundaryContractPattern =
+        primitives.includes("BoundarySchema") || primitives.includes("PublishedLanguage")
+      const isGenericAdapterConstraint =
+        constraint.primitives.includes("InboundAdapter") ||
+        constraint.primitives.includes("OutboundAdapter") ||
+        constraint.primitives.includes("EdgeBoundary")
+      if (isBoundaryContractPattern && isGenericAdapterConstraint) continue
+
       if (
         constraint.primitives.some((primitive) => primitives.includes(primitive)) &&
         !constraint.contracts.includes(extendsName)

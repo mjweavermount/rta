@@ -1,0 +1,12 @@
+kind: PatternSpec
+name: boundary-schema
+requiredPrimitives: [BoundarySchema, EdgeBoundary]
+testingContract:
+  extends: input-schema-validation
+  adds:
+    - required-validation: every inbound DTO declares validation.required true
+    - domain-mapping: boundary schemas that enter domain flow declare mapsTo
+    - source-contract: schema source is declared as Effect Schema, OpenAPI, JSON Schema, or manual
+vocabHint: Context declares boundarySchemas with kind, source, fields, mapsTo, validation, and optional openapiRef.
+visualConcepts: [dto, schema, validation, mapping, edge]
+narrativeLabel: "(boundary-schema) {name} — validates {kind} before domain use"

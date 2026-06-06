@@ -4,7 +4,7 @@
   "family": "runtime",
   "title": "Runtime IO Flows Through Typed Ports",
   "status": "accepted",
-  "letters": ["ARD-RTA-RUNTIME-IO-PORTS"],
+  "letters": ["ARD-RTA-RUNTIME-IO-PORTS", "ARD-RTA-BOUNDARY-PORTS"],
   "supports": ["runtime-ports", "pure-ts-effect-runtime", "security-hardening"],
   "decision": "RTA runtime work should use typed services, ports, and Effect-based boundaries for IO, time, randomness, secrets, queues, and external systems."
 }

@@ -1,0 +1,12 @@
+kind: PatternSpec
+name: anti-corruption-layer
+requiredPrimitives: [OutboundAdapter, BoundarySchema, PublishedLanguage]
+testingContract:
+  extends: external-schema-drift
+  adds:
+    - external-model-isolated: adapter DTOs map to domain messages or value objects before domain logic runs
+    - drift-detected: external schema/source drift is reported before adapter calls are trusted
+    - translation-tested: tests cover at least one valid translation and one rejected external shape
+vocabHint: Use when an external system has its own language, such as AFFiNE, Plane, Otter, Vault, MCP, or SQL.
+visualConcepts: [translation, external-model, domain-language, drift, adapter]
+narrativeLabel: "(anti-corruption-layer) {name} — translates external language without leaking it inward"

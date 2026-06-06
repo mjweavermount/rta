@@ -120,6 +120,109 @@ toolSurfaces:
     expect(result.toolSurfaces?.[0]?.tools).toHaveLength(2)
   })
 
+  it("parses ports, boundary schemas, adapter bindings, and published OpenAPI language", async () => {
+    const yaml = `
+kind: BoundedContext
+name: AffineGateway
+classification: supporting
+ports:
+  - name: AffineDocumentPort
+    kind: graphql-client
+    direction: outbound
+    operations: [readDocument]
+    inputSchemas: [ReadDocInput]
+    outputSchemas: [ReadDocOutput]
+    policies: [ReadOnlyAffinePolicy]
+boundarySchemas:
+  - name: ReadDocInput
+    kind: dto
+    source: effect-schema
+    fields:
+      - { name: docId, type: NonEmptyString }
+    mapsTo: ReadAffineDoc
+    validation:
+      required: true
+      strategy: decode
+    openapiRef: "#/components/schemas/ReadDocInput"
+  - name: ReadDocOutput
+    kind: output
+    source: openapi
+    fields:
+      - { name: markdown, type: String }
+    validation:
+      required: true
+      strategy: validate-only
+    openapiRef: "#/components/schemas/ReadDocOutput"
+adapterBindings:
+  - name: LocalAffineDocumentBinding
+    port: AffineDocumentPort
+    adapter: FakeAffineAdapter
+    target: local-demo
+    mode: fake
+    configSchema: ReadDocInput
+    driftCheck: affine-openapi-contract
+publishedLanguages:
+  - name: AffineGatewayOpenApi
+    protocol: openapi
+    boundarySchemas: [ReadDocInput, ReadDocOutput]
+    ports: [AffineDocumentPort]
+    source: openapi/affine-gateway.yaml
+`
+    const result = await run(parseVocabContent(yaml))
+    expect(result.kind).toBe("BoundedContext")
+    if (result.kind !== "BoundedContext") return
+    expect(result.ports?.[0]?.name).toBe("AffineDocumentPort")
+    expect(result.boundarySchemas?.[0]?.validation.strategy).toBe("decode")
+    expect(result.adapterBindings?.[0]?.mode).toBe("fake")
+    expect(result.publishedLanguages?.[0]?.protocol).toBe("openapi")
+  })
+
+  it("rejects boundary DTOs that do not require validation", async () => {
+    const yaml = `
+kind: BoundedContext
+name: BadGateway
+classification: supporting
+boundarySchemas:
+  - name: UnsafeInput
+    kind: dto
+    source: effect-schema
+    validation:
+      required: false
+      strategy: validate-only
+`
+    const err = await runFail(parseVocabContent(yaml))
+    expect(err._tag).toBe("VocabParseError")
+  })
+
+  it("rejects adapter bindings and published languages that reference missing ports or schemas", async () => {
+    const yaml = `
+kind: BoundedContext
+name: BadGateway
+classification: supporting
+boundarySchemas:
+  - name: KnownInput
+    kind: input
+    source: effect-schema
+    validation:
+      required: true
+      strategy: decode
+adapterBindings:
+  - name: BadBinding
+    port: MissingPort
+    adapter: FakeAdapter
+    target: local-demo
+    mode: fake
+    configSchema: MissingSchema
+publishedLanguages:
+  - name: BadOpenApi
+    protocol: openapi
+    boundarySchemas: [MissingSchema]
+    ports: [MissingPort]
+`
+    const err = await runFail(parseVocabContent(yaml))
+    expect(err._tag).toBe("VocabParseError")
+  })
+
   it("rejects fail-closed tools without an explicit reason", async () => {
     const yaml = `
 kind: BoundedContext

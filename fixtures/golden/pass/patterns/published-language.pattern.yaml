@@ -1,0 +1,12 @@
+kind: PatternSpec
+name: published-language
+requiredPrimitives: [PublishedLanguage, InboundAdapter, EdgeBoundary]
+testingContract:
+  extends: openapi-contract
+  adds:
+    - schema-reference: public contracts reference declared boundary schemas
+    - port-reference: public contracts reference the ports they expose or consume
+    - no-domain-leak: public contracts expose boundary DTOs, not aggregate internals
+vocabHint: Context declares publishedLanguages with protocol, boundarySchemas, ports, and source.
+visualConcepts: [openapi, contract, public-language, dto, port]
+narrativeLabel: "(published-language) {name} — publishes {protocol} contract from boundary schemas"

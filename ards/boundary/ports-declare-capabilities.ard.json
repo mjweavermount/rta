@@ -1,0 +1,16 @@
+{
+  "id": "ARD-RTA-BOUNDARY-PORTS",
+  "kind": "letter",
+  "family": "boundary",
+  "title": "Ports Declare Required Capabilities",
+  "status": "accepted",
+  "spirit": ["ARD-RTA-BOUNDARY-000", "ARD-RTA-RUNTIME-PORTS-000"],
+  "supports": ["runtime-ports", "rta-prod-17-repository-edge-secret-vocab"],
+  "checks": [
+    {
+      "description": "port and adapter-binding patterns are valid and production-covered",
+      "command": "rta check --pattern-specs --root fixtures/golden/pass && rta check --pattern-contracts --root fixtures/golden/pass && rta check --production --root fixtures/golden/pass"
+    }
+  ],
+  "decision": "Ports are named capability requirements owned by an app context. Concrete adapters bind those ports per target instead of domain code importing ambient IO, connector clients, or deployment details."
+}

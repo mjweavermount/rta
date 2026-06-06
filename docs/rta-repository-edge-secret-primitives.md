@@ -1,6 +1,6 @@
 # RTA Repository, Edge Boundary, And Secret Primitives
 
-Status: initial runtime implementation landed; vocab blooming still pending
+Status: initial runtime implementation landed; boundary vocab baseline added
 
 Implemented in this slice:
 
@@ -12,14 +12,47 @@ Implemented in this slice:
   invoke the protected hook through the shared lifecycle logger.
 - `@rta/runtime`: `InMemoryRepository`, `FileBackedRepository`,
   `SchemaEdgeBoundary`, `FileReadBoundary`, and `InMemorySecretStore`.
+- `@rta/vocab`: `ports`, `boundarySchemas`, `adapterBindings`, and
+  `publishedLanguages` context declarations.
+- Golden fixture patterns: `port-contract`, `boundary-schema`,
+  `adapter-binding`, `published-language`, and `anti-corruption-layer`.
 
 Still pending:
 
-- vocab-tier declarations and blooming checks for these primitives
+- generator support for port/boundary-schema files and OpenAPI output
 - generator support that emits concrete repositories through the new runtime
   implementations instead of ad hoc app-local repository layers
 - SQL boundary implementation
 - atomic file writes and versioned snapshot envelopes
+
+## Port And Boundary Schema Vocabulary
+
+`Port` declares a required capability, such as a repository, queue, HTTP client,
+GraphQL client, MCP client, filesystem, SQL backend, publication target, or
+hosting target. A port is not the adapter. It is the app-owned contract that
+says what capability is needed and what boundary schemas cross it.
+
+`BoundarySchema` declares DTO/input/output/OpenAPI/persistence shapes that cross
+an edge. DTOs are not domain objects. Inbound DTOs must be validated before
+trust promotion and mapped into commands, queries, events, or value objects
+before domain logic uses them.
+
+`AdapterBinding` declares which concrete adapter satisfies a port for a runtime
+target, such as `local-demo`, `test`, `production-lab`, or `fake`.
+
+`PublishedLanguage` declares public contracts such as OpenAPI, AsyncAPI,
+CloudEvents, MCP, or CLI. Published languages are built from boundary schemas
+and ports; they should not expose aggregate internals as the public contract.
+
+## Anti-Corruption Layer Pattern
+
+`anti-corruption-layer` is intentionally a pattern, not a T1 primitive. It
+belongs around adapters and published languages when an external system has its
+own model: AFFiNE, Plane, Otter, Vault, MCP servers, SQL rows, or similar.
+
+The adapter may understand the external model. The domain should not. The
+boundary DTO is validated, translated, and only then promoted into RTA domain
+language.
 
 ## Repository Primitive
 

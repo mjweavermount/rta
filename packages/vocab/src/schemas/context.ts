@@ -7,6 +7,12 @@ import { DomainServiceDeclaration } from "./service.js"
 import { DecisionDeclaration } from "./decision.js"
 import { ProcessManagerDeclaration } from "./policy.js"
 import { RuntimeCapabilityDeclaration, ToolSurfaceDeclaration } from "./capability.js"
+import {
+  AdapterBindingDeclaration,
+  BoundarySchemaDeclaration,
+  PortDeclaration,
+  PublishedLanguageDeclaration,
+} from "./boundary.js"
 
 // ---------------------------------------------------------------------------
 // Import declaration
@@ -51,6 +57,14 @@ export const BoundedContextDeclaration = Schema.Struct({
   processManagers: Schema.optional(Schema.Array(ProcessManagerDeclaration)),
   /** External runtime capabilities this context can bind without hard-coding app leaves. */
   runtimeCapabilities: Schema.optional(Schema.Array(RuntimeCapabilityDeclaration)),
+  /** Required application capabilities expressed as stable ports. */
+  ports: Schema.optional(Schema.Array(PortDeclaration)),
+  /** DTO/input/output/schema shapes allowed to cross a boundary. */
+  boundarySchemas: Schema.optional(Schema.Array(BoundarySchemaDeclaration)),
+  /** Target-specific adapter selections for ports. */
+  adapterBindings: Schema.optional(Schema.Array(AdapterBindingDeclaration)),
+  /** Public contract language for API/tool/event surfaces, such as OpenAPI. */
+  publishedLanguages: Schema.optional(Schema.Array(PublishedLanguageDeclaration)),
   /** Governed agent/UI/CLI/API tool surfaces owned by this context. */
   toolSurfaces: Schema.optional(Schema.Array(ToolSurfaceDeclaration)),
   // Reserved vocab slot:

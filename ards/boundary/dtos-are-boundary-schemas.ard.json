@@ -1,0 +1,16 @@
+{
+  "id": "ARD-RTA-BOUNDARY-SCHEMAS",
+  "kind": "letter",
+  "family": "boundary",
+  "title": "DTOs Are Boundary Schemas",
+  "status": "accepted",
+  "spirit": ["ARD-RTA-BOUNDARY-000"],
+  "supports": ["security-hardening", "rta-prod-17-repository-edge-secret-vocab"],
+  "checks": [
+    {
+      "description": "boundary schema pattern and vocab validation are production-covered",
+      "command": "rta check --pattern-specs --root fixtures/golden/pass && rta check --pattern-contracts --root fixtures/golden/pass && rta check --production --root fixtures/golden/pass"
+    }
+  ],
+  "decision": "DTOs are boundary schemas, not domain objects. Edge DTOs must be validated before promotion and mapped into domain commands, queries, events, or value objects before domain logic uses them."
+}

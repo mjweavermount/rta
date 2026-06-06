@@ -1,4 +1,4 @@
-// @rta-generated vocab-hash:52033c12594a5716e045dcb64a3c3c10f8f4950148c0f3aeeab5dcbd827b9319
+// @rta-generated vocab-hash:b5d0ab9e56cab68fdadab818f299f8188c39bb0b64976cb24621c3c2943c3c0d
 import { Schema } from "effect"
 import { defineStrictQuery } from "@rta/strict"
 

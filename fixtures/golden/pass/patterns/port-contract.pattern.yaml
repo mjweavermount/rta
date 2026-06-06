@@ -1,0 +1,12 @@
+kind: PatternSpec
+name: port-contract
+requiredPrimitives: [Port, Policy]
+testingContract:
+  extends: runtime-capability-binding
+  adds:
+    - declared-capability: app code names a port instead of importing ambient IO or connector clients
+    - operation-contract: port operations declare input and output boundary schemas
+    - policy-contract: write or external ports name the policy that governs use
+vocabHint: Context declares ports with kind, direction, operations, inputSchemas, outputSchemas, and policies.
+visualConcepts: [port, capability, policy, operation, boundary]
+narrativeLabel: "(port-contract) {name} — requires {kind} capability through {direction} port"

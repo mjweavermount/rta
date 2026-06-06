@@ -1,0 +1,12 @@
+kind: PatternSpec
+name: adapter-binding
+requiredPrimitives: [AdapterBinding, OutboundAdapter]
+testingContract:
+  extends: runtime-capability-binding
+  adds:
+    - target-binding: each binding names the runtime target where it applies
+    - adapter-selection: each binding connects one declared port to one concrete adapter
+    - drift-check: bindings that rely on external contracts declare a drift check
+vocabHint: Context declares adapterBindings with port, adapter, target, mode, configSchema, and driftCheck.
+visualConcepts: [binding, target, adapter, port, drift]
+narrativeLabel: "(adapter-binding) {name} — binds {port} to {adapter} for {target}"

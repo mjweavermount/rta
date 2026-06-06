@@ -1,0 +1,15 @@
+{
+  "id": "ARD-RTA-BOUNDARY-000",
+  "kind": "spirit",
+  "family": "boundary",
+  "title": "Boundary Contracts Are Explicit",
+  "status": "accepted",
+  "letters": [
+    "ARD-RTA-BOUNDARY-PORTS",
+    "ARD-RTA-BOUNDARY-SCHEMAS",
+    "ARD-RTA-BOUNDARY-PUBLISHED-LANGUAGE",
+    "ARD-RTA-BOUNDARY-ANTI-CORRUPTION"
+  ],
+  "supports": ["rta-prod-17-repository-edge-secret-vocab", "runtime-ports", "security-hardening"],
+  "decision": "RTA apps must declare external capabilities, boundary data shapes, adapter bindings, and published contracts explicitly so domain code stays insulated from transport, persistence, connector, and external-system models."
+}

@@ -1,0 +1,16 @@
+{
+  "id": "ARD-RTA-BOUNDARY-PUBLISHED-LANGUAGE",
+  "kind": "letter",
+  "family": "boundary",
+  "title": "Published Languages Expose Boundary Contracts",
+  "status": "accepted",
+  "spirit": ["ARD-RTA-BOUNDARY-000"],
+  "supports": ["rta-prod-11-generated-app-runtime-wiring", "rta-prod-17-repository-edge-secret-vocab"],
+  "checks": [
+    {
+      "description": "published-language and OpenAPI patterns are valid and production-covered",
+      "command": "rta check --pattern-specs --root fixtures/golden/pass && rta check --pattern-contracts --root fixtures/golden/pass && rta check --production --root fixtures/golden/pass"
+    }
+  ],
+  "decision": "OpenAPI, AsyncAPI, CloudEvents, MCP, and CLI contracts are published languages built from declared boundary schemas and ports; they must not expose aggregate internals as the public contract."
+}
