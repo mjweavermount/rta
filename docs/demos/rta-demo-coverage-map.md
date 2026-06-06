@@ -47,6 +47,7 @@ This map links RTA work to the demo surface that should prove it.
 | `rta-prod-15-package-release` | local | Package/release hygiene | Direct CI/demo: production checks, package exports, audit/dependency hygiene, and release workflow pass |
 | `rta-prod-16-pure-ts-effect-purge` | local | Pure TS and Effect purge | Direct CLI/doc demo: run `pnpm check:pure-ts` and inspect `docs/rta-pure-ts-allowlist.txt` burn-down |
 | `rta-prod-17-repository-edge-secret-vocab` | local | Repository/edge/secret vocab | Source/doc acceptance: repository, file-backed, in-memory, edge-boundary, SQL-boundary, and secret obligations are ready to implement |
+| `rta-nix-local-runtime` | local | Repo-owned Nix runtime | Direct Nix demo: `nix run .#demo-affine-monitor` runs both apps and `nix run .#check-production` runs the full production check without borrowing another repo toolchain |
 
 ## Principle
 

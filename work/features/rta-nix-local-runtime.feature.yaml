@@ -1,0 +1,27 @@
+kind: Feature
+id: rta-nix-local-runtime
+name: RtaNixLocalRuntime
+status: demo-covered
+why: RTA needs a repo-owned runtime path so local demos and production checks do not borrow tools from the core lab or another project.
+ownedBy:
+  internal: rta-platform
+demonstratedBy:
+  - command: nix run .#demo-affine-monitor
+  - command: nix run .#check-production
+qaSteps:
+  - do: run nix run .#demo-affine-monitor
+  - see: Nix provides pnpm 9 and runs the AFFiNE gateway plus RTA monitor demo
+  - do: run nix run .#check-production
+  - see: the full RTA production check passes from the repo-owned flake runtime
+requires:
+  - rta-monitor-local-artifact-app
+produces:
+  - flake.nix
+  - flake.lock
+  - nix develop
+  - nix run .#demo-affine-monitor
+  - nix run .#check-production
+selfAudit:
+  - "@does RTA have its own reproducible local runtime instead of borrowing another repo path?"
+  - "@can a fresh operator run the two-app demo through Nix?"
+  - "@is home-lab deployment described as an adapter rather than a hard app requirement?"
