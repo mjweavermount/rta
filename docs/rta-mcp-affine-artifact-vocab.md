@@ -9,6 +9,8 @@ RTA-authored app. The replacement splits the behavior into two RTA apps:
   credential custody, and downstream routing.
 - `affine-mcp-rta`: AFFiNE-specific garden context, artifact growth, source
   workbench, and output staging tools.
+- `markdown-projection`: source-owned Markdown projection for personal
+  Obsidian vaults and shared Git repos into bot-owned read-only AFFiNE docs.
 
 ## Vocabulary To Upstream
 
@@ -43,6 +45,23 @@ Canonical pattern seed:
 
 ```text
 fixtures/golden/pass/patterns/source-workbench.pattern.yaml
+```
+
+### Markdown Projection
+
+Markdown projection is the language for keeping Obsidian/Git as the source
+authority while AFFiNE becomes the shared read surface and canvas layer:
+
+- source repos and vaults stay naked Markdown;
+- projection registry state lives outside the source repo;
+- Git rename/history evidence preserves AFFiNE document identity;
+- projected AFFiNE docs are bot/admin-owned and read-only for everyone;
+- agent edits resolve back to Git paths or source patch suggestions.
+
+Canonical pattern seed:
+
+```text
+fixtures/golden/pass/patterns/markdown-projection.pattern.yaml
 ```
 
 ### MCP Auth Layer

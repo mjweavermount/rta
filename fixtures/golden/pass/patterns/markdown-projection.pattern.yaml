@@ -1,0 +1,14 @@
+kind: PatternSpec
+name: markdown-projection
+requiredPrimitives: [Projector, Repository, OutboundAdapter, EdgeBoundary]
+testingContract:
+  extends: projection-mount-coverage
+  adds:
+    - source-authority: Git or Obsidian remains the source of truth for Markdown
+    - naked-markdown: shared repositories do not require sidecars for projection identity
+    - external-registry: projection identity and AFFiNE doc IDs live outside the source repo
+    - bot-owned-readonly: projected AFFiNE docs are owned by a bot/admin account and are non-editable in AFFiNE
+    - rename-continuity: Git rename/history evidence updates existing projections instead of duplicating docs
+vocabHint: Use for Git/Obsidian Markdown projected into AFFiNE as a shared read surface while source editing remains repo-native.
+visualConcepts: [markdown, git-history, projection-registry, affine-view, read-only]
+narrativeLabel: "(markdown-projection) {name} — projects source-owned Markdown into bot-owned AFFiNE docs"
