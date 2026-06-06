@@ -143,6 +143,10 @@ boundarySchemas:
     validation:
       required: true
       strategy: decode
+    sanitization:
+      required: true
+      strategy: mcp-tool
+      produces: internal
     openapiRef: "#/components/schemas/ReadDocInput"
   - name: ReadDocOutput
     kind: output
@@ -152,6 +156,10 @@ boundarySchemas:
     validation:
       required: true
       strategy: validate-only
+    sanitization:
+      required: true
+      strategy: external-api-response
+      produces: sanitized
     openapiRef: "#/components/schemas/ReadDocOutput"
 adapterBindings:
   - name: LocalAffineDocumentBinding
@@ -161,6 +169,17 @@ adapterBindings:
     mode: fake
     configSchema: ReadDocInput
     driftCheck: affine-openapi-contract
+    boundaryPipeline:
+      inputSchema: ReadDocInput
+      outputSchema: ReadDocOutput
+      decode: true
+      sanitize: true
+      normalize: true
+      authorize: true
+      translateTo: ReadAffineDoc
+      logs:
+        promotion: true
+        rejection: true
 publishedLanguages:
   - name: AffineGatewayOpenApi
     protocol: openapi
@@ -189,6 +208,29 @@ boundarySchemas:
     validation:
       required: false
       strategy: validate-only
+    sanitization:
+      required: true
+      strategy: custom
+`
+    const err = await runFail(parseVocabContent(yaml))
+    expect(err._tag).toBe("VocabParseError")
+  })
+
+  it("rejects boundary schemas that do not require sanitization", async () => {
+    const yaml = `
+kind: BoundedContext
+name: BadGateway
+classification: supporting
+boundarySchemas:
+  - name: UnsafeInput
+    kind: input
+    source: effect-schema
+    validation:
+      required: true
+      strategy: decode
+    sanitization:
+      required: false
+      strategy: custom
 `
     const err = await runFail(parseVocabContent(yaml))
     expect(err._tag).toBe("VocabParseError")
@@ -206,6 +248,9 @@ boundarySchemas:
     validation:
       required: true
       strategy: decode
+    sanitization:
+      required: true
+      strategy: custom
 adapterBindings:
   - name: BadBinding
     port: MissingPort
@@ -213,11 +258,62 @@ adapterBindings:
     target: local-demo
     mode: fake
     configSchema: MissingSchema
+    boundaryPipeline:
+      inputSchema: MissingSchema
+      decode: true
+      sanitize: true
+      normalize: true
+      authorize: true
+      translateTo: SomeCommand
+      logs:
+        promotion: true
+        rejection: true
 publishedLanguages:
   - name: BadOpenApi
     protocol: openapi
     boundarySchemas: [MissingSchema]
     ports: [MissingPort]
+`
+    const err = await runFail(parseVocabContent(yaml))
+    expect(err._tag).toBe("VocabParseError")
+  })
+
+  it("rejects edge adapter bindings without a full boundary promotion pipeline", async () => {
+    const yaml = `
+kind: BoundedContext
+name: BadGateway
+classification: supporting
+ports:
+  - name: FilePort
+    kind: filesystem
+    direction: outbound
+    inputSchemas: [KnownInput]
+boundarySchemas:
+  - name: KnownInput
+    kind: input
+    source: effect-schema
+    validation:
+      required: true
+      strategy: decode
+    sanitization:
+      required: true
+      strategy: file-path
+adapterBindings:
+  - name: BadFileBinding
+    port: FilePort
+    adapter: FileAdapter
+    target: local-disk
+    mode: file-backed
+    boundaryPipeline:
+      inputSchema: KnownInput
+      decode: true
+      sanitize: false
+      normalize: true
+      authorize: true
+      translateTo: ReadFileCommand
+      logs:
+        promotion: true
+        rejection: true
 `
     const err = await runFail(parseVocabContent(yaml))
     expect(err._tag).toBe("VocabParseError")

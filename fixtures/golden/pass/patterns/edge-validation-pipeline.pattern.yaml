@@ -1,0 +1,12 @@
+kind: PatternSpec
+name: edge-validation-pipeline
+requiredPrimitives: [AdapterBinding, EdgeBoundary, BoundarySchema]
+testingContract:
+  extends: boundary-promotion-pipeline
+  adds:
+    - decode-first: raw input is decoded before sanitize/normalize/authorize
+    - promote-only-after-pipeline: domain operations receive only translated internal values
+    - rejection-logged: invalid input produces readable rejection logs without exposing unsafe raw values
+vocabHint: Adapter bindings that cross edge modes declare boundaryPipeline with decode, sanitize, normalize, authorize, translateTo, and promotion/rejection logs.
+visualConcepts: [pipeline, adapter, promotion, rejection, trust]
+narrativeLabel: "(edge-validation-pipeline) {name} — promotes external input through decode/sanitize/authorize/translate"

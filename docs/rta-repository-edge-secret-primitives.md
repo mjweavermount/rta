@@ -13,13 +13,15 @@ Implemented in this slice:
 - `@rta/runtime`: `InMemoryRepository`, `FileBackedRepository`,
   `SchemaEdgeBoundary`, `FileReadBoundary`, and `InMemorySecretStore`.
 - `@rta/vocab`: `ports`, `boundarySchemas`, `adapterBindings`, and
-  `publishedLanguages` context declarations.
+  `publishedLanguages` context declarations, including mandatory boundary
+  sanitization metadata and adapter promotion pipelines.
 - Golden fixture patterns: `port-contract`, `boundary-schema`,
   `adapter-binding`, `published-language`, and `anti-corruption-layer`.
 
 Still pending:
 
 - generator support for port/boundary-schema files and OpenAPI output
+- generated TypeScript brand/fitting support for boundary promotion states
 - generator support that emits concrete repositories through the new runtime
   implementations instead of ad hoc app-local repository layers
 - SQL boundary implementation
@@ -37,8 +39,27 @@ an edge. DTOs are not domain objects. Inbound DTOs must be validated before
 trust promotion and mapped into commands, queries, events, or value objects
 before domain logic uses them.
 
+Boundary schemas also declare a mandatory sanitization strategy. Sanitization is
+not only string cleanup. It includes validation, normalization, restriction,
+redaction, classification, authorization support, and translation into internal
+language. A boundary schema that crosses an edge but does not declare
+`sanitization.required: true` is invalid RTA vocabulary.
+
 `AdapterBinding` declares which concrete adapter satisfies a port for a runtime
 target, such as `local-demo`, `test`, `production-lab`, or `fake`.
+
+Adapter bindings that cross edge-like modes (`file-backed`, `http`, `graphql`,
+`mcp`, `sql`, `home-lab`, or `fake`) declare a boundary promotion pipeline:
+
+1. decode the raw external shape
+2. sanitize dangerous or policy-sensitive content
+3. normalize into canonical boundary form
+4. authorize the operation
+5. translate into internal command/query/domain language
+6. log both promotion and rejection paths without leaking raw secrets
+
+In-memory bindings can be internal test fittings, but they should still consume
+the same internal branded contract so tests do not create fake confidence.
 
 `PublishedLanguage` declares public contracts such as OpenAPI, AsyncAPI,
 CloudEvents, MCP, or CLI. Published languages are built from boundary schemas
@@ -167,8 +188,35 @@ Required operation events:
 - `readExternal`
 - `parseExternal`
 - `validateExternal`
+- `sanitizeExternal`
+- `normalizeExternal`
+- `authorizeExternal`
 - `promoteTrust`
 - `rejectExternal`
+
+## Boundary Sanitization Pattern
+
+`T2.Pattern.BoundarySanitization` extends `T1.EdgeBoundary` and
+`T1.BoundarySchema`.
+
+Boundary sanitization is a required stage in trust promotion. It is
+strategy-specific: file paths are contained and canonicalized, SQL values use
+prepared statements and whitelisted identifiers, MCP tool input is decoded and
+policy-checked, transcripts are bounded and classified, external API responses
+are translated through an anti-corruption layer, and secrets are redacted before
+they can appear in logs or artifacts.
+
+Obligations:
+
+- `BoundarySchemaDeclaresSanitization`
+- `SanitizationStrategyMatchesBoundaryKind`
+- `RawInputDoesNotReachDomain`
+- `SanitizerLogsPromotionWithoutSecrets`
+- `SanitizerLogsRejectionWithoutSecrets`
+- `SanitizedValueIsBrandedBeforeInternalUse`
+- `AdapterBindingDeclaresPromotionPipeline`
+- `PromotionPipelineRunsDecodeBeforeSanitize`
+- `PromotionPipelineRunsTranslateBeforeDomainDispatch`
 
 ## SQL Boundary Pattern
 

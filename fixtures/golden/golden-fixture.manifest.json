@@ -36,7 +36,8 @@
     "release-hygiene",
     "work-ledger",
     "demo-coverage",
-    "coverage-waivers"
+    "coverage-waivers",
+    "boundary-sanitization"
   ],
   "future_cli_checks": [
     "dep-cruise",

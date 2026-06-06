@@ -1,0 +1,12 @@
+kind: PatternSpec
+name: boundary-sanitization
+requiredPrimitives: [BoundarySchema, EdgeBoundary]
+testingContract:
+  extends: boundary-sanitization
+  adds:
+    - required-sanitizer: every boundary schema declares sanitization.required true
+    - strategy-specific: sanitizer strategy matches the boundary kind, such as file path, MCP tool, SQL row, transcript, or external API response
+    - redacted-logs: sanitizer logs describe the decision without leaking raw secret or sensitive payloads
+vocabHint: Context declares boundarySchemas with validation and sanitization blocks; sanitization is mandatory for every schema that crosses a boundary.
+visualConcepts: [sanitizer, trust, schema, redaction, edge]
+narrativeLabel: "(boundary-sanitization) {name} — sanitizes {strategy} before trust promotion"

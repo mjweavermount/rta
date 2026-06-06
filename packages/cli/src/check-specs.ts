@@ -111,6 +111,8 @@ const VALID_T1_TESTING_CONTRACTS = new Set([
   "rule-two-case",
   "decision-outcome-coverage",
   "external-schema-drift",
+  "boundary-promotion-pipeline",
+  "boundary-sanitization",
   "input-schema-validation",
   "openapi-contract",
   "policy-deny-coverage",
@@ -174,13 +176,19 @@ const PATTERN_PRIMITIVE_CONTRACTS: ReadonlyArray<{
   },
   {
     primitives: ["Port", "AdapterBinding"],
-    contracts: ["runtime-capability-binding"],
-    message: "Port/AdapterBinding patterns must extend runtime-capability-binding",
+    contracts: ["runtime-capability-binding", "boundary-promotion-pipeline"],
+    message: "Port/AdapterBinding patterns must extend runtime-capability-binding or boundary-promotion-pipeline",
   },
   {
     primitives: ["BoundarySchema"],
-    contracts: ["input-schema-validation", "external-schema-drift"],
-    message: "BoundarySchema patterns must extend input-schema-validation or external-schema-drift",
+    contracts: [
+      "boundary-promotion-pipeline",
+      "boundary-sanitization",
+      "input-schema-validation",
+      "external-schema-drift",
+    ],
+    message:
+      "BoundarySchema patterns must extend boundary-sanitization, input-schema-validation, boundary-promotion-pipeline, or external-schema-drift",
   },
   {
     primitives: ["PublishedLanguage"],

@@ -1,18 +1,22 @@
 kind: Feature
 id: rta-prod-20-sanitization-boundary-contracts
 name: RtaProd20SanitizationBoundaryContracts
-status: planned
+status: demo-covered
 why: External input must cross an explicit boundary pipeline before domain use, with decode, sanitize, normalize, authorize, translate, and log steps represented in vocab, generated checks, runtime helpers, and negative fixtures.
 ownedBy:
   internal: rta-platform
 demonstratedBy:
   - command: pnpm --filter @rta/cli rta check --boundary-sanitization --root ../../fixtures/golden/pass
+  - command: pnpm --filter @rta/vocab test
+  - command: pnpm --filter @rta/cli rta check --pattern-contracts --root ../../fixtures/golden/pass
   - command: pnpm --filter @rta/runtime test -- edge-boundary
 qaSteps:
   - do: run pnpm --filter @rta/cli rta check --boundary-sanitization --root ../../fixtures/golden/pass
+  - do: run pnpm --filter @rta/vocab test
+  - do: run pnpm --filter @rta/cli rta check --pattern-contracts --root ../../fixtures/golden/pass
   - do: run pnpm --filter @rta/runtime test -- edge-boundary
-  - see: bad fixtures fail when inbound adapters or edge-backed repositories bypass input schema validation and sanitization
-  - see: readable logs show decode, sanitize, authorize, translate, and dispatch decisions without leaking secrets
+  - see: vocab rejects boundary schemas without required sanitization and adapter pipelines that skip sanitize
+  - see: golden Billing fixture declares decode, sanitize, normalize, authorize, translate, promotion log, and rejection log before adapter trust promotion
 requires:
   - RtaProd10ReviewConnectorSafety
   - RtaProd17RepositoryEdgeSecretVocab

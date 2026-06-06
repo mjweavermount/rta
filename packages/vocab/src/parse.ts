@@ -182,12 +182,16 @@ const validateBoundaryContracts = (
 ): ReadonlyArray<string> => {
   const ports = new Set((context.ports ?? []).map((port) => port.name))
   const boundarySchemas = new Set((context.boundarySchemas ?? []).map((schema) => schema.name))
+  const edgeAdapterModes = new Set(["file-backed", "http", "graphql", "mcp", "sql", "home-lab", "fake"])
   const issues: string[] = []
 
   for (const schema of context.boundarySchemas ?? []) {
     const label = `${context.name}.boundarySchema.${schema.name}`
     if ((schema.kind === "dto" || schema.kind === "input") && !schema.validation.required) {
       issues.push(`${label}: input/DTO boundary schemas must require validation`)
+    }
+    if (!schema.sanitization.required) {
+      issues.push(`${label}: boundary schemas must require sanitization`)
     }
     if (schema.source === "openapi" && !schema.openapiRef) {
       issues.push(`${label}: OpenAPI-sourced boundary schemas must declare openapiRef`)
@@ -210,6 +214,24 @@ const validateBoundaryContracts = (
     }
     if (binding.configSchema && !boundarySchemas.has(binding.configSchema)) {
       issues.push(`${label}: references unknown config schema "${binding.configSchema}"`)
+    }
+    if (edgeAdapterModes.has(binding.mode) && !binding.boundaryPipeline) {
+      issues.push(`${label}: edge adapter bindings must declare boundaryPipeline`)
+    }
+    if (binding.boundaryPipeline) {
+      const pipeline = binding.boundaryPipeline
+      if (!boundarySchemas.has(pipeline.inputSchema)) {
+        issues.push(`${label}: boundaryPipeline references unknown input schema "${pipeline.inputSchema}"`)
+      }
+      if (pipeline.outputSchema && !boundarySchemas.has(pipeline.outputSchema)) {
+        issues.push(`${label}: boundaryPipeline references unknown output schema "${pipeline.outputSchema}"`)
+      }
+      if (!pipeline.decode) issues.push(`${label}: boundaryPipeline.decode must be true`)
+      if (!pipeline.sanitize) issues.push(`${label}: boundaryPipeline.sanitize must be true`)
+      if (!pipeline.normalize) issues.push(`${label}: boundaryPipeline.normalize must be true`)
+      if (!pipeline.authorize) issues.push(`${label}: boundaryPipeline.authorize must be true`)
+      if (!pipeline.logs.promotion) issues.push(`${label}: boundaryPipeline.logs.promotion must be true`)
+      if (!pipeline.logs.rejection) issues.push(`${label}: boundaryPipeline.logs.rejection must be true`)
     }
   }
 

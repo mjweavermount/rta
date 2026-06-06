@@ -1,0 +1,16 @@
+{
+  "id": "ARD-RTA-BOUNDARY-SANITIZATION",
+  "kind": "letter",
+  "family": "boundary",
+  "title": "Boundary Promotion Requires Sanitization",
+  "status": "accepted",
+  "spirit": ["ARD-RTA-BOUNDARY-000"],
+  "supports": ["security-hardening", "rta-prod-20-sanitization-boundary-contracts"],
+  "checks": [
+    {
+      "description": "boundary schemas and edge adapter bindings declare mandatory promotion pipelines",
+      "command": "rta check --boundary-sanitization --root fixtures/golden/pass && rta check --pattern-specs --root fixtures/golden/pass && rta check --pattern-contracts --root fixtures/golden/pass && rta check --production --root fixtures/golden/pass"
+    }
+  ],
+  "decision": "External, persisted, protocol, connector, queue, file, SQL, MCP, CLI, model, and API data must be decoded, sanitized, normalized, authorized, translated, and logged before it can become internal domain input. Sanitization is strategy-specific boundary promotion, not a generic string cleanup step."
+}

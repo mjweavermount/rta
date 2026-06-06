@@ -27,6 +27,7 @@ import { runPureTsCheck } from "./check-pure-ts.js"
 import { runReleaseHygieneCheck } from "./check-release-hygiene.js"
 import { runWorkLedgerCheck } from "./check-work-ledger.js"
 import { runCoverageWaiverCheck } from "./check-coverage-waivers.js"
+import { checkBoundarySanitization } from "./check-boundary-sanitization.js"
 
 // ---------------------------------------------------------------------------
 // Discover ARD files under a root directory.
@@ -104,6 +105,7 @@ export interface CheckOptions {
   readonly workLedger?: boolean
   readonly demoCoverage?: boolean
   readonly coverageWaivers?: boolean
+  readonly boundarySanitization?: boolean
 }
 
 export const runCheck = (options: CheckOptions = {}): Effect.Effect<number> =>
@@ -147,6 +149,9 @@ export const runCheck = (options: CheckOptions = {}): Effect.Effect<number> =>
     }
     if (options.coverageWaivers) {
       return yield* runCoverageWaiverCheck(cwd)
+    }
+    if (options.boundarySanitization) {
+      return yield* Effect.promise(() => checkBoundarySanitization(cwd))
     }
     if (options.decisionShapes) {
       return yield* Effect.promise(() => checkDecisionShapes(cwd))
@@ -201,6 +206,7 @@ export const runCheck = (options: CheckOptions = {}): Effect.Effect<number> =>
         ["operation-event", () => Effect.promise(() => checkOperationEvents(cwd))],
         ["primitive-boundaries", () => Effect.promise(() => checkPrimitiveBoundaries(cwd))],
         ["trace-context", () => Effect.promise(() => checkTraceContext(cwd))],
+        ["boundary-sanitization", () => Effect.promise(() => checkBoundarySanitization(cwd))],
         ["pattern-specs", () => Effect.promise(() => checkPatternSpecs(cwd))],
         ["pattern-contracts", () => Effect.promise(() => checkPatternContracts(cwd))],
         ["archetype-specs", () => Effect.promise(() => checkArchetypeSpecs(cwd))],

@@ -8,8 +8,9 @@
     "ARD-RTA-BOUNDARY-PORTS",
     "ARD-RTA-BOUNDARY-SCHEMAS",
     "ARD-RTA-BOUNDARY-PUBLISHED-LANGUAGE",
-    "ARD-RTA-BOUNDARY-ANTI-CORRUPTION"
+    "ARD-RTA-BOUNDARY-ANTI-CORRUPTION",
+    "ARD-RTA-BOUNDARY-SANITIZATION"
   ],
-  "supports": ["rta-prod-17-repository-edge-secret-vocab", "runtime-ports", "security-hardening"],
+  "supports": ["rta-prod-17-repository-edge-secret-vocab", "rta-prod-20-sanitization-boundary-contracts", "runtime-ports", "security-hardening"],
   "decision": "RTA apps must declare external capabilities, boundary data shapes, adapter bindings, and published contracts explicitly so domain code stays insulated from transport, persistence, connector, and external-system models."
 }

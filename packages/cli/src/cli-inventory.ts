@@ -55,6 +55,7 @@ export const CHECK_MODES = [
   "work-ledger",
   "demo-coverage",
   "coverage-waivers",
+  "boundary-sanitization",
 ] as const
 
 export type CheckMode = (typeof CHECK_MODES)[number]

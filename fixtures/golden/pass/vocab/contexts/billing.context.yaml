@@ -42,6 +42,10 @@ boundarySchemas:
     validation:
       required: true
       strategy: decode
+    sanitization:
+      required: true
+      strategy: mcp-tool
+      produces: internal
     openapiRef: "#/components/schemas/AffineDocReadInput"
   - name: AffineDocReadOutput
     kind: output
@@ -53,6 +57,10 @@ boundarySchemas:
     validation:
       required: true
       strategy: validate-only
+    sanitization:
+      required: true
+      strategy: external-api-response
+      produces: sanitized
     openapiRef: "#/components/schemas/AffineDocReadOutput"
 
 adapterBindings:
@@ -64,6 +72,17 @@ adapterBindings:
     mode: fake
     configSchema: AffineDocReadInput
     driftCheck: affine-openapi-contract
+    boundaryPipeline:
+      inputSchema: AffineDocReadInput
+      outputSchema: AffineDocReadOutput
+      decode: true
+      sanitize: true
+      normalize: true
+      authorize: true
+      translateTo: GetInvoice
+      logs:
+        promotion: true
+        rejection: true
 
 publishedLanguages:
   - name: BillingOpenApi

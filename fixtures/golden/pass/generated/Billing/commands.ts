@@ -1,4 +1,4 @@
-// @rta-generated vocab-hash:b5d0ab9e56cab68fdadab818f299f8188c39bb0b64976cb24621c3c2943c3c0d
+// @rta-generated vocab-hash:e4e6411a063cbaebccdf4b50d4cef582c5aab0c44ced24978db8c48fcfa27d3a
 import { Schema } from "effect"
 import { defineStrictCommand } from "@rta/strict"
 

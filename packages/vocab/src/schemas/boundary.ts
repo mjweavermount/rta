@@ -57,6 +57,31 @@ export type BoundarySchemaKind = typeof BoundarySchemaKind.Type
 export const SchemaSource = Schema.Literal("effect-schema", "openapi", "json-schema", "manual")
 export type SchemaSource = typeof SchemaSource.Type
 
+export const SanitizationStrategy = Schema.Literal(
+  "cli-input",
+  "http-json",
+  "mcp-tool",
+  "file-path",
+  "file-payload",
+  "sql-row",
+  "queue-message",
+  "external-api-response",
+  "llm-output",
+  "secret-material",
+  "transcript",
+  "openapi-request",
+  "custom",
+)
+export type SanitizationStrategy = typeof SanitizationStrategy.Type
+
+export const SanitizationDeclaration = Schema.Struct({
+  required: Schema.Boolean,
+  strategy: SanitizationStrategy,
+  produces: Schema.optional(Schema.Literal("sanitized", "internal")),
+  redacts: Schema.optional(Schema.Array(Schema.NonEmptyString)),
+})
+export type SanitizationDeclaration = typeof SanitizationDeclaration.Type
+
 export const BoundarySchemaDeclaration = Schema.Struct({
   name: Schema.NonEmptyString,
   kind: BoundarySchemaKind,
@@ -68,9 +93,25 @@ export const BoundarySchemaDeclaration = Schema.Struct({
     required: Schema.Boolean,
     strategy: Schema.Literal("decode", "parse", "validate-only"),
   }),
+  sanitization: SanitizationDeclaration,
   openapiRef: Schema.optional(Schema.NonEmptyString),
 })
 export type BoundarySchemaDeclaration = typeof BoundarySchemaDeclaration.Type
+
+export const BoundaryPipelineDeclaration = Schema.Struct({
+  inputSchema: Schema.NonEmptyString,
+  outputSchema: Schema.optional(Schema.NonEmptyString),
+  decode: Schema.Boolean,
+  sanitize: Schema.Boolean,
+  normalize: Schema.Boolean,
+  authorize: Schema.Boolean,
+  translateTo: Schema.NonEmptyString,
+  logs: Schema.Struct({
+    promotion: Schema.Boolean,
+    rejection: Schema.Boolean,
+  }),
+})
+export type BoundaryPipelineDeclaration = typeof BoundaryPipelineDeclaration.Type
 
 export const AdapterBindingDeclaration = Schema.Struct({
   name: Schema.NonEmptyString,
@@ -81,6 +122,7 @@ export const AdapterBindingDeclaration = Schema.Struct({
   mode: Schema.Literal("in-memory", "file-backed", "http", "graphql", "mcp", "sql", "home-lab", "fake"),
   configSchema: Schema.optional(Schema.NonEmptyString),
   driftCheck: Schema.optional(Schema.NonEmptyString),
+  boundaryPipeline: Schema.optional(BoundaryPipelineDeclaration),
 })
 export type AdapterBindingDeclaration = typeof AdapterBindingDeclaration.Type
 

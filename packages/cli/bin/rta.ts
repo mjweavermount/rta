@@ -97,6 +97,7 @@ const main = Effect.gen(function* () {
         ...(hasFlag("--work-ledger") ? { workLedger: true } : {}),
         ...(hasFlag("--demo-coverage") ? { demoCoverage: true } : {}),
         ...(hasFlag("--coverage-waivers") ? { coverageWaivers: true } : {}),
+        ...(hasFlag("--boundary-sanitization") ? { boundarySanitization: true } : {}),
       })
       process.exit(exitCode)
       break
@@ -198,6 +199,7 @@ Options:
   --work-ledger         Validate work ledger cards and QA shape
   --demo-coverage       Validate work ledger cards are tied to demo coverage
   --coverage-waivers    Validate 100% authored-code coverage or explicit waivers
+  --boundary-sanitization Validate boundary schemas and adapter promotion pipelines
 `)
       process.exit(command && !wantsHelp ? 1 : 0)
     }
