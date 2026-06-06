@@ -1,0 +1,28 @@
+kind: Feature
+id: rta-monitor-local-artifact-app
+name: RtaMonitorLocalArtifactApp
+status: demo-covered
+why: RTA needs a generic monitor app that can observe RTA runs before Loki, Grafana, or a hosted UI exists.
+ownedBy:
+  internal: rta-platform
+demonstratedBy:
+  - command: pnpm demo:affine-monitor
+  - test: examples/rta-monitor/test/monitor.test.ts
+qaSteps:
+  - do: run pnpm demo:affine-monitor
+  - see: AFFiNE ops gateway creates a local run artifact bundle
+  - see: RTA Monitor lists the run and tails its human-readable log
+  - see: monitor tests cover list, show, tail, and failure discovery
+requires:
+  - AffineOpsGatewayPreMcp
+  - CoverageWaiverEnforcement
+produces:
+  - examples/rta-monitor
+  - rta-monitor runs
+  - rta-monitor show
+  - rta-monitor tail
+  - rta-monitor failures
+selfAudit:
+  - "@does monitor stay generic over RTA runs instead of becoming AFFiNE-specific?"
+  - "@can the monitor operate from local artifacts before Loki exists?"
+  - "@does the demo prove both producer and observer apps together?"

@@ -1,3 +1,6 @@
+import { appendFileSync, mkdirSync, writeFileSync } from "node:fs"
+import { join } from "node:path"
+
 export type ToolName =
   | "affine.ping"
   | "affine.current_user"
@@ -15,11 +18,36 @@ export interface ToolCall {
 }
 
 export interface OperationReceipt {
+  readonly receiptId: string
+  readonly runId?: string
   readonly tool: ToolName
   readonly status: ReceiptStatus
   readonly summary: string
   readonly talksTo: ReadonlyArray<string>
   readonly data?: unknown
+}
+
+export interface OperationEvent {
+  readonly eventId: string
+  readonly runId: string
+  readonly app: "affine-ops-gateway"
+  readonly primitive: "tool-surface"
+  readonly operation: ToolName
+  readonly status: ReceiptStatus
+  readonly summary: string
+  readonly timestamp: string
+  readonly systems: ReadonlyArray<string>
+  readonly ids: {
+    readonly receiptId: string
+  }
+  readonly details?: unknown
+}
+
+export interface RunResult {
+  readonly runId: string
+  readonly runRoot: string
+  readonly receipt: OperationReceipt
+  readonly event: OperationEvent
 }
 
 export interface SecretBackend {
@@ -76,12 +104,20 @@ export interface GatewayDeps {
 
 const talksTo = ["SecretBackend", "AffineClient"] as const
 
+const slug = (value: string): string => value.replace(/[^a-zA-Z0-9_.-]+/g, "-")
+
+export const createRunId = (tool: ToolName, now = new Date()): string =>
+  `run-${slug(tool)}-${now.toISOString().replace(/[:.]/g, "-")}`
+
+const createReceiptId = (tool: ToolName): string => `receipt-${slug(tool)}`
+
 const receipt = (
   tool: ToolName,
   status: ReceiptStatus,
   summary: string,
   data?: unknown,
 ): OperationReceipt => ({
+  receiptId: createReceiptId(tool),
   tool,
   status,
   summary,
@@ -142,3 +178,51 @@ export const createFakeGatewayDeps = (token = "fake-token"): GatewayDeps => ({
   secrets: new InMemorySecretBackend({ "affine.auth": token }),
   affine: new FakeAffineClient(),
 })
+
+export const runTool = (
+  call: ToolCall,
+  deps: GatewayDeps,
+  options: {
+    readonly root: string
+    readonly runId?: string
+    readonly now?: Date
+    readonly profile?: string
+    readonly trace?: boolean
+  },
+): RunResult => {
+  const now = options.now ?? new Date()
+  const runId = options.runId ?? createRunId(call.name, now)
+  const runRoot = join(options.root, ".rta", "runs", runId)
+  const receiptResult = executeTool(call, deps)
+  const fullReceipt: OperationReceipt = { ...receiptResult, runId }
+  const event: OperationEvent = {
+    eventId: `event-${slug(call.name)}`,
+    runId,
+    app: "affine-ops-gateway",
+    primitive: "tool-surface",
+    operation: call.name,
+    status: fullReceipt.status,
+    summary: fullReceipt.summary,
+    timestamp: now.toISOString(),
+    systems: fullReceipt.talksTo,
+    ids: { receiptId: fullReceipt.receiptId },
+    details: {
+      profile: options.profile ?? "fake",
+      trace: options.trace ?? false,
+      input: call.input ?? {},
+    },
+  }
+
+  mkdirSync(runRoot, { recursive: true })
+  writeFileSync(join(runRoot, "state.json"), JSON.stringify({
+    runId,
+    app: "affine-ops-gateway",
+    status: fullReceipt.status === "completed" ? "completed" : "failed",
+    tool: call.name,
+  }, null, 2))
+  appendFileSync(join(runRoot, "readable.log"), `[normal] ${call.name} ${fullReceipt.status} - ${fullReceipt.summary}\n`)
+  appendFileSync(join(runRoot, "operation-events.jsonl"), `${JSON.stringify(event)}\n`)
+  appendFileSync(join(runRoot, "receipts.jsonl"), `${JSON.stringify(fullReceipt)}\n`)
+
+  return { runId, runRoot, receipt: fullReceipt, event }
+}

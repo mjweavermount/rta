@@ -28,6 +28,7 @@ This map links RTA work to the demo surface that should prove it.
 | `repository-edge-secret-primitives` | local | Repository, edge boundary, and secret primitives | Source/doc acceptance: primitive obligations are captured before vocab/runtime implementation |
 | `coverage-waiver-enforcement` | local | Coverage waiver enforcement | Direct CLI demo: run `rta check --coverage-waivers` after Vitest coverage and see 100% authored-code enforcement or explicit waivers |
 | `affine-ops-gateway-pre-mcp` | local | AFFiNE ops gateway pre-MCP seed | Direct app demo: run `pnpm --filter @rta/example-affine-ops-gateway check:coverage`; fake read tools pass, writes fail closed, authored source is 100% covered |
+| `rta-monitor-local-artifact-app` | local | RTA monitor local artifact app | Direct two-app demo: run `pnpm demo:affine-monitor`; AFFiNE gateway writes a run and RTA Monitor lists/tails it |
 | `rta-prod-00-rebaseline-ledger` | local | Rebaseline overclaimed work | Direct doc/CLI demo: inspect `docs/spec-to-ticket-backlog.md`, run `rta check --work-ledger`, confirm broad old capabilities are no longer marked complete |
 | `rta-prod-01-cli-command-surface` | local | Full CLI command surface | Direct CLI demo: run required command inventory including `doctor`, `dev`, `test-scenario`, `extensions`, and `upstream` |
 | `rta-prod-02-tier-vocab-contracts` | local | Tier/vocab contracts | Direct fixture demo: good/bad T1/T2/T3 fixtures pass/fail `rta check --tier-contracts`, `--pattern-contracts`, and `--archetype-bindings` |

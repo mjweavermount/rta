@@ -9,12 +9,16 @@
       "types": "./dist/index.d.ts"
     }
   },
+  "bin": {
+    "affine-ops-gateway": "./dist/cli.js"
+  },
   "scripts": {
     "build": "tsup",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
     "check:coverage": "pnpm test:coverage && pnpm --filter @rta/cli build && pnpm --filter @rta/cli rta check --coverage-waivers --root ../../examples/affine-ops-gateway",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "run:fake": "node dist/cli.js run affine.current_user --profile fake"
   },
   "dependencies": {
     "effect": "^3.0.0"
