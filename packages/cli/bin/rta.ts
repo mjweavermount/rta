@@ -8,7 +8,7 @@ import { runLint } from "../src/lint.js"
 import { runCoverage } from "../src/coverage.js"
 import { runTestPolicy } from "../src/test-policy.js"
 import { generateAppScaffold } from "../src/app-scaffold.js"
-import { COVERAGE_KINDS } from "../src/cli-inventory.js"
+import { CHECK_MODES, COVERAGE_KINDS } from "../src/cli-inventory.js"
 
 // ---------------------------------------------------------------------------
 // Minimal arg parser (no deps beyond Effect)
@@ -34,6 +34,20 @@ const flagValues = (flag: string): string[] => {
 const withRoot = (v: string | undefined) =>
   v !== undefined ? { root: v } : {}
 const wantsHelp = command === "--help" || command === "-h" || hasFlag("--help") || hasFlag("-h")
+const allowedCheckFlags = new Set<string>(["--root", ...CHECK_MODES.map((mode) => `--${mode}`)])
+
+const rejectUnknownFlags = (
+  scope: string,
+  allowed: ReadonlySet<string>,
+): number | null => {
+  for (const arg of args.slice(1)) {
+    if (arg.startsWith("--") && !allowed.has(arg)) {
+      console.error(`${scope}: unknown flag ${arg}`)
+      return 1
+    }
+  }
+  return null
+}
 
 // ---------------------------------------------------------------------------
 // Dispatch
@@ -55,6 +69,11 @@ const main = Effect.gen(function* () {
       break
     }
     case "check": {
+      const unknownFlag = rejectUnknownFlags("rta check", allowedCheckFlags)
+      if (unknownFlag !== null) {
+        process.exit(unknownFlag)
+        break
+      }
       const exitCode = yield* runCheck({
         ...withRoot(flagValue("--root")),
         ...(hasFlag("--ard-meta")          ? { ardMeta: true }          : {}),

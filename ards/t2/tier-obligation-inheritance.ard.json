@@ -3,7 +3,7 @@
   "kind": "letter",
   "family": "t2",
   "title": "Concrete Vocabulary Inherits Parent Obligations",
-  "status": "accepted",
+  "status": "proposed",
   "spirit": ["ARD-T2-BLOOMING-000"],
   "supports": ["rta-prod-02-tier-vocab-contracts", "rta-prod-04-derivation-engine"],
   "checks": [

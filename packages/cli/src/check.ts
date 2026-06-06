@@ -1,6 +1,7 @@
 import { Effect } from "effect"
 import { readdir, readFile } from "node:fs/promises"
 import { join, resolve } from "node:path"
+import { formatArdEnforcementReport, validateArdEnforcement } from "./ard/enforcement.js"
 import { formatArdMetaReport, validateArdMetadata } from "./ard/meta.js"
 import { parseArdContent } from "./ard/schema.js"
 import { runArds } from "./ard/runner.js"
@@ -180,9 +181,9 @@ export const runCheck = (options: CheckOptions = {}): Effect.Effect<number> =>
           return 0
         })],
         ["ard-enforcement", () => Effect.sync(() => {
-          const metaIssues = validateArdMetadata(productionArds)
-          if (metaIssues.length > 0) {
-            console.error(formatArdMetaReport(metaIssues))
+          const enforcementIssues = validateArdEnforcement(productionArds)
+          if (enforcementIssues.length > 0) {
+            console.error(formatArdEnforcementReport(enforcementIssues))
             return 1
           }
           return 0
@@ -235,8 +236,18 @@ export const runCheck = (options: CheckOptions = {}): Effect.Effect<number> =>
       return 1
     }
 
-    if (options.ardMeta || options.ardEnforcement) {
+    if (options.ardMeta) {
       console.log(formatArdMetaReport([]))
+      return 0
+    }
+
+    if (options.ardEnforcement) {
+      const enforcementIssues = validateArdEnforcement(ards)
+      if (enforcementIssues.length > 0) {
+        console.error(formatArdEnforcementReport(enforcementIssues))
+        return 1
+      }
+      console.log(formatArdEnforcementReport([]))
       return 0
     }
 

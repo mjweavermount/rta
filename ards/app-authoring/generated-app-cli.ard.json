@@ -3,7 +3,7 @@
   "kind": "letter",
   "family": "app",
   "title": "Generated App CLI",
-  "status": "accepted",
+  "status": "proposed",
   "spirit": ["ARD-RTA-APP-000"],
   "supports": ["generated-app-cli-runtime-wiring", "meeting-digest-proving-app"],
   "checks": [

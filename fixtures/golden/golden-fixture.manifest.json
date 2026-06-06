@@ -31,6 +31,10 @@
     "pattern-contracts",
     "archetype-specs",
     "archetype-bindings",
+    "pure-ts",
+    "release-hygiene",
+    "work-ledger",
+    "demo-coverage",
     "coverage-waivers"
   ],
   "future_cli_checks": [

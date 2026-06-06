@@ -3,7 +3,7 @@
   "kind": "letter",
   "family": "runtime",
   "title": "Commands Queries And Events Stay Separated",
-  "status": "accepted",
+  "status": "proposed",
   "spirit": ["ARD-RTA-CQRS-000"],
   "supports": ["rta-prod-11-generated-app-runtime-wiring", "rta-prod-07-usecase-scenario-boundary"],
   "checks": [

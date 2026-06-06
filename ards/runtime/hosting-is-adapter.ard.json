@@ -3,7 +3,7 @@
   "kind": "letter",
   "family": "runtime",
   "title": "Deployment Targets Are Adapters",
-  "status": "accepted",
+  "status": "proposed",
   "spirit": ["ARD-RTA-HOSTING-000"],
   "supports": ["home-lab-hosting-adapter", "rta-prod-13-hosting-adapter-live"],
   "checks": [

@@ -3,7 +3,7 @@
   "kind": "letter",
   "family": "t1",
   "title": "Primitive Public Invocation Cannot Be Bypassed",
-  "status": "accepted",
+  "status": "proposed",
   "spirit": ["ARD-T1-PRIMITIVE-INSTRUMENTATION-000"],
   "supports": ["rta-prod-09-observability-telemetry", "rta-prod-06-check-production"],
   "checks": [

@@ -3,7 +3,7 @@
   "kind": "letter",
   "family": "runtime",
   "title": "IO Time Randomness And Secrets Use Ports",
-  "status": "accepted",
+  "status": "proposed",
   "spirit": ["ARD-RTA-RUNTIME-PORTS-000"],
   "supports": ["runtime-ports", "pure-ts-effect-runtime", "security-hardening"],
   "checks": [

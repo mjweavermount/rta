@@ -49,6 +49,10 @@ export const CHECK_MODES = [
   "pattern-contracts",
   "archetype-specs",
   "archetype-bindings",
+  "pure-ts",
+  "release-hygiene",
+  "work-ledger",
+  "demo-coverage",
   "coverage-waivers",
 ] as const
 

@@ -3,7 +3,7 @@
   "kind": "letter",
   "family": "review",
   "title": "Review Before External Publication",
-  "status": "accepted",
+  "status": "proposed",
   "spirit": ["ARD-RTA-REVIEW-000"],
   "supports": ["review-identity-approval", "meeting-digest-proving-app"],
   "checks": [

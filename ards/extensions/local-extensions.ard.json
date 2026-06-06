@@ -3,7 +3,7 @@
   "kind": "letter",
   "family": "extensions",
   "title": "Local Extensions Stay Upstream-Shaped",
-  "status": "accepted",
+  "status": "proposed",
   "spirit": ["ARD-RTA-EXTENSIONS-000"],
   "supports": ["local-extensions-upstreaming", "vocab-ard-cli-skeleton"],
   "checks": [
