@@ -1,0 +1,29 @@
+kind: Feature
+id: rta-prod-18-app-wiring-entrypoints
+name: RtaProd18AppWiringEntrypoints
+status: planned
+why: RTA apps should start from declared app wiring, where entrypoints are runnable app entries that compose adapters, boundary schemas, operations, runtime scope, scenarios, logs, and demos.
+ownedBy:
+  internal: rta-platform
+demonstratedBy:
+  - command: pnpm --filter @rta/cli rta check --app-wiring --root ../../fixtures/golden/pass
+  - command: pnpm --filter @rta/cli rta wiring graph --root ../../fixtures/golden/pass
+qaSteps:
+  - do: run pnpm --filter @rta/cli rta check --app-wiring --root ../../fixtures/golden/pass
+  - do: run pnpm --filter @rta/cli rta wiring graph --root ../../fixtures/golden/pass
+  - see: fixture AppWiring declares entrypoints as app entries, not transport adapters
+  - see: wiring graph shows entrypoint -> inbound adapter -> boundary schema -> operation/context/runtime -> demo path
+requires:
+  - RtaProd11GeneratedAppRuntimeWiring
+  - RtaProd17RepositoryEdgeSecretVocab
+produces:
+  - AppWiring vocab schema
+  - wiring-entrypoint pattern
+  - app-wiring pattern
+  - generated wiring manifest
+  - wiring graph CLI output
+  - app-wiring validation checks
+selfAudit:
+  - "@is an entrypoint only an app entry/wiring surface, never merely an adapter?"
+  - "@does every entrypoint have a runnable scenario or demo path?"
+  - "@can an agent answer where the app starts by reading wiring before reading source?"

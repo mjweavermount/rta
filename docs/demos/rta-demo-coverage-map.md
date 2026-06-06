@@ -47,6 +47,9 @@ This map links RTA work to the demo surface that should prove it.
 | `rta-prod-15-package-release` | local | Package/release hygiene | Direct CI/demo: production checks, package exports, audit/dependency hygiene, and release workflow pass |
 | `rta-prod-16-pure-ts-effect-purge` | local | Pure TS and Effect purge | Direct CLI/doc demo: run `pnpm check:pure-ts` and inspect `docs/rta-pure-ts-allowlist.txt` burn-down |
 | `rta-prod-17-repository-edge-secret-vocab` | local | Repository/edge/secret/boundary vocab | Direct vocab/check demo: ports, DTO boundary schemas, adapter bindings, published OpenAPI language, and anti-corruption-layer patterns parse and pass pattern checks |
+| `rta-prod-18-app-wiring-entrypoints` | local | App wiring and entrypoints | Direct CLI/graph demo: app wiring declares runnable entrypoints and renders entrypoint -> adapter -> schema -> operation -> runtime/demo paths |
+| `rta-prod-19-branded-fitting-contracts` | local | Branded fitting contracts | Direct type/check demo: generated brand manifest makes wrong port, schema, adapter, operation, and entrypoint fittings fail loudly |
+| `rta-prod-20-sanitization-boundary-contracts` | local | Sanitization boundary contracts | Direct negative fixture demo: external input cannot reach domain code until decoded, sanitized, authorized, translated, and logged |
 | `rta-nix-local-runtime` | local | Repo-owned Nix runtime | Direct Nix demo: `nix run .#demo-affine-monitor` runs both apps and `nix run .#check-production` runs the full production check without borrowing another repo toolchain |
 | `rta-ard-self-enforcing-schema` | local | Self-enforcing ARD schema | Direct CLI demo: `rta check --ard-meta` and `rta check --ard-enforcement` validate root JSON ARDs and fixture YAML ARDs through one parser |
 
