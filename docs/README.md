@@ -7,6 +7,7 @@ Start with:
 - [RTA Reset Plan Board](rta-reset-plan-board.md)
 - [RTA Pure TypeScript And Effect Migration](rta-pure-ts-effect-migration.md)
 - [Repository, Edge Boundary, And Secret Primitives](rta-repository-edge-secret-primitives.md)
+- [RTA ID Story And ARD Cleanup](rta-id-story-and-ard-cleanup.md)
 - [RTA Production Achievements And QA](rta-production-achievements-and-qa.md)
 - [RTA To Live Meeting Digest Milestones](meeting-digest-live-milestones.md)
 - [Demo Walkthroughs](demos/README.md)
@@ -42,6 +43,7 @@ Current supporting docs:
 - `rta-reset-plan-board.md`
 - `rta-pure-ts-effect-migration.md`
 - `rta-repository-edge-secret-primitives.md`
+- `rta-id-story-and-ard-cleanup.md`
 - `meeting-digest-live-milestones.md`
 - `demos/README.md`
 - `demos/lab-34-bootstrap-repo-demo.md`
