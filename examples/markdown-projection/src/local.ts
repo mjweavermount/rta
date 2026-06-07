@@ -54,6 +54,9 @@ export interface ProjectionVerification {
 
 export interface MarkdownProjectionDemoResult {
   readonly demoRoot: string
+  readonly canonicalRemote: string
+  readonly collaboratorRoot: string
+  readonly projectorRoot: string
   readonly sourceRoot: string
   readonly stateRoot: string
   readonly sourceId: string
@@ -129,9 +132,17 @@ const gitRenameEvidence = (root: string): ReadonlyArray<GitRenameEvidence> => {
 const runGit = (root: string, args: ReadonlyArray<string>): string =>
   execFileSync("git", ["-C", root, ...args], { encoding: "utf8" }).trim()
 
+const git = (args: ReadonlyArray<string>): string =>
+  execFileSync("git", [...args], { encoding: "utf8" }).trim()
+
 const commitAll = (root: string, message: string): void => {
   runGit(root, ["add", "."])
   runGit(root, ["commit", "-m", message])
+}
+
+const refreshProjectorCheckout = (projectorRoot: string): void => {
+  runGit(projectorRoot, ["fetch", "origin", "main"])
+  runGit(projectorRoot, ["reset", "--hard", "origin/main"])
 }
 
 const walkMarkdown = (root: string, dir = root): ReadonlyArray<string> => {
@@ -300,20 +311,31 @@ export const explainProjection = (options: Pick<LocalProjectionOptions, "sourceI
 
 export const runMarkdownProjectionDemo = (demoRoot = "tmp/markdown-projection-demo"): MarkdownProjectionDemoResult => {
   const root = resolve(demoRoot)
-  const sourceRoot = join(root, "mock-rta-docs")
+  const canonicalRemote = join(root, "hosted-git", "mock-rta-docs.git")
+  const collaboratorRoot = join(root, "collaborator-checkout", "mock-rta-docs")
+  const projectorRoot = join(root, "projector-checkout", "mock-rta-docs")
+  const sourceRoot = projectorRoot
   const stateRoot = join(root, "projection-state")
   const sourceId = "mock-rta-docs"
   rmSync(root, { recursive: true, force: true })
-  mkdirSync(join(sourceRoot, "rta"), { recursive: true })
+  mkdirSync(dirname(canonicalRemote), { recursive: true })
+  git(["init", "--bare", canonicalRemote])
+  mkdirSync(dirname(collaboratorRoot), { recursive: true })
+  git(["clone", canonicalRemote, collaboratorRoot])
+  runGit(collaboratorRoot, ["checkout", "-b", "main"])
+  runGit(collaboratorRoot, ["config", "user.email", "projection-demo@example.test"])
+  runGit(collaboratorRoot, ["config", "user.name", "Projection Demo"])
+  mkdirSync(join(collaboratorRoot, "rta"), { recursive: true })
 
-  writeFileSync(join(sourceRoot, "README.md"), [
+  writeFileSync(join(collaboratorRoot, "README.md"), [
     "# Mock RTA Knowledge Base",
     "",
-    "This repo is intentionally plain Markdown. It has no RTA sidecars.",
-    "The projection operator reads it as a source-owned documentation repo.",
+    "This hosted Git repo is intentionally plain Markdown. It has no RTA sidecars.",
+    "Collaborators clone, edit, commit, and push it as the canonical documentation source.",
+    "The projection operator reads a projector checkout and mirrors it into AFFiNE.",
     "",
   ].join("\n"))
-  writeFileSync(join(sourceRoot, "rta", "concept.md"), [
+  writeFileSync(join(collaboratorRoot, "rta", "concept.md"), [
     "# RTA Conceptual Overview",
     "",
     "RTA is an app-authoring vocabulary and runtime discipline.",
@@ -321,43 +343,46 @@ export const runMarkdownProjectionDemo = (demoRoot = "tmp/markdown-projection-de
     "The goal is to help agents build systems with observable boundaries instead of loose vibes.",
     "",
   ].join("\n"))
-  writeFileSync(join(sourceRoot, "rta", "status.md"), [
+  writeFileSync(join(collaboratorRoot, "rta", "status.md"), [
     "# RTA Status",
     "",
     "This is a demo status, not an exhaustive status report.",
-    "The current mock says RTA has a working Markdown projection slice with local registry persistence.",
+    "The current mock says RTA has a working Markdown projection slice with hosted Git as the source authority.",
     "Live AFFiNE writing remains the next adapter step.",
     "",
   ].join("\n"))
 
-  runGit(sourceRoot, ["init"])
-  runGit(sourceRoot, ["config", "user.email", "projection-demo@example.test"])
-  runGit(sourceRoot, ["config", "user.name", "Projection Demo"])
-  commitAll(sourceRoot, "initial rta docs")
+  commitAll(collaboratorRoot, "initial rta docs")
+  runGit(collaboratorRoot, ["push", "-u", "origin", "main"])
+  mkdirSync(dirname(projectorRoot), { recursive: true })
+  git(["clone", canonicalRemote, projectorRoot])
+  runGit(projectorRoot, ["checkout", "main"])
 
   const first = runLocalProjection({
-    sourceRoot,
+    sourceRoot: projectorRoot,
     sourceId,
     kind: "shared-git-markdown",
     stateRoot,
   })
   const statusBefore = first.registryRecords.find((record) => record.sourcePath === "rta/status.md")
 
-  mkdirSync(join(sourceRoot, "rta", "reports"), { recursive: true })
-  runGit(sourceRoot, ["mv", "rta/status.md", "rta/reports/current-status.md"])
-  writeFileSync(join(sourceRoot, "rta", "reports", "current-status.md"), [
+  mkdirSync(join(collaboratorRoot, "rta", "reports"), { recursive: true })
+  runGit(collaboratorRoot, ["mv", "rta/status.md", "rta/reports/current-status.md"])
+  writeFileSync(join(collaboratorRoot, "rta", "reports", "current-status.md"), [
     "# RTA Status",
     "",
     "This is still a demo status, not an exhaustive status report.",
-    "The current mock says RTA has a working Markdown projection slice with local registry persistence.",
+    "The current mock says RTA has a working Markdown projection slice with hosted Git as the source authority.",
     "Live AFFiNE writing remains the next adapter step.",
     "The rename demonstrates that Git history can preserve projection identity.",
     "",
   ].join("\n"))
-  commitAll(sourceRoot, "rename rta status doc")
+  commitAll(collaboratorRoot, "rename rta status doc")
+  runGit(collaboratorRoot, ["push"])
+  refreshProjectorCheckout(projectorRoot)
 
   const second = runLocalProjection({
-    sourceRoot,
+    sourceRoot: projectorRoot,
     sourceId,
     kind: "shared-git-markdown",
     stateRoot,
@@ -371,7 +396,10 @@ export const runMarkdownProjectionDemo = (demoRoot = "tmp/markdown-projection-de
 
   return {
     demoRoot: root,
-    sourceRoot,
+    canonicalRemote,
+    collaboratorRoot,
+    projectorRoot,
+    sourceRoot: projectorRoot,
     stateRoot,
     sourceId,
     firstProjectedDocs: first.projected.length,
@@ -380,6 +408,6 @@ export const runMarkdownProjectionDemo = (demoRoot = "tmp/markdown-projection-de
     renamedDocId: statusAfter?.affineDocId,
     verification,
     projectedPaths: second.registryRecords.map((record) => record.sourcePath).sort(),
-    note: "Demo only: proves local source scan, external registry, bot-owned read-only projection sink, CLI flow, and Git rename continuity. It does not exhaustively prove live AFFiNE behavior.",
+    note: "Demo only: proves hosted-style Git source authority, collaborator push, projector checkout sync, external registry, bot-owned read-only projection sink, CLI flow, and Git rename continuity. It does not exhaustively prove live AFFiNE behavior.",
   }
 }

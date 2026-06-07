@@ -51,6 +51,20 @@ docs back to source paths, then edit shared Markdown through Git branches,
 commits, PRs, or staged patches. Projection sync updates AFFiNE after source
 changes land.
 
+For shared documents, the canonical path is:
+
+```text
+hosted Git Markdown repo
+  -> collaborator clone/edit/commit/push
+  -> projection runner clone/pull checkout
+  -> external projection registry
+  -> bot-owned read-only AFFiNE docs
+```
+
+The projection runner may run on a laptop during a spike, but the authority is
+the hosted Git repo, not the laptop checkout. A local checkout is only a working
+copy. AFFiNE is only the projected reading/canvas surface.
+
 ## Local Operator Slice
 
 The seed now includes a local operator adapter:
@@ -100,7 +114,14 @@ pnpm demo:markdown-projection
 ```
 
 The demo creates a mock naked Markdown repo under
-`tmp/markdown-projection-demo/mock-rta-docs` with:
+`tmp/markdown-projection-demo` with:
+
+- `hosted-git/mock-rta-docs.git`: bare canonical Git remote;
+- `collaborator-checkout/mock-rta-docs`: simulated human/agent checkout;
+- `projector-checkout/mock-rta-docs`: projection runner checkout;
+- `projection-state/mock-rta-docs`: external registry and fake AFFiNE sink.
+
+The canonical remote contains:
 
 - `README.md`;
 - `rta/concept.md`;
@@ -110,14 +131,37 @@ The demo creates a mock naked Markdown repo under
 Those files explain RTA conceptually and describe its status as a demo, not an
 exhaustive status report. The operator then:
 
-1. initializes the mock repo;
-2. projects the Markdown files into the JSON AFFiNE stand-in;
-3. saves registry state outside the source repo;
-4. renames the status doc through Git;
-5. projects again;
-6. verifies that the renamed doc keeps the same AFFiNE projection identity.
+1. initializes a bare hosted-style Git remote;
+2. clones it into a collaborator checkout;
+3. commits and pushes the initial Markdown docs;
+4. clones it into a separate projector checkout;
+5. projects the Markdown files from the projector checkout into the JSON AFFiNE
+   stand-in;
+6. saves registry state outside the source repo;
+7. renames the status doc in the collaborator checkout and pushes;
+8. fetches/resets the projector checkout;
+9. projects again;
+10. verifies that the renamed doc keeps the same AFFiNE projection identity.
 
 The important proof is `renamedDocIdStable: true`.
+
+To inspect or edit the demo as a collaborator:
+
+```sh
+open tmp/markdown-projection-demo/collaborator-checkout/mock-rta-docs
+```
+
+To inspect the projection runner's checked-out source:
+
+```sh
+open tmp/markdown-projection-demo/projector-checkout/mock-rta-docs
+```
+
+To inspect the canonical local-hosted remote:
+
+```sh
+open tmp/markdown-projection-demo/hosted-git
+```
 
 ## Live AFFiNE Spike
 

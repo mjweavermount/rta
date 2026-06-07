@@ -1,5 +1,5 @@
 import { execFileSync } from "node:child_process"
-import { mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs"
+import { existsSync, mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs"
 import { join } from "node:path"
 import { tmpdir } from "node:os"
 import { afterEach, describe, expect, it } from "vitest"
@@ -138,8 +138,13 @@ describe("local Markdown projection operator", () => {
       "rta/concept.md",
       "rta/reports/current-status.md",
     ])
-    expect(readFileSync(join(result.sourceRoot, "rta", "concept.md"), "utf8")).toContain("RTA Conceptual Overview")
-    expect(readFileSync(join(result.sourceRoot, "rta", "reports", "current-status.md"), "utf8")).toContain("not an exhaustive status report")
+    expect(result.sourceRoot).toBe(result.projectorRoot)
+    expect(result.collaboratorRoot).not.toBe(result.projectorRoot)
+    expect(existsSync(join(result.canonicalRemote, "HEAD"))).toBe(true)
+    expect(git(result.collaboratorRoot, ["remote", "get-url", "origin"])).toBe(result.canonicalRemote)
+    expect(git(result.projectorRoot, ["remote", "get-url", "origin"])).toBe(result.canonicalRemote)
+    expect(readFileSync(join(result.projectorRoot, "rta", "concept.md"), "utf8")).toContain("RTA Conceptual Overview")
+    expect(readFileSync(join(result.projectorRoot, "rta", "reports", "current-status.md"), "utf8")).toContain("not an exhaustive status report")
   })
 
   it("exposes the demo through the CLI runner", () => {
