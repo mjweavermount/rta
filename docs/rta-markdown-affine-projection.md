@@ -65,6 +65,34 @@ The projection runner may run on a laptop during a spike, but the authority is
 the hosted Git repo, not the laptop checkout. A local checkout is only a working
 copy. AFFiNE is only the projected reading/canvas surface.
 
+## Live Lab Store
+
+On 2026-06-06, the mock RTA docs were moved from the local bare-repo demo into
+Gitea on the tower-backed lab:
+
+```text
+canonical remote: http://100.64.0.1:30087/virgil-admin/rta-mock-docs.git
+public app URL:   https://git.virgil.info/virgil-admin/rta-mock-docs
+```
+
+Until the edge route is refreshed, use the mesh URL for clone/pull operations.
+The public URL is the intended app URL once `git.virgil.info` is wired through
+edge Traefik.
+
+Current local checkouts:
+
+```text
+collaborator checkout:
+  tmp/markdown-projection-gitea/collaborator-checkout/rta-mock-docs
+
+projector checkout:
+  tmp/markdown-projection-gitea/projector-checkout/rta-mock-docs
+```
+
+The live AFFiNE projection reads from the projector checkout, which was cloned
+from Gitea. Collaborators should edit a clone of the Gitea repo, push, then let
+the projector checkout pull before projection.
+
 ## Local Operator Slice
 
 The seed now includes a local operator adapter:
