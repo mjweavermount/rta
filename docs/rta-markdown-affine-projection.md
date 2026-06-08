@@ -67,12 +67,12 @@ copy. AFFiNE is only the projected reading/canvas surface.
 
 ## Live Lab Store
 
-On 2026-06-06, the mock RTA docs were moved from the local bare-repo demo into
+On 2026-06-06, the Section 0 RTA Handbook was moved from the local bare-repo demo into
 Gitea on the tower-backed lab:
 
 ```text
-canonical remote: http://100.64.0.1:30087/virgil-admin/rta-mock-docs.git
-public app URL:   https://git.virgil.info/virgil-admin/rta-mock-docs
+canonical remote: http://100.64.0.1:30087/section0/rta-handbook.git
+public app URL:   https://git.virgil.info/section0/rta-handbook
 ```
 
 Until the edge route is refreshed, use the mesh URL for clone/pull operations.
@@ -83,10 +83,10 @@ Current local checkouts:
 
 ```text
 collaborator checkout:
-  tmp/markdown-projection-gitea/collaborator-checkout/rta-mock-docs
+  tmp/markdown-projection-gitea/collaborator-checkout/rta-handbook
 
 projector checkout:
-  tmp/markdown-projection-gitea/projector-checkout/rta-mock-docs
+  tmp/markdown-projection-gitea/projector-checkout/rta-handbook
 ```
 
 The live AFFiNE projection reads from the projector checkout, which was cloned
@@ -141,13 +141,13 @@ Run:
 pnpm demo:markdown-projection
 ```
 
-The demo creates a mock naked Markdown repo under
+The demo creates a local naked Markdown repo under
 `tmp/markdown-projection-demo` with:
 
-- `hosted-git/mock-rta-docs.git`: bare canonical Git remote;
-- `collaborator-checkout/mock-rta-docs`: simulated human/agent checkout;
-- `projector-checkout/mock-rta-docs`: projection runner checkout;
-- `projection-state/mock-rta-docs`: external registry and fake AFFiNE sink.
+- `hosted-git/section0-rta-handbook.git`: bare canonical Git remote;
+- `collaborator-checkout/section0-rta-handbook`: simulated human/agent checkout;
+- `projector-checkout/section0-rta-handbook`: projection runner checkout;
+- `projection-state/section0-rta-handbook`: external registry and fake AFFiNE sink.
 
 The canonical remote contains:
 
@@ -176,13 +176,13 @@ The important proof is `renamedDocIdStable: true`.
 To inspect or edit the demo as a collaborator:
 
 ```sh
-open tmp/markdown-projection-demo/collaborator-checkout/mock-rta-docs
+open tmp/markdown-projection-demo/collaborator-checkout/section0-rta-handbook
 ```
 
 To inspect the projection runner's checked-out source:
 
 ```sh
-open tmp/markdown-projection-demo/projector-checkout/mock-rta-docs
+open tmp/markdown-projection-demo/projector-checkout/section0-rta-handbook
 ```
 
 To inspect the canonical local-hosted remote:
@@ -193,25 +193,25 @@ open tmp/markdown-projection-demo/hosted-git
 
 ## Live AFFiNE Spike
 
-On 2026-06-06 the mock RTA docs demo was projected into live AFFiNE through the
+On 2026-06-06 the Section 0 RTA Handbook was projected into live AFFiNE through the
 home-lab checkpointed projection operator.
 
 Checkpoint created before mutation:
 
 ```text
-before-rta-mock-projection
+before-section0-rta-handbook-projection
 ```
 
 Target:
 
 ```text
-AFFiNE / Agent Workspace / projected-markdown / mock-rta-docs
+AFFiNE / Agent Workspace / Section 0 / Git Projections / RTA Handbook
 ```
 
 Live projected documents:
 
 ```text
-Mock RTA Knowledge Base
+Section 0 RTA Handbook
 docId: obs-7e4f7e5e777db89b
 source: README.md
 

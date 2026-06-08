@@ -311,12 +311,12 @@ export const explainProjection = (options: Pick<LocalProjectionOptions, "sourceI
 
 export const runMarkdownProjectionDemo = (demoRoot = "tmp/markdown-projection-demo"): MarkdownProjectionDemoResult => {
   const root = resolve(demoRoot)
-  const canonicalRemote = join(root, "hosted-git", "mock-rta-docs.git")
-  const collaboratorRoot = join(root, "collaborator-checkout", "mock-rta-docs")
-  const projectorRoot = join(root, "projector-checkout", "mock-rta-docs")
+  const canonicalRemote = join(root, "hosted-git", "section0-rta-handbook.git")
+  const collaboratorRoot = join(root, "collaborator-checkout", "section0-rta-handbook")
+  const projectorRoot = join(root, "projector-checkout", "section0-rta-handbook")
   const sourceRoot = projectorRoot
   const stateRoot = join(root, "projection-state")
-  const sourceId = "mock-rta-docs"
+  const sourceId = "section0-rta-handbook"
   rmSync(root, { recursive: true, force: true })
   mkdirSync(dirname(canonicalRemote), { recursive: true })
   git(["init", "--bare", canonicalRemote])
@@ -328,7 +328,7 @@ export const runMarkdownProjectionDemo = (demoRoot = "tmp/markdown-projection-de
   mkdirSync(join(collaboratorRoot, "rta"), { recursive: true })
 
   writeFileSync(join(collaboratorRoot, "README.md"), [
-    "# Mock RTA Knowledge Base",
+    "# Section 0 RTA Handbook",
     "",
     "This hosted Git repo is intentionally plain Markdown. It has no RTA sidecars.",
     "Collaborators clone, edit, commit, and push it as the canonical documentation source.",
@@ -346,8 +346,8 @@ export const runMarkdownProjectionDemo = (demoRoot = "tmp/markdown-projection-de
   writeFileSync(join(collaboratorRoot, "rta", "status.md"), [
     "# RTA Status",
     "",
-    "This is a demo status, not an exhaustive status report.",
-    "The current mock says RTA has a working Markdown projection slice with hosted Git as the source authority.",
+    "This is a concise operator status, not an exhaustive status report.",
+    "The current handbook records that RTA has a working Markdown projection slice with hosted Git as the source authority.",
     "Live AFFiNE writing remains the next adapter step.",
     "",
   ].join("\n"))
@@ -371,8 +371,8 @@ export const runMarkdownProjectionDemo = (demoRoot = "tmp/markdown-projection-de
   writeFileSync(join(collaboratorRoot, "rta", "reports", "current-status.md"), [
     "# RTA Status",
     "",
-    "This is still a demo status, not an exhaustive status report.",
-    "The current mock says RTA has a working Markdown projection slice with hosted Git as the source authority.",
+    "This is a concise operator status, not an exhaustive status report.",
+    "The current handbook records that RTA has a working Markdown projection slice with hosted Git as the source authority.",
     "Live AFFiNE writing remains the next adapter step.",
     "The rename demonstrates that Git history can preserve projection identity.",
     "",

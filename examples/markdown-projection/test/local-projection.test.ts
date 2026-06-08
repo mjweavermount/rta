@@ -125,7 +125,7 @@ describe("local Markdown projection operator", () => {
     expect(output.at(-1)).toContain("projection-bot")
   })
 
-  it("runs the end-to-end mock RTA docs demo", () => {
+  it("runs the end-to-end Section 0 RTA Handbook demo", () => {
     const root = tempDir()
     const result = runMarkdownProjectionDemo(join(root, "demo"))
 
