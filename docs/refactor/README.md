@@ -11,11 +11,13 @@ the good parts that make RTA worth having:
 - TypeScript and Effect as the runtime spine.
 - DDD and hexagonal architecture as boundary discipline, not ceremony.
 - Steps and flows as the readable story of work.
+- Explicit defensive boundary/translation before steps receive input.
 - Automatic evidence at every meaningful boundary.
 - Tiers, branded types, and generators that make it hard for agents to invent
   unsupported structure.
-- Catalog/wiki pages that explain the system and show the source, tests, ARDs,
-  and runtime evidence behind each concept.
+- A shipped concept wiki that explains stable RTA ideas.
+- A generated app workbench/server that shows source, tests, ARDs, graphs, and
+  runtime evidence for one app workspace.
 
 ## Documents
 
@@ -31,8 +33,9 @@ the good parts that make RTA worth having:
   categories, missing primitives, and repair plan.
 - [Testing And Evidence](testing-and-evidence.md): native test layers and the
   evidence model each layer should produce.
-- [Catalog And Source Wiki](catalog-and-source-wiki.md): the future docs/catalog
-  shape, including concept articles and source browsing.
+- [Catalog And Source Wiki](catalog-and-source-wiki.md): legacy name for the
+  future wiki/workbench split; this doc should be split or renamed as the model
+  settles.
 - [Feature Requests](feature_requests.md): the desired app-builder/workbench
   product surface collected from the design conversation.
 - [Technical Requirements](technical_requirements.md): model, API, source,
@@ -60,9 +63,11 @@ rewritten into the new model and backed by tests, QA, or active docs.
 Declare the app shape, generate the boring parts, implement the leaves, run
 flows, inspect evidence.
 
-The CLI should be the normal doorway into structural changes. The catalog should
-be the normal doorway into understanding the repo. Runtime evidence should be
-the normal doorway into understanding what actually happened.
+The CLI should be the normal doorway into structural changes. The generated app
+workbench should be the normal doorway into understanding one app workspace.
+Runtime evidence should be the normal doorway into understanding what actually
+happened. The concept wiki should remain a stable explanatory surface, not the
+active source/runtime browser.
 
 In internal design conversation, the RTA core repo is the shipyard. In product
 language, `rta init my-app` creates one generated app workspace for one app.
@@ -73,7 +78,7 @@ The app-local workbench layer does not exist yet.
 
 Any current `rta serve` / catalog page is an exploratory source/catalog probe,
 not the designed generated-app workbench and not evidence that the product
-server model is settled.
+server model is settled. The old fused "catalog" concept is deprecated.
 
 Do not add npm scripts that imply a finished workbench until the generated-app
 workspace layer exists.

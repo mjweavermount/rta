@@ -21,6 +21,10 @@ Work:
 - align concept model with feature requests
 - align technical requirements with user stories
 - keep old web/catalog assumptions clearly marked as replaceable
+- unfuse deprecated catalog language from the generated app workbench/server and
+  shipped concept wiki
+- resolve whether `Edge` survives as a first-class concept or is replaced by
+  external boundary / translator / inbound adapter language
 - identify current code that should be preserved vs replaced
 
 Exit criteria:
@@ -28,6 +32,7 @@ Exit criteria:
 - refactor docs agree on vocabulary
 - workbench/app-builder scope is clear
 - no competing definition of app/core/candidate-upstream
+- no hidden assumption that every operation is a bounded context or edge
 
 ### Phase 0B: Eternal Cleanup Lane
 
@@ -104,10 +109,11 @@ Exit criteria:
 
 Goal: make stable RTA principles readable to humans and agents.
 
-The concept wiki is not the active source explorer, ARD browser, or app-local
-inventory. It explains stable mental models. Active vocab declarations,
-candidate-upstream items, source files, and app wiring belong in catalog/source
-and graph surfaces that can link back to the wiki.
+The concept wiki is not the active source explorer, ARD browser, old catalog, or
+app-local inventory. It explains stable mental models and ships with RTA.
+Active vocab declarations, candidate-upstream items, source files, and app wiring
+belong in the generated app workbench/server: source, graph, cards, and runtime
+evidence surfaces that can link back to the wiki.
 
 Work:
 
@@ -132,8 +138,9 @@ Goal: expose the executable DDD/hex wiring structure as a graph model.
 Work:
 
 - graph schema
-- nodes for flows, edges, steps, ports, adapters, rules, decisions, aggregates,
-  scenarios, probes, and evidence
+- nodes for flows, external boundaries/translators, steps, ports, adapters,
+  rules, decisions, aggregates, scenarios, probes, and evidence
+- compatibility note for any legacy `edge` terminology that survives in source
 - source/declaration links
 - inferred/declared/tested/observed confidence labels
 
@@ -239,7 +246,7 @@ Work:
 - flow/step/scenario/command/endpoint targets
 - trace model
 - validation/sanitization evidence
-- step/edge decision evidence
+- step/boundary decision evidence
 - log/event/state/output capture
 - replay where safe
 - compare traces across checkpoints

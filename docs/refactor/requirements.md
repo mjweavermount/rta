@@ -25,7 +25,7 @@ An RTA app should be able to declare and generate at least:
 - app metadata,
 - bounded contexts,
 - external surfaces,
-- edges,
+- inbound surface translators / defensive boundaries,
 - flows,
 - steps,
 - rules,
@@ -38,8 +38,9 @@ An RTA app should be able to declare and generate at least:
 - evidence expectations.
 
 The framework should not require every app to use every concept on day one, but
-it should make omissions explicit. For example, a tiny app may have one edge,
-one flow, one step, one in-memory adapter, and one scenario.
+it should make omissions explicit. For example, a tiny app may have one external
+surface, one translator into trusted input, one flow, one step, one in-memory
+adapter, and one scenario.
 
 ## 3. Generated-Code Discipline
 
@@ -58,11 +59,14 @@ Required behavior:
 
 The CLI should make the correct path easier than manual invention.
 
-## 4. Edges Defend
+## 4. External Boundaries Defend
 
-Every untrusted input must enter through an edge.
+Every untrusted input must pass through an explicit defensive boundary before it
+reaches a step. The term `edge` is currently legacy/provisional; the durable
+concept is the boundary that sanitizes and translates raw input into trusted
+domain/application data.
 
-Each edge must declare:
+Each external boundary must declare:
 
 - protocol or entry mechanism,
 - trust level,
@@ -76,6 +80,10 @@ Each edge must declare:
 - tests covering declared threats.
 
 No raw external payload should reach a step.
+
+The output of this layer should be typed trusted input: aggregates, commands,
+value objects, actor context, or other explicit application inputs. Steps
+operate inside that sanitized bounded context.
 
 ## 5. Steps Decide And Act
 
@@ -94,6 +102,9 @@ Each step must:
 Steps may be heavier than strictly necessary when that improves auditability,
 debuggability, or human comprehension.
 
+Steps must not talk to adapters. If a step needs I/O, it calls a port/capability;
+the adapter is selected by composition/wiring outside the step.
+
 ## 6. Flows And Sagas Connect Steps
 
 Internal step-to-step wiring should be flow topology, not direct function calls.
@@ -105,6 +116,10 @@ Flows must:
 - show retries and compensations,
 - support long-running saga/process-manager shapes,
 - emit flow-level evidence.
+
+Open question: ordinary in-flight I/O waits may just be step/port behavior, while
+waiting across time, external events, retries, or compensation is likely saga /
+process-manager territory. The refactor should make that distinction explicit.
 
 ## 7. Ports And Adapters
 
@@ -163,24 +178,30 @@ human explanation better.
 
 ## 10. Catalog / Wiki
 
-The catalog should become a human documentation surface with embedded source,
-not a raw file browser.
+This heading is intentionally being split.
 
-Required entry points:
+The old `catalog` idea is deprecated as a fused all-purpose surface. Most active
+source/declaration/runtime discovery should move through the generated app
+workspace workbench / server.
+
+The wiki is exactly a wiki: stable mental-model documentation that ships with
+RTA and helps humans and agents understand concepts before reading source.
+
+Required wiki entry points:
 
 - Concepts,
-- Apps,
-- Flows,
+- Bounded contexts / hexagons,
 - Steps,
-- Edges,
-- Rules and Decisions,
-- Ports and Adapters,
-- Scenarios and Evidence,
-- Source Browser.
+- Flows and sagas,
+- Ports and adapters,
+- Rules and decisions,
+- Evidence,
+- Tiers,
+- Candidate upstream.
 
-Each item should show description, kind, tier, scope, source, declaration,
-tests, generated artifacts, parents/children, and runtime evidence where
-available.
+The generated app workbench should provide source, declaration, tests, generated
+artifacts, parents/children, runtime evidence, and graph/source browsing. It may
+link to wiki pages, but it should not be called the wiki.
 
 ## 11. Native Testing
 
@@ -201,7 +222,7 @@ Evidence must be emitted at more than just steps.
 
 Required evidence levels:
 
-- edge,
+- external boundary / translator,
 - flow,
 - step,
 - rule/decision,

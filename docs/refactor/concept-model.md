@@ -17,6 +17,11 @@ A bounded context is the domain language and boundary around a coherent model.
 It is close to a hexagon, but RTA should avoid making it the unit that does
 everything.
 
+The current direction is that steps operate inside sanitized bounded contexts.
+The bounded context/hexagon owns the trusted domain vocabulary and internal
+rules, while ports and surface translators do the important work of turning raw
+outside input into trusted aggregates, commands, values, and actor context.
+
 A bounded context owns:
 
 - domain language,
@@ -45,16 +50,29 @@ Examples:
 - queue consumers,
 - scheduled jobs.
 
-The surface names what exists. Edges perform the defensive boundary work.
+The surface names what exists. The defensive boundary work should happen at the
+surface/port translation layer before a step receives input.
 
 ## Edge
 
-An edge is an operation node that faces untrusted or semi-trusted input.
+`Edge` is currently a suspect / legacy term.
 
-Edges defend.
+It came from an earlier model where almost every operation was being treated as
+a bounded context. It may remain as shorthand for an external entry adapter, but
+it should not be assumed to be a durable first-class runtime concept until the
+refactor proves it.
 
-An edge converts protocol-shaped outside input into trusted domain/application
-input by parsing, validating, sanitizing, authorizing, and emitting evidence.
+The durable requirement is not "every app has edges." The durable requirement is:
+raw external payloads are parsed, validated, sanitized, authorized, translated
+into trusted domain/application input, and evidenced before steps touch them.
+
+Likely homes for that work:
+
+- external surface declarations,
+- inbound adapter wrappers,
+- port translators,
+- generated request/command codecs,
+- threat-model-aware validation/sanitization modules.
 
 Examples:
 
@@ -62,6 +80,9 @@ Examples:
 - `AffineMcpToolEdge`,
 - `StripeWebhookEdge`,
 - `ImportCsvCliEdge`.
+
+These examples are provisional. They may become inbound adapters or surface
+handlers rather than `Edge` concepts.
 
 ## Flow
 
@@ -83,6 +104,12 @@ dependent on external events over time.
 
 Sagas should emit evidence that makes partial progress legible.
 
+Open design question: flows need a standard pattern for waiting on in-flight I/O
+and resuming work. If the operation waits across time, external events, retries,
+or compensation, that may be definitionally saga/process-manager territory. If
+the wait is only an ordinary port call inside one step, it should probably stay
+inside step/port evidence.
+
 ## Step
 
 A step is one meaningful unit of trusted work.
@@ -93,6 +120,9 @@ A step receives trusted input, applies rules/decisions, calls ports, changes
 state, emits typed outcomes, and records evidence.
 
 Steps are the primary human-readable story units.
+
+Steps must not talk to adapters directly. A step calls ports/capabilities. The
+runtime wiring chooses adapters outside the step.
 
 ## Rule
 
