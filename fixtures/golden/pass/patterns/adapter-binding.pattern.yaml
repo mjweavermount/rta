@@ -1,5 +1,6 @@
 kind: PatternSpec
 name: adapter-binding
+description: Connects a declared port to a concrete adapter and target so runtime IO remains explicit, reviewable, and drift-checkable.
 requiredPrimitives: [AdapterBinding, OutboundAdapter]
 testingContract:
   extends: runtime-capability-binding

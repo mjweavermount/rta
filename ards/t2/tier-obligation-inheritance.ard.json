@@ -3,20 +3,20 @@
   "kind": "letter",
   "family": "t2",
   "title": "Concrete Vocabulary Inherits Parent Obligations",
-  "status": "proposed",
+  "status": "accepted",
   "spirit": ["ARD-T2-BLOOMING-000"],
   "supports": ["rta-prod-02-tier-vocab-contracts", "rta-prod-04-derivation-engine"],
   "checks": [
     {
       "description": "tier pattern and archetype contracts preserve inherited obligations",
-      "command": "rta check --tier-contracts && rta check --pattern-contracts && rta check --archetype-bindings"
+      "command": "rta check --tier-contracts"
     }
   ],
   "enforcement": [
     {
       "kind": "command",
       "description": "tier pattern and archetype contracts preserve inherited obligations",
-      "command": "rta check --tier-contracts && rta check --pattern-contracts && rta check --archetype-bindings",
+      "command": "rta check --tier-contracts",
       "expected": "pass"
     }
   ],

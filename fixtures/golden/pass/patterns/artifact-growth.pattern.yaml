@@ -1,5 +1,6 @@
 kind: PatternSpec
 name: artifact-growth
+description: Governs tools that create or extend durable artifacts from nearby context while preserving review posture and source evidence.
 requiredPrimitives: [BoundedContext, EdgeBoundary, Policy, OutboundAdapter]
 testingContract:
   extends: tool-surface-safety

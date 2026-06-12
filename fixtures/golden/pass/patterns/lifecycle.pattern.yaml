@@ -1,5 +1,6 @@
 kind: PatternSpec
 name: lifecycle
+description: Coordinates decision outcomes and downstream reactions or process transitions into a covered state progression.
 requiredPrimitives: [Decision, Reaction]
 testingContract:
   extends: decision-outcome-coverage

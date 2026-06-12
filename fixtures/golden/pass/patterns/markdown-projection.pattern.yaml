@@ -1,5 +1,6 @@
 kind: PatternSpec
 name: markdown-projection
+description: Projects source-owned Markdown, such as Git or Obsidian notes, into AFFiNE as bot-owned read-only documents.
 requiredPrimitives: [Projector, Repository, OutboundAdapter, EdgeBoundary]
 testingContract:
   extends: projection-mount-coverage

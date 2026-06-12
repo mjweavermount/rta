@@ -239,4 +239,25 @@ describe("generateContext — @rta/strict mode", () => {
     expect(registry).toContain(`Effect.provide(handled, commandOrQuery.layer as any)`)
     expect(registry).toContain(`dispatch(operation as RegistryOperation, raw, scope).pipe(Effect.asVoid)`)
   })
+
+  it("deduplicates contexts and connections by context name before emitting registry symbols", () => {
+    const registry = generateRegistry(
+      [fullContext, fullContext],
+      [fullConnections, fullConnections],
+      { strict: true },
+    )
+
+    expect(registry.match(/const orderManagementConnections/g)).toHaveLength(1)
+    expect(registry.match(/const orderManagementConnectionMapLayer/g)).toHaveLength(1)
+    expect(registry.match(/const orderManagementLayer/g)).toHaveLength(1)
+    expect(registry.match(/"OrderManagement.PlaceOrder"/g)).toHaveLength(1)
+    expect(registry.match(/"OrderManagement.ShipOrderOnPaymentCaptured"/g)).toHaveLength(1)
+  })
+
+  it("exports the serve contract for an empty registry", () => {
+    const registry = generateRegistry([minimalContext], [], { strict: true })
+
+    expect(registry).toContain("export const registry = {}")
+    expect(registry).toContain("export const stores: Record<string, Map<string, unknown>> = {}")
+  })
 })

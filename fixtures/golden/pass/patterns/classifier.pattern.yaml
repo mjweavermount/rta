@@ -1,5 +1,6 @@
 kind: PatternSpec
 name: classifier
+description: Covers decisions that classify inputs into multiple named outcomes and require explicit outcome coverage.
 requiredPrimitives: [Decision]
 testingContract:
   extends: decision-outcome-coverage

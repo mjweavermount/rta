@@ -1,5 +1,6 @@
 kind: PatternSpec
 name: anti-corruption-layer
+description: Keeps an external system's language outside the domain by translating external schemas through boundary adapters and drift checks.
 requiredPrimitives: [OutboundAdapter, BoundarySchema, PublishedLanguage]
 testingContract:
   extends: external-schema-drift

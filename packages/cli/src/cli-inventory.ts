@@ -8,6 +8,7 @@ export const CLI_COMMANDS = [
   "test-policy",
   "wiring",
   "serve",
+  "catalog",
 ] as const
 
 export type CliCommand = (typeof CLI_COMMANDS)[number]
@@ -51,6 +52,7 @@ export const CHECK_MODES = [
   "pattern-contracts",
   "archetype-specs",
   "archetype-bindings",
+  "tier-contracts",
   "pure-ts",
   "release-hygiene",
   "work-ledger",

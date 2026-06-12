@@ -1,0 +1,24 @@
+{
+  "id": "ARD-T2-TIER-VOCAB-CATALOG",
+  "kind": "letter",
+  "family": "t2",
+  "title": "Tier Vocabulary Is Catalog Source Material",
+  "status": "accepted",
+  "spirit": ["ARD-T2-BLOOMING-000"],
+  "supports": ["rta-prod-02-tier-vocab-contracts"],
+  "checks": [
+    {
+      "description": "tier vocabulary files parse through the canonical vocab schema and include catalog descriptions",
+      "command": "rta check --tier-contracts --root fixtures/golden/pass"
+    }
+  ],
+  "enforcement": [
+    {
+      "kind": "command",
+      "description": "tier vocabulary files parse through the canonical vocab schema and include catalog descriptions",
+      "command": "rta check --tier-contracts --root fixtures/golden/pass",
+      "expected": "pass"
+    }
+  ],
+  "decision": "PatternSpec, ArchetypeSpec, and ArchetypeInstance files are first-class vocab declarations. They must carry enough natural-language metadata to serve future wiki/catalog pages without re-describing the same contract somewhere else."
+}

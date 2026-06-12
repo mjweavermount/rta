@@ -32,7 +32,7 @@
     "typecheck": "pnpm build && pnpm -r typecheck",
     "audit": "pnpm audit --audit-level high",
     "doctor": "pnpm check:production",
-    "rta": "pnpm --filter @rta/cli rta"
+    "rta": "npm exec --yes pnpm@9.0.0 -- --filter @rta/cli rta"
   },
   "devDependencies": {
     "@types/node": "^20.0.0",

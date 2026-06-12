@@ -1,5 +1,6 @@
 kind: PatternSpec
 name: deployment-intent
+description: Captures host-neutral deployment wishes and optional hosting adapters without making any one lab host mandatory.
 requiredPrimitives: [DeploymentIntent, RuntimeCapability]
 testingContract:
   extends: deployment-contract

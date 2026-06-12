@@ -28,10 +28,10 @@ examples/meeting-digest
 
 ## Validation
 
-Use pnpm. On this machine, pnpm may need the local Node bin on PATH:
+Use the package manager declared by the repo:
 
 ```bash
-PATH="/Users/virgil/Developer/Virgil-Info/heckitonkires/.hermes/node/bin:$PATH" pnpm check
+npm exec --yes pnpm@9.0.0 -- check
 ```
 
 The check runs:

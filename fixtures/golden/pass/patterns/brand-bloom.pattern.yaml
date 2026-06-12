@@ -1,5 +1,6 @@
 kind: PatternSpec
 name: brand-bloom
+description: Turns declared vocab identities into branded types so ports, schemas, and adapter bindings fit at compile time while remaining readable at runtime.
 requiredPrimitives: [Port, AdapterBinding, BoundarySchema, OutboundAdapter]
 testingContract:
   extends: brand-fitting

@@ -1,5 +1,6 @@
 kind: PatternSpec
 name: projection-mount
+description: Describes derived projection surfaces that can plan, verify, and repair state against a source manifest.
 requiredPrimitives: [Projector, Repository, EdgeBoundary]
 testingContract:
   extends: projection-mount-coverage

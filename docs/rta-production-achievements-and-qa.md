@@ -28,7 +28,7 @@ Expected current result:
 
 RTA now has an enforceable app-authoring loop:
 
-- Tier/vocab contracts for T1 primitives, T2 patterns, T3 archetypes, and app-local concrete extensions.
+- Tier/vocab contracts for T1 primitives, T2 reusable specializations, T3 concrete reusable specializations, and app-local concrete extensions.
 - ARD spirit/letter checks with reciprocal family validation.
 - A central derivation engine for obligations, telemetry, operation event contracts, review gates, use cases, boundary coverage, provenance, and runtime contracts.
 - Generated artifacts with derivation hashes and generated-sync drift checks.
@@ -40,7 +40,7 @@ RTA now has an enforceable app-authoring loop:
 - Review gates and connector policies that block dry-run publication until review is approved.
 - Generated app runtime wiring with an AppRuntime schema and generated CLI parity checks.
 - `rta generate app` now emits an operational app CLI with `run`, `scenario`, `status`, `watch --trace`, `review`, `logs tail`, `graph run`, and `doctor` paths.
-- Tier blooming is transitive: app-local vocabulary that extends a T2 pattern or T3 archetype inherits parent primitive obligations and operation event requirements.
+- Tier blooming is transitive: app-local vocabulary that extends a T2 or T3 specialization inherits parent primitive obligations and operation event requirements.
 - TypeScript CQRS buses in `@rta/core` for scoped command, query, and event dispatch.
 - Strict primitive subclasses for command handlers, query handlers, event handlers, and generic runtime primitives.
 - Generated strict command, query, and reaction event-handler leaves that inherit operation logging from RTA primitives.

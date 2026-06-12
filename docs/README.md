@@ -2,6 +2,7 @@
 
 Start with:
 
+- [RTA Refactor Packet](refactor/README.md)
 - [RTA Production Authoring Platform Spec](rta-production-authoring-platform-spec.md)
 - [RTA-ish Source Inventory](rta-ish-source-inventory.md)
 - [RTA Reset Plan Board](rta-reset-plan-board.md)
@@ -35,7 +36,7 @@ Planned docs from the spec:
 - `hosting-adapters.md`
 - `meeting-digest-seed.md`
 - `agent-playbook.md`
-- `salvage-plan.md`
+- `/junkyard/README.md`
 
 Current supporting docs:
 

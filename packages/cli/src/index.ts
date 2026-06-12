@@ -42,3 +42,32 @@ export { runLint } from "./lint.js"
 export { runCoverage } from "./coverage.js"
 export { runTestPolicy } from "./test-policy.js"
 export { checkGeneratedSync } from "./generated-sync.js"
+export {
+  buildCatalog,
+  readCatalogSource,
+  runCatalog,
+  sourceLinksForPath,
+  sourceLinksForText,
+} from "./catalog.js"
+export {
+  readServerState,
+  removeServerState,
+  runServerOpen,
+  runServerRestart,
+  runServerStatus,
+  runServerStop,
+  writeServerState,
+} from "./server-control.js"
+export type {
+  Catalog,
+  CatalogNode,
+  CatalogNodeKind,
+  CatalogSource,
+  CatalogSourceLink,
+  CatalogSourceRef,
+} from "./catalog.js"
+export type {
+  ServerControlOptions,
+  ServerProjectState,
+  ServerState,
+} from "./server-control.js"

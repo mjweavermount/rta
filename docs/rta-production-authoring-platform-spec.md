@@ -276,7 +276,7 @@ rta/
       src/
         t1-primitives.ts
         t2-patterns.ts
-        t3-archetypes.ts
+        blueprints.ts
         contracts.ts
         registry.ts
       test/
@@ -365,7 +365,7 @@ rta/
         telemetry-coverage.ts
         operation-event.ts
         pattern-contracts.ts
-        archetype-bindings.ts
+        blueprint-bindings.ts
         derived-obligations.ts
         vocab-lint.ts
         dependency-boundaries.ts
@@ -457,11 +457,11 @@ rta/
     review-gate.pattern.yaml
     publisher.pattern.yaml
 
-  archetypes/
-    scheduler.archetype.yaml
-    ledger.archetype.yaml
-    flow-app.archetype.yaml
-    research-pipeline.archetype.yaml
+  blueprints/
+    scheduler.blueprint.yaml
+    ledger.blueprint.yaml
+    flow-app.blueprint.yaml
+    research-pipeline.blueprint.yaml
 
   ards/
     ci/
@@ -509,7 +509,7 @@ meeting-digest/
     connections/
       meeting-digest.connections.yaml
     bindings/
-      meeting-digest.archetype.yaml
+      meeting-digest.blueprint.yaml
     ui/
       topic-review-panel.view.yaml
       provenance-graph.view.yaml
@@ -634,7 +634,7 @@ Agents should run this before editing.
 
 ### `rta generate`
 
-Reads vocab, patterns, archetypes, bindings, and config. Produces code, tests, telemetry expectations, operation event contracts, review gates, routes, registry, and hosting metadata.
+Reads vocab, patterns, blueprints, bindings, and config. Produces code, tests, telemetry expectations, operation event contracts, review gates, routes, registry, and hosting metadata.
 
 Generated output should include a vocab hash or derivation hash.
 
@@ -679,8 +679,8 @@ Required modes:
 --tier-contracts
 --pattern-specs
 --pattern-contracts
---archetype-specs
---archetype-bindings
+--blueprint-specs
+--blueprint-bindings
 --derived-obligations
 --obligation-coverage
 --telemetry-coverage
@@ -1038,7 +1038,7 @@ features
 use cases
 scenarios
 vocab declarations
-patterns/archetypes
+patterns/blueprints
 ARDs
 waivers
 Plane/GitHub cards
@@ -1155,7 +1155,7 @@ missing obligation:
   scheduler.claim-event.integration-claim
 
 derived from:
-  T3 scheduler archetype
+  SchedulerBlueprint
   requires lifecycle pattern
   bound claim-event -> MeetingTopicClosed
   expected generated test:
@@ -1248,14 +1248,14 @@ input/output shape
 side effects
 data sensitivity
 review requirements
-patterns/archetypes applied
+patterns/blueprints applied
 ```
 
 ## Use Cases And Scenarios
 
 Vocab says what exists. Use cases say what a user or system is trying to accomplish. Scenarios make those goals executable.
 
-This layer is required because primitive, pattern, and archetype tests do not prove that the app actually satisfies a human goal across bounded contexts.
+This layer is required because primitive, pattern, and blueprint tests do not prove that the app actually satisfies a human goal across bounded contexts.
 
 RTA should treat use cases and scenarios as first-class authored artifacts:
 
@@ -1427,7 +1427,7 @@ Expansion order:
 ```text
 1. Try to model the app using existing T1 primitives.
 2. If a recurring shape appears, define or extend a T2 pattern.
-3. If several patterns form a reusable domain template, define a T3 archetype.
+3. If several patterns form a reusable domain template, define a blueprint.
 4. Only add a new T1 primitive when existing primitives cannot honestly express the concept.
 ```
 
@@ -1502,22 +1502,22 @@ Patterns may not remove or weaken inherited T1 obligations.
 
 This matters because an agent should be able to apply a pattern and know that the app became more specific, not less safe.
 
-### Expanding T3 Archetypes
+### Expanding Blueprints
 
-Archetypes are special.
+Blueprints are special.
 
-They should not be used for every domain noun. A T3 archetype is a reusable domain template composed from patterns, roles, bindings, and a derived test plan.
+They should not be used for every domain noun. A blueprint is a reusable domain template composed from tiered vocabulary items, roles, bindings, and a derived test plan.
 
-Unlike a T2 pattern, an archetype can describe a functional organ that appears in multiple apps. It is still abstract until bound to app vocabulary, but it is a bigger reusable shape than a pattern.
+Unlike a T2 or T3 specialization, a blueprint describes a reusable app shape that appears in multiple apps. It is still abstract until bound to app vocabulary, but it is composition, not inheritance.
 
 Example:
 
 ```text
-archetype:
+blueprint:
   scheduler
 
 meaning:
-  a reusable functional organ for claiming, releasing, timing, retrying,
+  a reusable functional module for claiming, releasing, timing, retrying,
   and observing scheduled work
 
 possible app instances:
@@ -1527,9 +1527,9 @@ possible app instances:
   report generation scheduler
 ```
 
-Archetypes are like organs in related species: recognizable structure, reusable roles, different concrete names and local behavior in each app.
+Blueprints provide recognizable structure, reusable roles, different concrete names, and local behavior in each app.
 
-A new archetype is justified when:
+A new blueprint is justified when:
 
 ```text
 the shape recurs across apps or contexts
@@ -1539,10 +1539,10 @@ the derived test plan is useful and repeatable
 the visual/provenance story is recognizable
 ```
 
-A new archetype requires:
+A new blueprint requires:
 
 ```text
-ArchetypeSpec YAML
+BlueprintSpec YAML
 requiredPatterns
 inputRoles
 outputRoles
@@ -1556,7 +1556,7 @@ golden fixture coverage
 agent docs
 ```
 
-Archetypes should remain relatively few. They are the vocabulary's high-level reusable forms, not a bucket for every app feature.
+Blueprints should remain relatively few. They are the vocabulary's high-level reusable forms, not a bucket for every app feature.
 
 ### Agent Process For Expanding Vocabulary
 
@@ -1598,16 +1598,16 @@ There are three extension scopes:
 
 ```text
 core RTA vocabulary
-  stable primitives, patterns, archetypes, ARDs, checks, and generators
+  stable primitives, patterns, blueprints, ARDs, checks, and generators
 
 app-local vocabulary
   concrete declarations and local extensions used by one app
 
 candidate upstream extensions
-  app-local patterns/archetypes that have proven reusable enough to promote
+  app-local patterns/blueprints that have proven reusable enough to promote
 ```
 
-An app may define local patterns and local archetype bindings, but core RTA should treat those as app-owned unless they are explicitly promoted.
+An app may define local patterns and local blueprint bindings, but core RTA should treat those as app-owned unless they are explicitly promoted.
 
 Suggested layout in an authored app:
 
@@ -1619,7 +1619,7 @@ vocab/
   extensions/
     manifests/
     patterns/
-    archetypes/
+    blueprints/
     ards/
     docs/
 ```
@@ -1628,7 +1628,7 @@ Core RTA layout:
 
 ```text
 patterns/
-archetypes/
+blueprints/
 ards/
 packages/
 ```
@@ -1641,7 +1641,7 @@ app-local concrete use
   -> repeated in another context/app
   -> candidate upstream pattern with docs and checks
   -> core RTA pattern
-  -> optional archetype if multiple patterns form a reusable organ
+  -> optional blueprint if multiple patterns form a reusable app shape
 ```
 
 This keeps app authorship flexible without letting every app-specific idea immediately pollute the core vocabulary.
@@ -1841,9 +1841,9 @@ T2 may add obligations to T1.
 T2 may not remove or weaken T1 obligations.
 ```
 
-### T3: Archetypes
+### Blueprints
 
-T3 composes patterns into reusable domain shapes.
+Blueprints compose tiered vocabulary items into reusable domain shapes.
 
 Examples:
 
@@ -1854,10 +1854,10 @@ flow-app
 research-pipeline
 ```
 
-Archetype example:
+Blueprint example:
 
 ```yaml
-kind: ArchetypeSpec
+kind: BlueprintSpec
 name: research-pipeline
 requiredPatterns:
   - extractor
@@ -1886,7 +1886,8 @@ The "blooming" model should be explicit:
 ```text
 T1 primitive contract
   -> T2 pattern specialization
-  -> T3 archetype composition
+  -> T3 reusable specialization
+  -> blueprint composition when several tiered items form a reusable app shape
   -> concrete app binding
   -> generated code/tests/logs/review gates
 ```
@@ -1900,7 +1901,7 @@ T1:
 T2:
   A guard is a Rule and adds valid-pre-state/wrong-state obligations.
 
-T3:
+Blueprint:
   A meeting digest topic lifecycle uses guard + classifier + lifecycle.
 
 Binding:
@@ -1914,16 +1915,16 @@ Generation:
 Blooming is transitive and enforceable, not only descriptive.
 
 If a concrete app vocabulary item extends a T2 pattern, it inherits the T1
-primitive contracts under that pattern. If it extends a T3 archetype, it
-inherits every primitive/pattern obligation in that archetype chain. The
+primitive contracts under that pattern. If it extends a T3 specialization, it
+inherits every primitive/pattern obligation in that specialization chain. The
 derived obligations, required operation events, generated artifacts, and
 production checks must use the bloomed chain.
 
 This means an app-local `TopicSegmenter` that extends a topic-segmentation
 pattern still owes the underlying input primitive operation event. It cannot
 only declare `TopicSegmenter.segment` and silently skip `TopicSegmenter.read`.
-Likewise, a reusable job archetype that composes input and artifact primitives
-owes read, write, and archetype-specific materialization operation events.
+Likewise, a reusable job blueprint that composes input and artifact primitives
+owes read, write, and blueprint-specific materialization operation events.
 
 Tier contracts should reject cycles and should reject duplicate parent
 obligations/events in child contracts. Children add obligations; they do not
@@ -1942,11 +1943,14 @@ T1 primitive obligations
 T2 pattern obligations
   additive specialization of the baseline
 
-T3 archetype obligations
-  composed domain-level test plan over semantic roles
+T3 specialization obligations
+  additive reusable near-leaf obligations
+
+Blueprint obligations
+  composed app-shape test plan over semantic roles
 
 App binding obligations
-  concrete tests produced by substituting real app vocab for archetype roles
+  concrete tests produced by substituting real app vocab for blueprint roles
 
 Use-case obligations
   actor/system goals that cross one or more bounded contexts
@@ -2012,16 +2016,16 @@ availability pattern adds:
 
 This is why pattern obligations must be additive only. A pattern is not a way to escape the primitive's testing floor. It is a way to make the floor more specific.
 
-### T3 Testing
+### Blueprint Testing
 
-T3 creates a derived test plan.
+A blueprint creates a derived test plan.
 
-An archetype does not usually introduce new primitive mechanics. It composes patterns and names semantic roles.
+A blueprint does not usually introduce new primitive mechanics. It composes patterns and names semantic roles.
 
 Example:
 
 ```text
-scheduler archetype:
+scheduler blueprint:
   requires guard + availability + lifecycle
   input roles: claim-event, release-event
   output roles: claimed, released
@@ -2042,7 +2046,7 @@ claimed -> TopicAcceptedForDigest
 released -> TopicReturnedForMoreEvidence
 ```
 
-Generated stubs should use the concrete names, but their explanation should point back to the archetype role.
+Generated stubs should use the concrete names, but their explanation should point back to the blueprint role.
 
 ### Test Artifact Types
 
@@ -2052,7 +2056,7 @@ RTA should generate or check six classes of test artifacts:
 obligation tests
   prove primitive and pattern obligations
 
-derived archetype tests
+derived blueprint tests
   prove role-bound domain test plans
 
 use-case tests
@@ -2077,7 +2081,7 @@ every obligation has a derivation source
 every generated test has a stable obligation id
 every obligation id can be explained
 patterns only add obligations
-archetype bindings must be complete before derived tests appear
+blueprint bindings must be complete before derived tests appear
 use cases must be backed by executable scenarios
 bounded-context connections must be scenario-covered
 runtime side effects have review/log/provenance obligations
@@ -2094,7 +2098,7 @@ Testing-related checks should include:
 rta check --generated-sync
 rta check --tier-contracts
 rta check --pattern-contracts
-rta check --archetype-bindings
+rta check --blueprint-bindings
 rta check --derived-obligations
 rta check --obligation-coverage
 rta check --telemetry-coverage
@@ -2129,7 +2133,7 @@ The derivation engine is the heart of the production-grade refactor.
 It should answer:
 
 ```text
-Given vocab + patterns + archetypes + bindings,
+Given vocab + patterns + blueprints + bindings,
 what obligations, generated artifacts, logs, telemetry, review gates,
 use-case coverage, scenario coverage, boundary coverage,
 provenance edges, and runtime contracts must exist?
@@ -2156,7 +2160,7 @@ Every derived item should include:
 ```text
 stable id
 source tier
-source primitive/pattern/archetype
+source primitive/pattern/blueprint
 concrete binding
 expected generated artifact
 required check
@@ -2174,7 +2178,7 @@ RTA core owns:
 ```text
 primitive schemas
 core pattern specs
-core archetype specs
+core blueprint specs
 ARD schema and metadata rules
 derivation engine
 generators
@@ -2189,7 +2193,7 @@ An authored app owns:
 concrete vocab declarations
 concrete pattern applications
 app-local pattern extensions
-app-local archetype bindings
+app-local blueprint bindings
 app-local ARDs
 implementation leaves
 tests
@@ -2201,7 +2205,7 @@ The app consumes RTA, but it is not a passive generated project. It can extend t
 
 ### Scope Rules
 
-RTA should classify every vocab/ARD/pattern/archetype item by scope:
+RTA should classify every vocab/ARD/pattern/blueprint item by scope:
 
 ```text
 core
@@ -2234,9 +2238,9 @@ The derivation engine should load vocabulary in this order:
 ```text
 1. core primitives
 2. core patterns
-3. core archetypes
+3. core blueprints
 4. app-local patterns
-5. app-local archetypes
+5. app-local blueprints
 6. app vocab declarations
 7. app bindings
 8. app-local ARDs
@@ -2311,13 +2315,13 @@ projection-mount
 external-schema-probe
 ```
 
-Core archetypes should include:
+Core blueprints should include:
 
 ```text
 mcp-gateway
 ```
 
-The `mcp-gateway` archetype is the RTA model for an AFFiNE MCP-style service:
+The `mcp-gateway` blueprint is the RTA model for an AFFiNE MCP-style service:
 declare tools, classify safety, resolve credentials, validate edge input,
 invoke external services through outbound adapters, and return receipts.
 
@@ -2360,7 +2364,8 @@ Core ARDs enforce the language and toolchain:
 ```text
 T1 primitive correctness
 T2 pattern structure
-T3 archetype binding rules
+T3 specialization rules
+blueprint binding rules
 generated-sync
 derivation consistency
 golden fixture behavior
@@ -2498,7 +2503,7 @@ t2/
   pattern structure, additive contracts, generated stubs
 
 t3/
-  archetype structure, binding completeness, derived test plan generation
+  blueprint structure, binding completeness, derived test plan generation
 
 use-cases/
   use-case validity, scenario coverage, inter-bounded-context coverage
@@ -2692,7 +2697,7 @@ execution telemetry
 operation event contracts
 primitive boundaries
 pattern specs and contracts
-archetype specs and bindings
+blueprint specs and bindings
 ```
 
 Scenario and demo runs should write:
@@ -2776,7 +2781,7 @@ Agents should start by asking:
 
 ```text
 What vocab exists?
-What tier/pattern/archetype applies?
+What tier/pattern/blueprint applies?
 What obligations did this create?
 What generated files are expected?
 What implementation leaves are intentionally open?
@@ -2853,7 +2858,7 @@ how to change app meaning
 ```text
 T1/T2/T3 model
 progressive concretization
-pattern/archetype examples
+pattern/blueprint examples
 how obligations bloom through tiers
 ```
 
@@ -2976,7 +2981,7 @@ ARD metadata validation
 ARD runner/reporter structure
 T1/T2/T3 ARD families
 pattern specs
-archetype specs
+blueprint specs
 obligation generation
 generated-sync checks
 vocab linting for description/guidance
@@ -2999,7 +3004,7 @@ obligation derivation
 telemetry derivation
 operation event contract derivation
 review gate derivation
-archetype-derived test plans
+blueprint-derived test plans
 explain output
 ```
 
@@ -3049,7 +3054,7 @@ If the meeting app reveals a reusable shape, promote the reusable shape upward:
 meeting-specific behavior
   -> app vocab
   -> candidate pattern
-  -> candidate archetype
+  -> candidate blueprint
   -> core RTA only after it proves general
 ```
 

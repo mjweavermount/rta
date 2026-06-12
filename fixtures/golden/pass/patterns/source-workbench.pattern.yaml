@@ -1,5 +1,6 @@
 kind: PatternSpec
 name: source-workbench
+description: Exposes source exploration and staged-edit tools that produce reviewable plans and receipts.
 requiredPrimitives: [OutboundAdapter, EdgeBoundary, Policy]
 testingContract:
   extends: tool-surface-safety

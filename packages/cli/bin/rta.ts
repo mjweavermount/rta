@@ -4,9 +4,16 @@ import { runGenerate } from "../src/generate.js"
 import { runContext } from "../src/context.js"
 import { runInit } from "../src/init.js"
 import { runServe } from "../src/serve.js"
+import {
+  runServerOpen,
+  runServerRestart,
+  runServerStatus,
+  runServerStop,
+} from "../src/server-control.js"
 import { runLint } from "../src/lint.js"
 import { runCoverage } from "../src/coverage.js"
 import { runTestPolicy } from "../src/test-policy.js"
+import { runCatalog } from "../src/catalog.js"
 import { generateAppScaffold } from "../src/app-scaffold.js"
 import { printWiringGraph } from "../src/app-wiring.js"
 import { CHECK_MODES, COVERAGE_KINDS } from "../src/cli-inventory.js"
@@ -83,6 +90,7 @@ const main = Effect.gen(function* () {
         ...(hasFlag("--pattern-contracts")  ? { patternContracts: true }  : {}),
         ...(hasFlag("--archetype-specs")    ? { archetypeSpecs: true }    : {}),
         ...(hasFlag("--archetype-bindings") ? { archetypeBindings: true } : {}),
+        ...(hasFlag("--tier-contracts") ? { tierContracts: true } : {}),
         ...(hasFlag("--generated-sync")     ? { generatedSync: true }     : {}),
         ...(hasFlag("--decision-shapes")    ? { decisionShapes: true }    : {}),
         ...(hasFlag("--rule-shapes")        ? { ruleShapes: true }        : {}),
@@ -151,10 +159,45 @@ const main = Effect.gen(function* () {
     }
     case "serve": {
       const portStr = flagValue("--port")
+      const apiPortStr = flagValue("--api-port")
       const roots = flagValues("--root")
       const exitCode = yield* runServe({
         ...(roots.length === 1 ? withRoot(roots[0]) : roots.length > 1 ? { roots } : {}),
         ...(portStr !== undefined ? { port: parseInt(portStr, 10) } : {}),
+        ...(apiPortStr !== undefined ? { apiPort: parseInt(apiPortStr, 10) } : {}),
+      })
+      process.exit(exitCode)
+      break
+    }
+    case "server": {
+      const subcommand = args[1]
+      const portStr = flagValue("--port")
+      const apiPortStr = flagValue("--api-port")
+      const options = {
+        ...withRoot(flagValue("--root")),
+        ...(portStr !== undefined ? { port: parseInt(portStr, 10) } : {}),
+        ...(apiPortStr !== undefined ? { apiPort: parseInt(apiPortStr, 10) } : {}),
+      }
+      const exitCode = yield* Effect.promise(async () => {
+        switch (subcommand) {
+          case "status": return runServerStatus(options)
+          case "open": return runServerOpen(options)
+          case "stop": return runServerStop(options)
+          case "restart": return runServerRestart(options)
+          default:
+            console.error("rta server: expected one of status, open, stop, restart")
+            return 1
+        }
+      })
+      process.exit(exitCode)
+      break
+    }
+    case "catalog": {
+      const exitCode = yield* runCatalog({
+        ...withRoot(flagValue("--root")),
+        ...(hasFlag("--json") ? { json: true } : {}),
+        ...(flagValue("--source") ? { source: flagValue("--source") } : {}),
+        ...(flagValue("--source-links") ? { sourceLinks: flagValue("--source-links") } : {}),
       })
       process.exit(exitCode)
       break
@@ -183,11 +226,20 @@ Usage:
   rta coverage          Check bidirectional coverage between vocab declarations and source implementations
   rta test-policy       Check that every declared primitive has at least one test mention
   rta wiring graph      Render app entrypoint wiring graph
-  rta serve             Start the visualizer pointed at this project
+  rta serve             Start the project API/catalog server
+  rta server status     Show the current rta serve process for this repo
+  rta server open       Open the current catalog URL
+  rta server stop       Stop the current rta serve process
+  rta server restart    Restart rta serve using the recorded ports or provided flags
+  rta catalog           Print the repo catalog, source, or source-link overlays
 
 Options:
   --root <dir>          Root directory to search (default: cwd)
   --port <number>       Port for rta serve (default: 5173)
+  --api-port <number>   First project API/catalog port for rta serve (default: 5174)
+  --json                Print full catalog JSON (catalog only)
+  --source <path>       Print source file JSON from inside the repo root (catalog only)
+  --source-links <path> Print RTA-aware source link overlays for a file (catalog only)
   --force               Overwrite existing files (init only)
   --out <dir>           Output directory for generated files (generate only)
   --name <name>         App name (generate app only)
@@ -199,6 +251,7 @@ Options:
   --pattern-contracts   Validate PatternSpec testing contracts (check only)
   --archetype-specs     Validate ArchetypeSpec YAML structure (check only)
   --archetype-bindings  Validate ArchetypeInstance bindings (check only)
+  --tier-contracts      Validate PatternSpec and Archetype tier contracts as one gate
   --generated-sync      Validate generated file vocab-hash headers (check only)
   --decision-shapes     Validate decision implementation-shape coverage (check only)
   --rule-shapes         Validate rule implementation-shape coverage (check only)

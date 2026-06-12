@@ -44,7 +44,7 @@ const collectExpectations = async (root: string): Promise<ExecutionTelemetryExpe
   for (const vocab of parsed.values()) {
     if (vocab.kind === "BoundedContext") {
       expectations.push(...deriveContextTelemetry(vocab))
-    } else {
+    } else if (vocab.kind === "Connections") {
       expectations.push(...deriveConnectionsTelemetry(vocab))
     }
   }

@@ -1,5 +1,6 @@
 kind: PatternSpec
 name: app-wiring
+description: Describes how a runnable app starts by connecting entrypoints, surfaces, schemas, operations, runtime capabilities, deployment intent, and demos.
 requiredPrimitives: [AppWiring, Entrypoint]
 testingContract:
   extends: app-wiring-contract

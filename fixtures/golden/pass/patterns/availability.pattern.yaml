@@ -1,5 +1,6 @@
 kind: PatternSpec
 name: availability
+description: Models exclusivity rules that allow work only when a resource is unclaimed or otherwise available.
 requiredPrimitives: [Rule]
 testingContract:
   extends: rule-two-case

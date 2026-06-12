@@ -8,6 +8,10 @@ import { readVocabFile } from "@rta/vocab"
 import type { BoundedContextDeclaration, ConnectionsDeclaration } from "@rta/vocab"
 import { generateRegistry } from "./generate/registry-generator.js"
 import { generateContext } from "./generate/context-generator.js"
+import { buildCatalog } from "./catalog.js"
+import { catalogHtml } from "./catalog-html.js"
+import { isGoldenFixturePath } from "./discovery.js"
+import { removeServerState, writeServerState } from "./server-control.js"
 
 export interface ServeOptions {
   root?: string
@@ -20,11 +24,6 @@ interface ProjectSpec {
   name: string
   vocabRoot: string
   apiPort: number
-}
-
-function resolveVisualizerRoot(distDir: string): string {
-  // dist/ → packages/cli/ → packages/ → monorepo root → apps/visualizer
-  return resolve(distDir, "..", "..", "..", "apps", "visualizer")
 }
 
 function resolveEsbuild(distDir: string): string {
@@ -44,12 +43,21 @@ function resolveEsbuild(distDir: string): string {
 // so relative imports resolve, then esbuild bundles everything together.
 // ---------------------------------------------------------------------------
 
-const buildApiEntryContent = (apiPort: number, vocabRoot: string): string => `
+const buildApiEntryContent = (
+  apiPort: number,
+  vocabRoot: string,
+  catalogSnapshotPath: string,
+): string => `
 import { createServer } from "node:http"
 import { readdirSync, readFileSync } from "node:fs"
 import { readdir, readFile, appendFile, mkdir } from "node:fs/promises"
 import { spawn } from "node:child_process"
-import { join as pathJoin } from "node:path"
+import {
+  extname as pathExtname,
+  join as pathJoin,
+  relative as pathRelative,
+  resolve as pathResolve,
+} from "node:path"
 import { parse as parseYaml } from "yaml"
 import { Effect, ManagedRuntime, Tracer, Layer, Option } from "effect"
 import { makeRootContext, ConnectionMap, startReadableLogSink } from "@rta/strict"
@@ -57,6 +65,7 @@ import { registry, stores } from "./registry.js"
 
 const PORT = ${apiPort}
 const VOCAB_ROOT = ${JSON.stringify(vocabRoot)}
+const CATALOG_SNAPSHOT_PATH = ${JSON.stringify(catalogSnapshotPath)}
 const TRACE_LOG_MAX = 100
 const RUNTIME_SESSION_DIR = process.env["RTA_RUNTIME_SESSION_DIR"] ?? null
 const RUNTIME_PROJECT_NAME = process.env["RTA_RUNTIME_PROJECT_NAME"] ?? "unknown-project"
@@ -178,6 +187,104 @@ function serializeError(err) {
   return String(err)
 }
 
+function languageForPath(path) {
+  switch (pathExtname(path)) {
+    case ".ts": return "ts"
+    case ".tsx": return "tsx"
+    case ".js":
+    case ".mjs":
+    case ".cjs": return "js"
+    case ".jsx": return "jsx"
+    case ".json": return "json"
+    case ".yaml":
+    case ".yml": return "yaml"
+    case ".md": return "md"
+    default: return "text"
+  }
+}
+
+function safeRelativePath(root, requestedPath) {
+  const resolvedRoot = pathResolve(root)
+  const resolvedPath = pathResolve(resolvedRoot, requestedPath)
+  if (resolvedPath !== resolvedRoot && !resolvedPath.startsWith(resolvedRoot + "/")) {
+    throw new Error("Path escapes catalog root: " + requestedPath)
+  }
+  return pathRelative(resolvedRoot, resolvedPath)
+}
+
+function readCatalogSnapshot() {
+  return JSON.parse(readFileSync(CATALOG_SNAPSHOT_PATH, "utf8"))
+}
+
+function readCatalogSource(requestedPath, range = {}) {
+  const rel = safeRelativePath(VOCAB_ROOT, requestedPath)
+  const absolutePath = pathResolve(VOCAB_ROOT, rel)
+  const text = readFileSync(absolutePath, "utf8")
+  const allLines = text.split(/\\r?\\n/)
+  const start = Math.max(1, Number(range.start ?? 1) || 1)
+  const end = Math.min(allLines.length, Number(range.end ?? allLines.length) || allLines.length)
+  const lines = allLines.slice(start - 1, end).map((line, idx) => ({
+    number: start + idx,
+    text: line,
+  }))
+  return {
+    path: rel,
+    language: languageForPath(rel),
+    text: lines.map((line) => line.text).join("\\n"),
+    lines,
+  }
+}
+
+function termAliases(node) {
+  const aliases = [node.name, node.id]
+  if (node.kind === "pattern" && node.id.startsWith("pattern.")) {
+    aliases.push(node.id.slice("pattern.".length))
+  }
+  if (node.kind === "ard") aliases.push(node.id)
+  if (node.kind === "concept") aliases.push(String(node.metadata?.term ?? node.name))
+  return [...new Set(aliases.filter((alias) => alias.length >= 3))]
+}
+
+function isIdentifierChar(value) {
+  return value !== undefined && /[A-Za-z0-9_.:-]/.test(value)
+}
+
+function sourceLinksForText(source, nodes) {
+  const aliases = nodes.flatMap((node) =>
+    termAliases(node).map((alias) => ({ alias, targetId: node.id })),
+  ).sort((a, b) => b.alias.length - a.alias.length)
+  const links = []
+
+  for (const line of source.lines) {
+    const claimed = []
+    for (const { alias, targetId } of aliases) {
+      let index = line.text.indexOf(alias)
+      while (index >= 0) {
+        const start = index
+        const end = index + alias.length
+        const overlaps = claimed.some(([a, b]) => start < b && end > a)
+        const hasWordBoundary =
+          !isIdentifierChar(line.text[start - 1]) &&
+          !isIdentifierChar(line.text[end])
+        if (!overlaps && hasWordBoundary) {
+          claimed.push([start, end])
+          links.push({
+            line: line.number,
+            startColumn: start + 1,
+            endColumn: end + 1,
+            text: alias,
+            targetKind: "catalog-node",
+            targetId,
+          })
+        }
+        index = line.text.indexOf(alias, index + alias.length)
+      }
+    }
+  }
+
+  return links.sort((a, b) => a.line - b.line || a.startColumn - b.startColumn)
+}
+
 const server = createServer((req, res) => {
   res.setHeader("Access-Control-Allow-Origin", "*")
   res.setHeader("Access-Control-Allow-Methods", "GET, POST, DELETE, OPTIONS")
@@ -192,6 +299,13 @@ const server = createServer((req, res) => {
     res.write("data: connected\\n\\n")
     sseClients.add(res)
     req.on("close", () => sseClients.delete(res))
+    return
+  }
+
+  if (req.method === "GET" && (req.url === "/" || req.url === "/catalog")) {
+    res.setHeader("Content-Type", "text/html; charset=utf-8")
+    res.writeHead(200)
+    res.end(${JSON.stringify(catalogHtml)})
     return
   }
 
@@ -427,6 +541,100 @@ const server = createServer((req, res) => {
     return
   }
 
+  if (req.method === "GET" && req.url?.startsWith("/api/v1/catalog")) {
+    try {
+      const urlObj = new URL(req.url, "http://localhost")
+      const catalog = readCatalogSnapshot()
+
+      if (urlObj.pathname === "/api/v1/catalog") {
+        res.writeHead(200)
+        res.end(JSON.stringify(catalog))
+        return
+      }
+
+      if (urlObj.pathname === "/api/v1/catalog/nodes") {
+        res.writeHead(200)
+        res.end(JSON.stringify({ nodes: catalog.nodes }))
+        return
+      }
+
+      if (urlObj.pathname.startsWith("/api/v1/catalog/nodes/")) {
+        const id = decodeURIComponent(urlObj.pathname.slice("/api/v1/catalog/nodes/".length))
+        const node = catalog.nodes.find((n) => n.id === id)
+        if (!node) {
+          res.writeHead(404)
+          res.end(JSON.stringify({ error: "Catalog node not found: " + id }))
+          return
+        }
+        res.writeHead(200)
+        res.end(JSON.stringify(node))
+        return
+      }
+
+      if (urlObj.pathname === "/api/v1/catalog/edges") {
+        res.writeHead(200)
+        res.end(JSON.stringify({ edges: catalog.edges }))
+        return
+      }
+
+      if (urlObj.pathname === "/api/v1/catalog/search") {
+        const q = (urlObj.searchParams.get("q") ?? "").trim().toLowerCase()
+        const nodes = q.length === 0
+          ? []
+          : catalog.nodes.filter((node) =>
+              [node.id, node.name, node.description, node.path, node.kind]
+                .filter(Boolean)
+                .some((value) => String(value).toLowerCase().includes(q)),
+            )
+        res.writeHead(200)
+        res.end(JSON.stringify({ query: q, nodes }))
+        return
+      }
+    } catch (err) {
+      res.writeHead(500)
+      res.end(JSON.stringify({ error: String(err) }))
+      return
+    }
+  }
+
+  if (req.method === "GET" && req.url?.startsWith("/api/v1/source")) {
+    try {
+      const urlObj = new URL(req.url, "http://localhost")
+      const requestedPath = urlObj.searchParams.get("path")
+      if (!requestedPath) {
+        res.writeHead(400)
+        res.end(JSON.stringify({ error: "Missing required query parameter: path" }))
+        return
+      }
+
+      const source = readCatalogSource(requestedPath, {
+        start: urlObj.searchParams.get("start") ?? undefined,
+        end: urlObj.searchParams.get("end") ?? undefined,
+      })
+
+      if (urlObj.pathname === "/api/v1/source/links") {
+        const catalog = readCatalogSnapshot()
+        res.writeHead(200)
+        res.end(JSON.stringify({
+          path: source.path,
+          links: sourceLinksForText(source, catalog.nodes),
+        }))
+        return
+      }
+
+      if (urlObj.pathname === "/api/v1/source") {
+        res.writeHead(200)
+        res.end(JSON.stringify(source))
+        return
+      }
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err)
+      res.writeHead(message.includes("escapes catalog root") ? 400 : 404)
+      res.end(JSON.stringify({ error: message }))
+      return
+    }
+  }
+
   // ---------------------------------------------------------------------------
   // Scenario endpoints
   // ---------------------------------------------------------------------------
@@ -571,6 +779,257 @@ server.listen(PORT, () => {
 })
 `.trim()
 
+const buildCatalogOnlyEntryContent = (
+  apiPort: number,
+  vocabRoot: string,
+  catalogSnapshotPath: string,
+  runtimeUnavailableReason: string,
+): string => `
+import { createServer } from "node:http"
+import { readFileSync } from "node:fs"
+import {
+  extname as pathExtname,
+  relative as pathRelative,
+  resolve as pathResolve,
+} from "node:path"
+
+const PORT = ${apiPort}
+const VOCAB_ROOT = ${JSON.stringify(vocabRoot)}
+const CATALOG_SNAPSHOT_PATH = ${JSON.stringify(catalogSnapshotPath)}
+const RUNTIME_UNAVAILABLE_REASON = ${JSON.stringify(runtimeUnavailableReason)}
+
+function languageForPath(path) {
+  switch (pathExtname(path)) {
+    case ".ts": return "ts"
+    case ".tsx": return "tsx"
+    case ".js":
+    case ".mjs":
+    case ".cjs": return "js"
+    case ".jsx": return "jsx"
+    case ".json": return "json"
+    case ".yaml":
+    case ".yml": return "yaml"
+    case ".md": return "md"
+    default: return "text"
+  }
+}
+
+function safeRelativePath(root, requestedPath) {
+  const resolvedRoot = pathResolve(root)
+  const resolvedPath = pathResolve(resolvedRoot, requestedPath)
+  if (resolvedPath !== resolvedRoot && !resolvedPath.startsWith(resolvedRoot + "/")) {
+    throw new Error("Path escapes catalog root: " + requestedPath)
+  }
+  return pathRelative(resolvedRoot, resolvedPath)
+}
+
+function readCatalogSnapshot() {
+  return JSON.parse(readFileSync(CATALOG_SNAPSHOT_PATH, "utf8"))
+}
+
+function readCatalogSource(requestedPath, range = {}) {
+  const rel = safeRelativePath(VOCAB_ROOT, requestedPath)
+  const absolutePath = pathResolve(VOCAB_ROOT, rel)
+  const text = readFileSync(absolutePath, "utf8")
+  const allLines = text.split(/\\r?\\n/)
+  const start = Math.max(1, Number(range.start ?? 1) || 1)
+  const end = Math.min(allLines.length, Number(range.end ?? allLines.length) || allLines.length)
+  const lines = allLines.slice(start - 1, end).map((line, idx) => ({
+    number: start + idx,
+    text: line,
+  }))
+  return {
+    path: rel,
+    language: languageForPath(rel),
+    text: lines.map((line) => line.text).join("\\n"),
+    lines,
+  }
+}
+
+function termAliases(node) {
+  const aliases = [node.name, node.id]
+  if (node.kind === "pattern" && node.id.startsWith("pattern.")) {
+    aliases.push(node.id.slice("pattern.".length))
+  }
+  if (node.kind === "ard") aliases.push(node.id)
+  if (node.kind === "concept") aliases.push(String(node.metadata?.term ?? node.name))
+  return [...new Set(aliases.filter((alias) => alias.length >= 3))]
+}
+
+function isIdentifierChar(value) {
+  return value !== undefined && /[A-Za-z0-9_.:-]/.test(value)
+}
+
+function sourceLinksForText(source, nodes) {
+  const aliases = nodes.flatMap((node) =>
+    termAliases(node).map((alias) => ({ alias, targetId: node.id })),
+  ).sort((a, b) => b.alias.length - a.alias.length)
+  const links = []
+
+  for (const line of source.lines) {
+    const claimed = []
+    for (const { alias, targetId } of aliases) {
+      let index = line.text.indexOf(alias)
+      while (index >= 0) {
+        const start = index
+        const end = index + alias.length
+        const overlaps = claimed.some(([a, b]) => start < b && end > a)
+        const hasWordBoundary =
+          !isIdentifierChar(line.text[start - 1]) &&
+          !isIdentifierChar(line.text[end])
+        if (!overlaps && hasWordBoundary) {
+          claimed.push([start, end])
+          links.push({
+            line: line.number,
+            startColumn: start + 1,
+            endColumn: end + 1,
+            text: alias,
+            targetKind: "catalog-node",
+            targetId,
+          })
+        }
+        index = line.text.indexOf(alias, index + alias.length)
+      }
+    }
+  }
+
+  return links.sort((a, b) => a.line - b.line || a.startColumn - b.startColumn)
+}
+
+function sendJson(res, status, body) {
+  res.setHeader("Content-Type", "application/json")
+  res.writeHead(status)
+  res.end(JSON.stringify(body))
+}
+
+function routeCatalog(req, res) {
+  if (req.method === "GET" && (req.url === "/" || req.url === "/catalog")) {
+    res.setHeader("Content-Type", "text/html; charset=utf-8")
+    res.writeHead(200)
+    res.end(${JSON.stringify(catalogHtml)})
+    return true
+  }
+
+  if (req.method === "GET" && req.url?.startsWith("/api/v1/catalog")) {
+    try {
+      const urlObj = new URL(req.url, "http://localhost")
+      const catalog = readCatalogSnapshot()
+
+      if (urlObj.pathname === "/api/v1/catalog") {
+        sendJson(res, 200, catalog)
+        return true
+      }
+
+      if (urlObj.pathname === "/api/v1/catalog/nodes") {
+        sendJson(res, 200, { nodes: catalog.nodes })
+        return true
+      }
+
+      if (urlObj.pathname.startsWith("/api/v1/catalog/nodes/")) {
+        const id = decodeURIComponent(urlObj.pathname.slice("/api/v1/catalog/nodes/".length))
+        const node = catalog.nodes.find((n) => n.id === id)
+        sendJson(res, node ? 200 : 404, node ?? { error: "Catalog node not found: " + id })
+        return true
+      }
+
+      if (urlObj.pathname === "/api/v1/catalog/edges") {
+        sendJson(res, 200, { edges: catalog.edges })
+        return true
+      }
+
+      if (urlObj.pathname === "/api/v1/catalog/search") {
+        const q = (urlObj.searchParams.get("q") ?? "").trim().toLowerCase()
+        const nodes = q.length === 0
+          ? []
+          : catalog.nodes.filter((node) =>
+              [node.id, node.name, node.description, node.path, node.kind]
+                .filter(Boolean)
+                .some((value) => String(value).toLowerCase().includes(q)),
+            )
+        sendJson(res, 200, { query: q, nodes })
+        return true
+      }
+    } catch (err) {
+      sendJson(res, 500, { error: String(err) })
+      return true
+    }
+  }
+
+  if (req.method === "GET" && req.url?.startsWith("/api/v1/source")) {
+    try {
+      const urlObj = new URL(req.url, "http://localhost")
+      const requestedPath = urlObj.searchParams.get("path")
+      if (!requestedPath) {
+        sendJson(res, 400, { error: "Missing required query parameter: path" })
+        return true
+      }
+
+      const source = readCatalogSource(requestedPath, {
+        start: urlObj.searchParams.get("start") ?? undefined,
+        end: urlObj.searchParams.get("end") ?? undefined,
+      })
+
+      if (urlObj.pathname === "/api/v1/source/links") {
+        const catalog = readCatalogSnapshot()
+        sendJson(res, 200, {
+          path: source.path,
+          links: sourceLinksForText(source, catalog.nodes),
+        })
+        return true
+      }
+
+      if (urlObj.pathname === "/api/v1/source") {
+        sendJson(res, 200, source)
+        return true
+      }
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err)
+      sendJson(res, message.includes("escapes catalog root") ? 400 : 404, { error: message })
+      return true
+    }
+  }
+
+  return false
+}
+
+const server = createServer((req, res) => {
+  res.setHeader("Access-Control-Allow-Origin", "*")
+  res.setHeader("Access-Control-Allow-Methods", "GET, POST, DELETE, OPTIONS")
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type")
+
+  if (req.method === "OPTIONS") {
+    res.writeHead(204)
+    res.end()
+    return
+  }
+
+  if (routeCatalog(req, res)) return
+
+  if (req.method === "GET" && req.url === "/registry") {
+    sendJson(res, 503, { registry: [], runtimeUnavailableReason: RUNTIME_UNAVAILABLE_REASON })
+    return
+  }
+
+  if (req.method === "GET" && (req.url === "/traces" || req.url === "/stores" || req.url === "/spans")) {
+    sendJson(res, 503, { error: "Runtime server unavailable", runtimeUnavailableReason: RUNTIME_UNAVAILABLE_REASON })
+    return
+  }
+
+  if (req.method === "POST" && req.url === "/execute") {
+    sendJson(res, 503, { ok: false, error: "Runtime server unavailable", runtimeUnavailableReason: RUNTIME_UNAVAILABLE_REASON })
+    return
+  }
+
+  sendJson(res, 404, { error: "Not found" })
+})
+
+server.listen(PORT, () => {
+  console.log("  Catalog UI : http://localhost:" + PORT + "/catalog")
+  console.log("  Catalog API: http://localhost:" + PORT + "/api/v1/catalog")
+  console.log("  Runtime API: unavailable; catalog/source browsing is still available")
+})
+`.trim()
+
 // ---------------------------------------------------------------------------
 // Vocab discovery
 // ---------------------------------------------------------------------------
@@ -580,10 +1039,29 @@ const discoverFiles = async (root: string, suffix: string): Promise<string[]> =>
     const entries = await readdir(root, { recursive: true })
     return entries
       .filter((e) => e.endsWith(suffix) && !e.includes("node_modules"))
+      .filter((e) => !isGoldenFixturePath(e))
+      .filter((e) => !e.startsWith("packages/vocab/test/fixtures/"))
       .map((e) => join(root, e))
   } catch {
     return []
   }
+}
+
+const uniqueBy = <T>(
+  values: ReadonlyArray<T>,
+  keyOf: (value: T) => string,
+): T[] => {
+  const seen = new Set<string>()
+  const unique: T[] = []
+
+  for (const value of values) {
+    const key = keyOf(value)
+    if (seen.has(key)) continue
+    seen.add(key)
+    unique.push(value)
+  }
+
+  return unique
 }
 
 interface RuntimeSessionInfo {
@@ -597,7 +1075,6 @@ const formatSessionId = (date: Date) =>
 const prepareRuntimeSession = async (
   root: string,
   projects: ReadonlyArray<ProjectSpec>,
-  visualizerPort: number,
 ): Promise<RuntimeSessionInfo> => {
   const runtimeRoot = join(root, ".rta-runtime", "sessions")
   await mkdir(runtimeRoot, { recursive: true })
@@ -613,7 +1090,6 @@ const prepareRuntimeSession = async (
       startedAt: new Date().toISOString(),
       pid: process.pid,
       cwd: root,
-      visualizerPort,
       projects: projects.map((project) => ({
         name: project.name,
         vocabRoot: project.vocabRoot,
@@ -673,6 +1149,9 @@ const bundleAndStartApi = (
       )
       if (v?.kind === "Connections") allConnections.push(v)
     }
+    const uniqueContexts = uniqueBy(allContexts, (ctx) => ctx.name)
+    const uniqueConnections = uniqueBy(allConnections, (conn) => conn.context)
+    const connectionsByContext = new Map(uniqueConnections.map((conn) => [conn.context, conn]))
 
     // Determine registry output dir
     const srcDir = join(vocabRoot, "src")
@@ -681,10 +1160,10 @@ const bundleAndStartApi = (
     const registryOutDir = hasSrc ? srcDir : generatedDir
     yield* Effect.promise(() => mkdir(registryOutDir, { recursive: true }))
     if (!hasSrc) {
-      for (const ctx of allContexts) {
+      for (const ctx of uniqueContexts) {
         const contextOutDir = join(registryOutDir, ctx.name)
         yield* Effect.promise(() => mkdir(contextOutDir, { recursive: true }))
-        const files = generateContext(ctx, { strict: false })
+        const files = generateContext(ctx, { strict: false, connections: connectionsByContext.get(ctx.name) })
         for (const file of files) {
           const filePath = join(contextOutDir, file.filename)
           if (!existsSync(filePath) || file.overwriteExisting) {
@@ -693,14 +1172,25 @@ const bundleAndStartApi = (
         }
       }
     }
-    const registryContent = generateRegistry(allContexts, allConnections, { strict: true })
+    const registryContent = generateRegistry(uniqueContexts, uniqueConnections, { strict: true })
     yield* Effect.promise(() => writeFile(join(registryOutDir, "registry.ts"), registryContent, "utf-8"))
+    const catalogSnapshotPath = join(registryOutDir, "_rta_catalog.json")
+    const catalog = yield* Effect.promise(() => buildCatalog(vocabRoot))
+    yield* Effect.promise(() =>
+      writeFile(catalogSnapshotPath, JSON.stringify(catalog, null, 2) + "\n", "utf-8"),
+    )
 
     // Bundle API server
     const entryPath = join(registryOutDir, "_rta_serve_entry.ts")
     const safeName = proj.name.replace(/[^a-z0-9]/gi, "-")
     const bundlePath = join(tmpDir, `server-${safeName}.mjs`)
-    yield* Effect.promise(() => writeFile(entryPath, buildApiEntryContent(proj.apiPort, vocabRoot), "utf-8"))
+    yield* Effect.promise(() =>
+      writeFile(
+        entryPath,
+        buildApiEntryContent(proj.apiPort, vocabRoot, catalogSnapshotPath),
+        "utf-8",
+      ),
+    )
 
     const bundleOk = yield* Effect.async<boolean>((resume) => {
       const eb = spawn(
@@ -722,8 +1212,42 @@ const bundleAndStartApi = (
     yield* Effect.promise(() => unlink(entryPath).catch(() => undefined))
 
     if (!bundleOk) {
-      console.error(`  Failed to bundle API for ${proj.name}. Run tab will be unavailable.`)
-      return null
+      const runtimeUnavailableReason = `Failed to bundle runtime API for ${proj.name}; catalog is still available.`
+      console.error(`  ${runtimeUnavailableReason}`)
+      const catalogOnlyEntryPath = join(registryOutDir, "_rta_catalog_entry.ts")
+      yield* Effect.promise(() =>
+        writeFile(
+          catalogOnlyEntryPath,
+          buildCatalogOnlyEntryContent(
+            proj.apiPort,
+            vocabRoot,
+            catalogSnapshotPath,
+            runtimeUnavailableReason,
+          ),
+          "utf-8",
+        ),
+      )
+      const catalogBundleOk = yield* Effect.async<boolean>((resume) => {
+        const eb = spawn(
+          esbuildBin,
+          [
+            catalogOnlyEntryPath,
+            "--bundle",
+            "--platform=node",
+            "--format=esm",
+            "--outfile=" + bundlePath,
+            "--log-level=warning",
+          ],
+          { stdio: "inherit" },
+        )
+        eb.on("error", (e) => { console.error("esbuild error:", e.message); resume(Effect.succeed(false)) })
+        eb.on("close", (code) => resume(Effect.succeed(code === 0)))
+      })
+      yield* Effect.promise(() => unlink(catalogOnlyEntryPath).catch(() => undefined))
+      if (!catalogBundleOk) {
+        console.error(`  Failed to bundle catalog API for ${proj.name}.`)
+        return null
+      }
     }
 
     const child = spawn("node", [bundlePath], {
@@ -792,13 +1316,7 @@ export const runServe = (opts: ServeOptions = {}): Effect.Effect<number> =>
     const baseApiPort = opts.apiPort ?? 5174
 
     const distDir = resolve(import.meta.dirname ?? __dirname)
-    const visualizerDir = resolveVisualizerRoot(distDir)
     const esbuildBin = resolveEsbuild(distDir)
-
-    if (!existsSync(join(visualizerDir, "vite.config.ts"))) {
-      console.error(`Visualizer not found at: ${visualizerDir}`)
-      return 1
-    }
 
     // -----------------------------------------------------------------------
     // Resolve project list
@@ -832,7 +1350,7 @@ export const runServe = (opts: ServeOptions = {}): Effect.Effect<number> =>
     console.log()
 
     const runtimeSession = yield* Effect.promise(() =>
-      prepareRuntimeSession(process.cwd(), projects, port),
+      prepareRuntimeSession(process.cwd(), projects),
     )
 
     // -----------------------------------------------------------------------
@@ -843,10 +1361,13 @@ export const runServe = (opts: ServeOptions = {}): Effect.Effect<number> =>
     yield* Effect.promise(() => mkdir(tmpDir, { recursive: true }))
 
     console.log(`Ṛta`)
-    console.log(`  visualizer : http://localhost:${port}`)
+    console.log(`  catalog    : open any project catalog URL below`)
+    console.log(`  control    : ${port} recorded for server-control compatibility`)
     console.log(`  runtime    : ${runtimeSession.sessionDir}`)
     for (const proj of projects) {
-      console.log(`  ${proj.name.padEnd(16)}: http://localhost:${proj.apiPort}`)
+      const projectBaseUrl = `http://localhost:${proj.apiPort}`
+      console.log(`  ${proj.name.padEnd(16)}: ${projectBaseUrl}/catalog`)
+      console.log(`  ${"".padEnd(18)}api: ${projectBaseUrl}/api/v1/catalog`)
     }
     console.log()
 
@@ -861,31 +1382,50 @@ export const runServe = (opts: ServeOptions = {}): Effect.Effect<number> =>
       if (child) apiChildren.push(child)
     }
 
-    // -----------------------------------------------------------------------
-    // Start Vite visualizer
-    // -----------------------------------------------------------------------
+    yield* Effect.promise(() =>
+      writeServerState({
+        pid: process.pid,
+        startedAt: new Date().toISOString(),
+        root: process.cwd(),
+        port,
+        apiPort: baseApiPort,
+        runtimeSessionDir: runtimeSession.sessionDir,
+        argv: process.argv,
+        projects: projects.map((project) => ({
+          name: project.name,
+          vocabRoot: project.vocabRoot,
+          apiPort: project.apiPort,
+          catalogUrl: `http://localhost:${project.apiPort}/catalog`,
+          apiUrl: `http://localhost:${project.apiPort}/api/v1/catalog`,
+        })),
+      }),
+    )
 
     const exitCode = yield* Effect.async<number>((resume) => {
-      const vite = spawn(
-        "pnpm",
-        ["exec", "vite", "--port", String(port), "--strictPort"],
-        {
-          cwd: visualizerDir,
-          env: {
-            ...process.env,
-            VITE_PROJECTS: JSON.stringify(projects),
-          },
-          stdio: "inherit",
-        },
-      )
-      vite.on("error", (err) => {
-        console.error("Failed to start visualizer:", err.message)
-        resume(Effect.succeed(1))
-      })
-      vite.on("close", (code) => {
+      let done = false
+      const keepAlive = setInterval(() => undefined, 60_000)
+      const finish = (code: number) => {
+        if (done) return
+        done = true
+        clearInterval(keepAlive)
+        process.off("SIGINT", shutdown)
+        process.off("SIGTERM", shutdown)
+        resume(Effect.succeed(code))
+      }
+      const shutdown = () => {
         for (const child of apiChildren) child.kill()
-        resume(Effect.succeed(code ?? 0))
-      })
+        void removeServerState(process.cwd()).finally(() => finish(0))
+      }
+      process.once("SIGINT", shutdown)
+      process.once("SIGTERM", shutdown)
+      if (apiChildren.length === 0) finish(1)
+      for (const child of apiChildren) {
+        child.once("close", () => {
+          if (apiChildren.every((apiChild) => apiChild.exitCode !== null || apiChild.signalCode !== null)) {
+            void removeServerState(process.cwd()).finally(() => finish(1))
+          }
+        })
+      }
     })
 
     return exitCode

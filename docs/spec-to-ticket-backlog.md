@@ -62,8 +62,9 @@ Self-audit:
 - `rta-prod-02-tier-vocab-contracts`
 - `rta-prod-03-ard-spirit-letter-loop`
 
-Goal: make T1/T2/T3 real enough that primitives, patterns, archetypes, and
-local extensions have enforceable shape and cannot weaken inherited obligations.
+Goal: make T1/T2/T3 real enough that primitives, reusable specializations,
+blueprints, and local extensions have enforceable shape and cannot weaken inherited
+obligations.
 
 Self-audit:
 
@@ -166,4 +167,3 @@ Self-audit:
 ```text
 @is this deployable/releasable as an RTA-authored app, or only renderable as a draft artifact?
 ```
-

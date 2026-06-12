@@ -1,5 +1,6 @@
 kind: PatternSpec
 name: boundary-schema
+description: Declares the DTO or boundary shape that validates external input before mapping it into domain language.
 requiredPrimitives: [BoundarySchema, EdgeBoundary]
 testingContract:
   extends: input-schema-validation

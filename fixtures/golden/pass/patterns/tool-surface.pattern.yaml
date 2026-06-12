@@ -1,5 +1,6 @@
 kind: PatternSpec
 name: tool-surface
+description: Declares governed tool surfaces with safety class, credential mode, fail-closed behavior, and runtime capabilities.
 requiredPrimitives: [InboundAdapter, EdgeBoundary, Policy, OutboundAdapter]
 testingContract:
   extends: tool-surface-safety

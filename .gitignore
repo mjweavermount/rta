@@ -4,5 +4,7 @@ dist/
 .turbo/
 coverage/
 .rta/
+.rta-runtime/
+generated/
 examples/hello-rta/
 tmp/

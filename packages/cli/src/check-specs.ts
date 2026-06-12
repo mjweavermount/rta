@@ -12,9 +12,14 @@
 import { Effect } from "effect"
 import { readdir, readFile } from "node:fs/promises"
 import { join, resolve } from "node:path"
-import { parse } from "yaml"
-import { readVocabFile } from "@rta/vocab"
-import type { BoundedContextDeclaration } from "@rta/vocab"
+import { parseVocabContent, readVocabFile } from "@rta/vocab"
+import type {
+  ArchetypeInstanceDeclaration,
+  ArchetypeSpecDeclaration,
+  BoundedContextDeclaration,
+  PatternSpecDeclaration,
+  VocabFile,
+} from "@rta/vocab"
 import { isGoldenFixturePath } from "./discovery.js"
 
 // ---------------------------------------------------------------------------
@@ -33,9 +38,9 @@ async function discoverFiles(root: string, suffix: string): Promise<string[]> {
   }
 }
 
-async function readYaml(path: string): Promise<unknown> {
+async function readTierVocabFile(path: string): Promise<VocabFile> {
   const content = await readFile(path, "utf-8")
-  return parse(content)
+  return Effect.runPromise(parseVocabContent(content, path))
 }
 
 // ---------------------------------------------------------------------------
@@ -45,56 +50,52 @@ async function readYaml(path: string): Promise<unknown> {
 //                  vocabHint, visualConcepts, narrativeLabel
 // ---------------------------------------------------------------------------
 
-const PATTERN_REQUIRED = [
-  "kind",
-  "name",
-  "requiredPrimitives",
-  "testingContract",
-  "vocabHint",
-  "visualConcepts",
-  "narrativeLabel",
-] as const
+async function loadPatternSpecs(
+  cwd: string,
+): Promise<Array<{ readonly path: string; readonly spec: PatternSpecDeclaration }>> {
+  const paths = await discoverFiles(cwd, ".pattern.yaml")
+  const specs: Array<{ path: string; spec: PatternSpecDeclaration }> = []
+  for (const path of paths) {
+    const parsed = await readTierVocabFile(path)
+    if (parsed.kind !== "PatternSpec") {
+      throw new Error(`${path}: expected kind "PatternSpec", got "${parsed.kind}"`)
+    }
+    specs.push({ path, spec: parsed })
+  }
+  return specs
+}
+
+async function loadArchetypeFiles(
+  cwd: string,
+): Promise<Array<{ readonly path: string; readonly file: ArchetypeSpecDeclaration | ArchetypeInstanceDeclaration }>> {
+  const paths = await discoverFiles(cwd, ".archetype.yaml")
+  const files: Array<{ path: string; file: ArchetypeSpecDeclaration | ArchetypeInstanceDeclaration }> = []
+  for (const path of paths) {
+    const parsed = await readTierVocabFile(path)
+    if (parsed.kind !== "ArchetypeSpec" && parsed.kind !== "ArchetypeInstance") {
+      throw new Error(`${path}: expected ArchetypeSpec or ArchetypeInstance, got "${parsed.kind}"`)
+    }
+    files.push({ path, file: parsed })
+  }
+  return files
+}
 
 export async function checkPatternSpecs(root: string): Promise<number> {
   const cwd = resolve(root)
   const paths = await discoverFiles(cwd, ".pattern.yaml")
-
   if (paths.length === 0) {
     console.log("No *.pattern.yaml files found.")
     return 0
   }
 
   const errors: string[] = []
-
   for (const p of paths) {
-    let raw: Record<string, unknown>
     try {
-      raw = (await readYaml(p)) as Record<string, unknown>
+      await readTierVocabFile(p)
     } catch (e) {
-      errors.push(`  ${p}: failed to parse YAML — ${String(e)}`)
-      continue
-    }
-
-    const missing = PATTERN_REQUIRED.filter((f) => raw[f] === undefined || raw[f] === null)
-    if (missing.length > 0) {
-      errors.push(`  ${raw["name"] ?? p}: missing fields: ${missing.join(", ")}`)
-    }
-
-    if (raw["kind"] !== "PatternSpec") {
-      errors.push(`  ${raw["name"] ?? p}: kind must be "PatternSpec", got "${raw["kind"]}"`)
-    }
-
-    const vc = raw["visualConcepts"]
-    if (!Array.isArray(vc) || vc.length === 0) {
-      errors.push(`  ${raw["name"] ?? p}: visualConcepts must be a non-empty array of strings`)
-    }
-
-    const tc = raw["testingContract"] as Record<string, unknown> | undefined
-    if (!tc || typeof tc !== "object" || !tc["extends"]) {
-      errors.push(`  ${raw["name"] ?? p}: testingContract must have an "extends" field`)
+      errors.push(`  ${p}: ${String(e)}`)
     }
   }
-
   if (errors.length > 0) {
     console.error(`✗  Pattern spec violations:\n\n${errors.join("\n")}\n`)
     console.error(`${errors.length} violation${errors.length === 1 ? "" : "s"} → FAIL`)
@@ -224,34 +225,28 @@ const PATTERN_PRIMITIVE_CONTRACTS: ReadonlyArray<{
 
 export async function checkPatternContracts(root: string): Promise<number> {
   const cwd = resolve(root)
-  const paths = await discoverFiles(cwd, ".pattern.yaml")
+  let specs: Array<{ readonly path: string; readonly spec: PatternSpecDeclaration }>
+  try {
+    specs = await loadPatternSpecs(cwd)
+  } catch (e) {
+    console.error(`✗  Pattern contract violations:\n\n  ${String(e)}\n`)
+    console.error("1 violation → FAIL")
+    return 1
+  }
 
-  if (paths.length === 0) {
+  if (specs.length === 0) {
     console.log("No *.pattern.yaml files found.")
     return 0
   }
 
   const errors: string[] = []
 
-  for (const p of paths) {
-    let raw: Record<string, unknown>
-    try {
-      raw = (await readYaml(p)) as Record<string, unknown>
-    } catch (e) {
-      errors.push(`  ${p}: failed to parse YAML — ${String(e)}`)
-      continue
-    }
+  for (const { spec } of specs) {
+    const label = spec.name
+    const primitives = spec.requiredPrimitives
+    const extendsName = spec.testingContract.extends
 
-    const label = String(raw["name"] ?? p)
-    const primitives = Array.isArray(raw["requiredPrimitives"])
-      ? raw["requiredPrimitives"].filter((value): value is string => typeof value === "string")
-      : []
-    const testingContract = raw["testingContract"] as Record<string, unknown> | undefined
-    const extendsName = typeof testingContract?.["extends"] === "string"
-      ? testingContract["extends"]
-      : undefined
-
-    if (!extendsName || !VALID_T1_TESTING_CONTRACTS.has(extendsName)) {
+    if (!VALID_T1_TESTING_CONTRACTS.has(extendsName)) {
       errors.push(`  ${label}: testingContract.extends must name a valid T1 contract`)
       continue
     }
@@ -280,7 +275,7 @@ export async function checkPatternContracts(root: string): Promise<number> {
     return 1
   }
 
-  console.log(`✓  ${paths.length} pattern contract${paths.length === 1 ? "" : "s"} valid.`)
+  console.log(`✓  ${specs.length} pattern contract${specs.length === 1 ? "" : "s"} valid.`)
   return 0
 }
 
@@ -292,39 +287,25 @@ export async function checkPatternContracts(root: string): Promise<number> {
 // Also: requiredPatterns must resolve to registered pattern names.
 // ---------------------------------------------------------------------------
 
-const ARCHETYPE_REQUIRED = [
-  "kind",
-  "name",
-  "description",
-  "requiredPatterns",
-  "inputRoles",
-  "outputRoles",
-  "testPlan",
-  "visualGuidance",
-  "narrativeLabel",
-] as const
-
 export async function checkArchetypeSpecs(root: string): Promise<number> {
   const cwd = resolve(root)
 
   // Load registered pattern names for requiredPatterns resolution
-  const patternPaths = await discoverFiles(cwd, ".pattern.yaml")
-  const registeredPatterns = new Set<string>()
-  for (const p of patternPaths) {
-    try {
-      const raw = (await readYaml(p)) as Record<string, unknown>
-      if (typeof raw["name"] === "string") registeredPatterns.add(raw["name"])
-    } catch { /* skip */ }
+  let patterns: Array<{ readonly path: string; readonly spec: PatternSpecDeclaration }>
+  let archetypeFiles: Array<{ readonly path: string; readonly file: ArchetypeSpecDeclaration | ArchetypeInstanceDeclaration }>
+  try {
+    patterns = await loadPatternSpecs(cwd)
+    archetypeFiles = await loadArchetypeFiles(cwd)
+  } catch (e) {
+    console.error(`✗  Archetype spec violations:\n\n  ${String(e)}\n`)
+    console.error("1 violation → FAIL")
+    return 1
   }
 
-  const allArchetypePaths = await discoverFiles(cwd, ".archetype.yaml")
-  const specPaths = []
-  for (const p of allArchetypePaths) {
-    try {
-      const raw = (await readYaml(p)) as Record<string, unknown>
-      if (raw["kind"] === "ArchetypeSpec") specPaths.push({ p, raw })
-    } catch { /* skip */ }
-  }
+  const registeredPatterns = new Set(patterns.map(({ spec }) => spec.name))
+  const specPaths = archetypeFiles
+    .filter((entry): entry is { readonly path: string; readonly file: ArchetypeSpecDeclaration } =>
+      entry.file.kind === "ArchetypeSpec")
 
   if (specPaths.length === 0) {
     console.log("No ArchetypeSpec files found.")
@@ -333,21 +314,11 @@ export async function checkArchetypeSpecs(root: string): Promise<number> {
 
   const errors: string[] = []
 
-  for (const { p, raw } of specPaths) {
-    const missing = ARCHETYPE_REQUIRED.filter((f) => raw[f] === undefined || raw[f] === null)
-    if (missing.length > 0) {
-      errors.push(`  ${raw["name"] ?? p}: missing fields: ${missing.join(", ")}`)
-    }
-
-    const rp = raw["requiredPatterns"]
-    if (Array.isArray(rp)) {
-      for (const name of rp) {
-        if (typeof name === "string" && !registeredPatterns.has(name)) {
-          errors.push(`  ${raw["name"] ?? p}: requiredPatterns references unknown pattern "${name}"`)
-        }
+  for (const { path: p, file: spec } of specPaths) {
+    for (const name of spec.requiredPatterns) {
+      if (!registeredPatterns.has(name)) {
+        errors.push(`  ${spec.name ?? p}: requiredPatterns references unknown pattern "${name}"`)
       }
-    } else {
-      errors.push(`  ${raw["name"] ?? p}: requiredPatterns must be an array`)
     }
   }
 
@@ -374,20 +345,23 @@ export async function checkArchetypeBindings(root: string): Promise<number> {
   const cwd = resolve(root)
 
   // Load registered archetypes (ArchetypeSpec files)
-  const allPaths = await discoverFiles(cwd, ".archetype.yaml")
-  const archetypeSpecs = new Map<string, Record<string, unknown>>()
-  const instancePaths: Array<{ p: string; raw: Record<string, unknown> }> = []
-
-  for (const p of allPaths) {
-    try {
-      const raw = (await readYaml(p)) as Record<string, unknown>
-      if (raw["kind"] === "ArchetypeSpec" && typeof raw["name"] === "string") {
-        archetypeSpecs.set(raw["name"], raw)
-      } else if (raw["kind"] === "ArchetypeInstance") {
-        instancePaths.push({ p, raw })
-      }
-    } catch { /* skip */ }
+  let archetypeFiles: Array<{ readonly path: string; readonly file: ArchetypeSpecDeclaration | ArchetypeInstanceDeclaration }>
+  try {
+    archetypeFiles = await loadArchetypeFiles(cwd)
+  } catch (e) {
+    console.error(`✗  Archetype binding violations:\n\n  ${String(e)}\n`)
+    console.error("1 violation → FAIL")
+    return 1
   }
+  const archetypeSpecs = new Map(
+    archetypeFiles
+      .filter((entry): entry is { readonly path: string; readonly file: ArchetypeSpecDeclaration } =>
+        entry.file.kind === "ArchetypeSpec")
+      .map(({ file }) => [file.name, file]),
+  )
+  const instancePaths = archetypeFiles
+    .filter((entry): entry is { readonly path: string; readonly file: ArchetypeInstanceDeclaration } =>
+      entry.file.kind === "ArchetypeInstance")
 
   if (instancePaths.length === 0) {
     console.log("No ArchetypeInstance binding files found.")
@@ -406,19 +380,19 @@ export async function checkArchetypeBindings(root: string): Promise<number> {
 
   const errors: string[] = []
 
-  for (const { p, raw } of instancePaths) {
-    const archetypeName = raw["archetype"] as string | undefined
-    const label = `${archetypeName ?? "?"}@${raw["context"] ?? p}`
+  for (const { path: p, file: instance } of instancePaths) {
+    const archetypeName = instance.archetype
+    const label = `${archetypeName}@${instance.context ?? p}`
 
     // 1. Archetype name must resolve
-    if (!archetypeName || !archetypeSpecs.has(archetypeName)) {
+    if (!archetypeSpecs.has(archetypeName)) {
       errors.push(`  ${label}: archetype "${archetypeName}" not found in registered specs`)
       continue
     }
 
     const spec = archetypeSpecs.get(archetypeName)!
-    const inputRoles = (spec["inputRoles"] as Array<{ name: string }> | undefined) ?? []
-    const bindings = (raw["bindings"] as Array<{ role: string; event: string; from: string }> | undefined) ?? []
+    const inputRoles = spec.inputRoles
+    const bindings = instance.bindings
     const boundRoles = new Set(bindings.map((b) => b.role))
 
     // 2. All input roles must be bound
@@ -455,4 +429,28 @@ export async function checkArchetypeBindings(root: string): Promise<number> {
     `✓  ${instancePaths.length} archetype binding${instancePaths.length === 1 ? "" : "s"} valid.`,
   )
   return 0
+}
+
+export async function checkTierContracts(root: string): Promise<number> {
+  const checks = [
+    ["pattern-specs", () => checkPatternSpecs(root)],
+    ["pattern-contracts", () => checkPatternContracts(root)],
+    ["archetype-specs", () => checkArchetypeSpecs(root)],
+    ["archetype-bindings", () => checkArchetypeBindings(root)],
+  ] as const
+
+  let failed = 0
+  for (const [label, run] of checks) {
+    const code = await run()
+    if (code !== 0) {
+      failed += 1
+      console.error(`tier contract check failed: ${label}`)
+    }
+  }
+  if (failed === 0) {
+    console.log("✓  Tier contract check passed.")
+    return 0
+  }
+  console.error(`${failed} tier contract check${failed === 1 ? "" : "s"} failed → FAIL`)
+  return 1
 }

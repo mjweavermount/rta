@@ -1,5 +1,6 @@
 kind: PatternSpec
 name: wiring-entrypoint
+description: Identifies an app start path that promotes boundary input and invokes a declared operation.
 requiredPrimitives: [Entrypoint, BoundarySchema]
 testingContract:
   extends: app-wiring-contract

@@ -1,5 +1,6 @@
 kind: PatternSpec
 name: guard
+description: Models precondition rules that gate commands or transitions on the aggregate required state.
 requiredPrimitives: [Rule]
 testingContract:
   extends: rule-two-case

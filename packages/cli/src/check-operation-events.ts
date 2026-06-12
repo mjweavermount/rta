@@ -44,7 +44,7 @@ const collectContracts = async (root: string): Promise<OperationEventContract[]>
   for (const vocab of parsed.values()) {
     if (vocab.kind === "BoundedContext") {
       contracts.push(...deriveContextOperationEventContracts(vocab))
-    } else {
+    } else if (vocab.kind === "Connections") {
       contracts.push(...deriveConnectionsOperationEventContracts(vocab))
     }
   }

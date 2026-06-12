@@ -1,5 +1,6 @@
 kind: PatternSpec
 name: edge-validation-pipeline
+description: Defines the decode, sanitize, normalize, authorize, and translate path that promotes external input into trusted domain values.
 requiredPrimitives: [AdapterBinding, EdgeBoundary, BoundarySchema]
 testingContract:
   extends: boundary-promotion-pipeline

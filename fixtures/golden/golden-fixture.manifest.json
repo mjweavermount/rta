@@ -32,6 +32,7 @@
     "pattern-contracts",
     "archetype-specs",
     "archetype-bindings",
+    "tier-contracts",
     "pure-ts",
     "release-hygiene",
     "work-ledger",

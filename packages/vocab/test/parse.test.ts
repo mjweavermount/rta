@@ -796,6 +796,85 @@ reactions:
 })
 
 // ---------------------------------------------------------------------------
+// Tier vocabulary
+// ---------------------------------------------------------------------------
+
+describe("Tier vocabulary", () => {
+  it("parses PatternSpec declarations with descriptions", async () => {
+    const yaml = `
+kind: PatternSpec
+name: boundary-schema
+description: Declares DTO shapes that can cross a system boundary.
+requiredPrimitives: [BoundarySchema]
+testingContract:
+  extends: input-schema-validation
+vocabHint: boundarySchemas
+visualConcepts: [schema, boundary, validation]
+narrativeLabel: Boundary Schema
+`
+    const result = await run(parseVocabContent(yaml))
+    expect(result.kind).toBe("PatternSpec")
+    if (result.kind !== "PatternSpec") return
+    expect(result.description).toContain("DTO")
+    expect(result.testingContract.extends).toBe("input-schema-validation")
+  })
+
+  it("rejects PatternSpec declarations without descriptions", async () => {
+    const yaml = `
+kind: PatternSpec
+name: boundary-schema
+requiredPrimitives: [BoundarySchema]
+testingContract:
+  extends: input-schema-validation
+vocabHint: boundarySchemas
+visualConcepts: [schema, boundary, validation]
+narrativeLabel: Boundary Schema
+`
+    const err = await runFail(parseVocabContent(yaml))
+    expect(err._tag).toBe("VocabParseError")
+  })
+
+  it("parses ArchetypeSpec declarations", async () => {
+    const yaml = `
+kind: ArchetypeSpec
+name: scheduling
+description: Coordinates availability and booking decisions.
+requiredPatterns: [availability, classifier]
+inputRoles:
+  - name: requested-slot
+    description: Candidate slot for scheduling.
+outputRoles:
+  - name: booking-created
+    description: Event emitted when the schedule is accepted.
+testPlan:
+  - roleCoverage: requested-slot
+visualGuidance: Show competing claims on one timeline.
+narrativeLabel: Scheduling Archetype
+`
+    const result = await run(parseVocabContent(yaml))
+    expect(result.kind).toBe("ArchetypeSpec")
+    if (result.kind !== "ArchetypeSpec") return
+    expect(result.requiredPatterns).toContain("availability")
+  })
+
+  it("parses ArchetypeInstance declarations", async () => {
+    const yaml = `
+kind: ArchetypeInstance
+archetype: scheduling
+context: Booking
+bindings:
+  - role: requested-slot
+    event: SlotRequested
+    from: Booking
+`
+    const result = await run(parseVocabContent(yaml))
+    expect(result.kind).toBe("ArchetypeInstance")
+    if (result.kind !== "ArchetypeInstance") return
+    expect(result.bindings[0]?.event).toBe("SlotRequested")
+  })
+})
+
+// ---------------------------------------------------------------------------
 // Discriminated union
 // ---------------------------------------------------------------------------
 
@@ -810,6 +889,22 @@ describe("VocabFile union", () => {
     const yaml = `kind: Connections\ncontext: X`
     const result = await run(parseVocabContent(yaml))
     expect(result.kind).toBe("Connections")
+  })
+
+  it("dispatches to PatternSpec on kind: PatternSpec", async () => {
+    const yaml = `
+kind: PatternSpec
+name: boundary-schema
+description: Declares DTO shapes that can cross a system boundary.
+requiredPrimitives: [BoundarySchema]
+testingContract:
+  extends: input-schema-validation
+vocabHint: boundarySchemas
+visualConcepts: [schema, boundary, validation]
+narrativeLabel: Boundary Schema
+`
+    const result = await run(parseVocabContent(yaml))
+    expect(result.kind).toBe("PatternSpec")
   })
 
   it("rejects an unknown kind", async () => {

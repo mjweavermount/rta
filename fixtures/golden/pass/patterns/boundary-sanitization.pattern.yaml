@@ -1,5 +1,6 @@
 kind: PatternSpec
 name: boundary-sanitization
+description: Requires edge-crossing schemas to sanitize input before trust promotion and to log safe decisions.
 requiredPrimitives: [BoundarySchema, EdgeBoundary]
 testingContract:
   extends: boundary-sanitization

@@ -11,6 +11,7 @@ import {
   checkPatternContracts,
   checkArchetypeSpecs,
   checkArchetypeBindings,
+  checkTierContracts,
 } from "./check-specs.js"
 import {
   checkDecisionShapes,
@@ -93,6 +94,7 @@ export interface CheckOptions {
   readonly patternContracts?: boolean
   readonly archetypeSpecs?: boolean
   readonly archetypeBindings?: boolean
+  readonly tierContracts?: boolean
   readonly generatedSync?: boolean
   readonly decisionShapes?: boolean
   readonly ruleShapes?: boolean
@@ -129,6 +131,9 @@ export const runCheck = (options: CheckOptions = {}): Effect.Effect<number> =>
     }
     if (options.archetypeBindings) {
       return yield* Effect.promise(() => checkArchetypeBindings(cwd))
+    }
+    if (options.tierContracts) {
+      return yield* Effect.promise(() => checkTierContracts(cwd))
     }
     if (options.generatedSync) {
       return yield* Effect.promise(() => checkGeneratedSync(cwd))
@@ -225,10 +230,7 @@ export const runCheck = (options: CheckOptions = {}): Effect.Effect<number> =>
         ["brand-bloom", () => Effect.promise(() => checkBrandBloom(cwd))],
         ["deployment-contract", () => Effect.promise(() => checkDeploymentContract(cwd))],
         ["app-wiring", () => Effect.promise(() => checkAppWiring(cwd))],
-        ["pattern-specs", () => Effect.promise(() => checkPatternSpecs(cwd))],
-        ["pattern-contracts", () => Effect.promise(() => checkPatternContracts(cwd))],
-        ["archetype-specs", () => Effect.promise(() => checkArchetypeSpecs(cwd))],
-        ["archetype-bindings", () => Effect.promise(() => checkArchetypeBindings(cwd))],
+        ["tier-contracts", () => Effect.promise(() => checkTierContracts(cwd))],
       ] as const
       let failed = 0
       for (const [label, run] of checks) {

@@ -31,7 +31,7 @@ This map links RTA work to the demo surface that should prove it.
 | `rta-monitor-local-artifact-app` | local | RTA monitor local artifact app | Direct two-app demo: run `pnpm demo:affine-monitor`; AFFiNE gateway writes a run and RTA Monitor lists/tails it |
 | `rta-prod-00-rebaseline-ledger` | local | Rebaseline overclaimed work | Direct doc/CLI demo: inspect `docs/spec-to-ticket-backlog.md`, run `rta check --work-ledger`, confirm broad old capabilities are no longer marked complete |
 | `rta-prod-01-cli-command-surface` | local | Full CLI command surface | Direct CLI demo: run required command inventory including `doctor`, `dev`, `test-scenario`, `extensions`, and `upstream` |
-| `rta-prod-02-tier-vocab-contracts` | local | Tier/vocab contracts | Direct fixture demo: good/bad T1/T2/T3 fixtures pass/fail `rta check --tier-contracts`, `--pattern-contracts`, and `--archetype-bindings` |
+| `rta-prod-02-tier-vocab-contracts` | local | Tier/vocab contracts | Direct fixture demo: good/bad T1/T2/T3 fixtures pass/fail `rta check --tier-contracts`, `--specialization-contracts`, and `--blueprint-bindings` |
 | `rta-prod-03-ard-spirit-letter-loop` | local | ARD spirit/letter loop | Direct fixture demo: reciprocal ARD families pass and broken families fail `rta check --ard-meta` |
 | `rta-prod-04-derivation-engine` | local | Central derivation engine | Direct CLI/demo snapshot: `rta explain graph` shows stable source chains for obligations, logs, review gates, tests, and runtime contracts |
 | `rta-prod-05-generators-generated-sync` | local | Generators and generated-sync | Direct fixture demo: `rta generate` emits classified files with derivation hashes and `rta check --generated-sync` catches drift |

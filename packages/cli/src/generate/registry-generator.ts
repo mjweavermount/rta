@@ -17,16 +17,35 @@ const indent = (s: string, n = 2): string =>
     .map((l) => (l.trim() ? " ".repeat(n) + l : l))
     .join("\n")
 
+const uniqueBy = <T>(
+  values: ReadonlyArray<T>,
+  keyOf: (value: T) => string,
+): T[] => {
+  const seen = new Set<string>()
+  const unique: T[] = []
+
+  for (const value of values) {
+    const key = keyOf(value)
+    if (seen.has(key)) continue
+    seen.add(key)
+    unique.push(value)
+  }
+
+  return unique
+}
+
 export const generateRegistry = (
   contexts: ReadonlyArray<BoundedContextDeclaration>,
   connections: ReadonlyArray<ConnectionsDeclaration>,
   options: GenerateRegistryOptions,
 ): string => {
   const { strict } = options
+  const uniqueContexts = uniqueBy(contexts, (ctx) => ctx.name)
+  const uniqueConnections = uniqueBy(connections, (conn) => conn.context)
 
   // Index connections by context name for fast lookup
   const connByContext = new Map<string, ConnectionsDeclaration>()
-  for (const c of connections) {
+  for (const c of uniqueConnections) {
     connByContext.set(c.context, c)
   }
 
@@ -40,7 +59,7 @@ export const generateRegistry = (
     conn: ConnectionsDeclaration | undefined
   }
 
-  const entries: ContextEntry[] = contexts.map((ctx) => {
+  const entries: ContextEntry[] = uniqueContexts.map((ctx) => {
     const aggregates = ctx.aggregates ?? []
     return {
       ctx,
@@ -71,6 +90,7 @@ export const generateRegistry = (
   if (!hasAnyHandlers) {
     lines.push("// No commands or queries found across all contexts.")
     lines.push("export const registry = {}")
+    lines.push("export const stores: Record<string, Map<string, unknown>> = {}")
     lines.push("")
     return lines.join("\n")
   }

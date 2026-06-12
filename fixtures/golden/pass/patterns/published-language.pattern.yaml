@@ -1,5 +1,6 @@
 kind: PatternSpec
 name: published-language
+description: Publishes external contract language, such as OpenAPI, from declared boundary schemas and ports without leaking domain internals.
 requiredPrimitives: [PublishedLanguage, InboundAdapter, EdgeBoundary]
 testingContract:
   extends: openapi-contract

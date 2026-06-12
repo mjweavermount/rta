@@ -1,5 +1,6 @@
 kind: PatternSpec
 name: runtime-capability-adapter
+description: Binds a declared runtime capability to concrete configuration and returns receipts for external calls.
 requiredPrimitives: [RuntimeCapability, OutboundAdapter, Policy]
 testingContract:
   extends: runtime-capability-binding

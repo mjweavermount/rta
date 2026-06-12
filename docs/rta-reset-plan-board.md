@@ -75,7 +75,7 @@ Meeting digest waits until the framework can prove those contracts.
 2026-06-05:
 
 ```bash
-PATH="/Users/virgil/Developer/Virgil-Info/heckitonkires/.hermes/node/bin:$PATH" pnpm check
+npm exec --yes pnpm@9.0.0 -- check
 ```
 
 Passed:

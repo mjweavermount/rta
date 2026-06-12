@@ -1,0 +1,24 @@
+{
+  "id": "ARD-T2-TIER-CONTRACT-GATE",
+  "kind": "letter",
+  "family": "t2",
+  "title": "Tier Contracts Run Through One Aggregate Gate",
+  "status": "accepted",
+  "spirit": ["ARD-T2-BLOOMING-000"],
+  "supports": ["rta-prod-02-tier-vocab-contracts"],
+  "checks": [
+    {
+      "description": "production checks include the aggregate tier contract gate",
+      "command": "rta check --production --root fixtures/golden/pass"
+    }
+  ],
+  "enforcement": [
+    {
+      "kind": "command",
+      "description": "production checks include the aggregate tier contract gate",
+      "command": "rta check --production --root fixtures/golden/pass",
+      "expected": "pass"
+    }
+  ],
+  "decision": "The tier ladder should have one named enforcement surface for drift control. Individual pattern and archetype checks may remain callable, but production readiness should depend on the aggregate tier-contracts check."
+}

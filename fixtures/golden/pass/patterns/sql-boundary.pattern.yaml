@@ -1,5 +1,6 @@
 kind: PatternSpec
 name: sql-boundary
+description: Promotes SQL interaction through prepared values, whitelisted identifiers, and typed scalar conversion.
 requiredPrimitives: [EdgeBoundary, BoundarySchema]
 testingContract:
   extends: boundary-promotion-pipeline

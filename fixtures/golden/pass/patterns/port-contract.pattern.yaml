@@ -1,5 +1,6 @@
 kind: PatternSpec
 name: port-contract
+description: Names required capabilities as ports with declared operations, boundary schemas, and governing policies.
 requiredPrimitives: [Port, Policy]
 testingContract:
   extends: runtime-capability-binding
