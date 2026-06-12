@@ -8,8 +8,8 @@ whole repo at once.
 The current repo already has pieces that can be reused:
 
 - `packages/core`: domain primitives such as aggregate, command, decision,
-  event, operation scope, repository, rule, and edge boundary.
-- `packages/runtime`: runtime implementations for edge boundaries,
+  event, operation scope, repository, rule, and legacy edge boundary code.
+- `packages/runtime`: runtime implementations for legacy edge boundaries,
   repositories, queues, secrets, and SQL boundaries.
 - `packages/strict`: branded primitives, lifecycle, connection maps, readable
   logs, correlation, and OTEL-related helpers.
@@ -39,10 +39,13 @@ packages/scenario
   scenario execution and review packets
 
 packages/cli
-  declaration/generation/check/test/catalog doorway
+  declaration/generation/check/test doorway
 
-packages/catalog (future optional)
-  catalog API and UI if CLI becomes too large
+packages/workbench-template
+  generated app workbench template for one app workspace
+
+packages/wiki
+  stable concept articles
 ```
 
 `packages/strict` should either become a low-level support package with a clear
@@ -54,7 +57,7 @@ Build one seed app that proves the target shape.
 
 It should include:
 
-- one HTTP or CLI edge,
+- one HTTP or CLI external boundary/translator,
 - one flow,
 - two steps,
 - one rule,
@@ -64,7 +67,7 @@ It should include:
 - one scenario,
 - generated source,
 - evidence output,
-- catalog pages.
+- workbench-visible source/declaration/evidence pages.
 
 This seed app becomes the acceptance fixture for the refactor.
 
@@ -88,18 +91,19 @@ Before runtime behavior changes, add checks that can identify drift:
 - missing declaration for structural source,
 - missing generated provenance,
 - missing test obligations,
-- missing edge threat-model coverage,
+- missing boundary threat-model coverage,
 - step depending on adapter directly,
 - flow topology bypassed by direct step calls,
 - undeclared vocabulary item.
 
 These checks should fail clearly and early.
 
-## Catalog As Refactor Pressure
+## Workbench As Refactor Pressure
 
-The catalog should drive cleanup by making confusing structure visible.
+The generated app workbench should drive cleanup by making confusing structure
+visible.
 
-When the catalog cannot explain a thing, that is either:
+When the workbench cannot explain a thing, that is either:
 
 - missing metadata,
 - bad vocabulary,
@@ -110,11 +114,12 @@ When the catalog cannot explain a thing, that is either:
 
 Some old terms can remain as aliases temporarily:
 
-- boundary -> edge or boundary schema, depending on use,
+- edge -> external boundary/translator, unless a precise distinct meaning is
+  reintroduced,
 - operation -> flow or step, depending on granularity,
-- workbench -> CLI/catalog operator surface,
+- workbench -> generated app workspace visibility surface,
 - wiring -> flow topology or adapter binding, depending on use,
-- source-workbench -> source browser/catalog.
+- source-workbench -> source browser/workbench.
 
 Aliases should have deprecation notes and should not be allowed in new
 generated code once the new spine exists.
@@ -127,9 +132,9 @@ Recommended code order:
 2. add seed app declarations,
 3. add generators for the seed app,
 4. add generated provenance checks,
-5. add runtime wrappers for edge/step/port evidence,
+5. add runtime wrappers for boundary/step/port evidence,
 6. add native tests for the seed app,
-7. rebuild catalog API around the new concept model,
+7. build the generated app workbench API around the new concept model,
 8. migrate one existing example,
 9. move stale examples to `/junkyard` or delete them,
 10. tighten checks.

@@ -72,7 +72,7 @@ parts without inventing anonymous strings.
 
 ### Trust And Boundary
 
-These atoms make "edges defend" enforceable.
+These atoms make boundary defense and translation enforceable.
 
 Plausible T1 items:
 
@@ -84,6 +84,8 @@ Plausible T1 items:
 - `Threat`
 - `ThreatModel`
 - `Sanitizer`
+- `ExternalBoundary`
+- `BoundaryTranslator`
 - `ValidationResult`
 - `Rejection`
 - `Redaction`
@@ -91,7 +93,8 @@ Plausible T1 items:
 Reason:
 
 Every untrusted boundary needs common language for what it accepts, rejects,
-normalizes, redacts, and authorizes.
+normalizes, redacts, translates, and authorizes before internal steps receive
+trusted inputs.
 
 ### Operation And Evidence
 
@@ -163,7 +166,8 @@ Plausible T1 items:
 - `App`
 - `BoundedContext`
 - `ExternalSurface`
-- `Edge`
+- `ExternalBoundary`
+- `BoundaryTranslator`
 - `Flow`
 - `Step`
 - `Saga`
@@ -175,6 +179,15 @@ Plausible T1 items:
 Reason:
 
 These describe how an RTA app is structured and how work moves through it.
+
+Current source still contains `Edge` and `EdgeBoundary`. Treat those as legacy
+or provisional names until Phase 0B either redefines them cleanly or replaces
+them with explicit boundary/translator vocabulary.
+
+`BoundedContext` should not become the accidental parent of every useful idea.
+It is close to a hexagon: a protected domain area with explicit external
+surface, ports, adapters, steps, flows, rules, decisions, and evidence. The
+other operational concepts need their own vocabulary and checks.
 
 ### Testing And Obligation
 

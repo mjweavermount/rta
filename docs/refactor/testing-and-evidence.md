@@ -79,7 +79,7 @@ Cover deployed or locally served runtime surfaces.
 Smoke tests answer:
 
 - is the app reachable,
-- does the edge respond,
+- does the public or local boundary respond,
 - is the health endpoint sane,
 - does one known scenario still work,
 - did expected evidence appear.
@@ -106,7 +106,8 @@ Tests should verify evidence as a first-class output, not as incidental logs.
 
 Examples:
 
-- Edge tests should assert rejected threats produce `edge.rejected` evidence.
+- Boundary/translator tests should assert rejected threats produce typed
+  rejection evidence.
 - Step tests should assert successful work produces `step.emitted` evidence.
 - Port tests should assert adapter failures map to typed errors and
   `port.call.failed`.
@@ -138,13 +139,14 @@ T3, when present:
 Blueprints:
 
 - generated app skeleton tests,
-- composition tests proving included edges, flows, steps, ports, adapters, and scenarios are present,
+- composition tests proving included boundaries/translators, flows, steps,
+  ports, adapters, and scenarios are present,
 - scenario tests for generated skeletons.
 
 App-local:
 
 - leaf behavior tests,
-- edge threat-model tests,
+- boundary threat-model tests,
 - scenario tests,
 - smoke tests for deployed/runtime paths when applicable.
 

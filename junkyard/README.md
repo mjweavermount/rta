@@ -2,7 +2,9 @@
 
 This directory is for quarantined RTA material from before the refactor reset.
 
-Nothing in here is authoritative.
+Nothing in here is authoritative. Do not use this directory as the primary
+source for refactor requirements, concept definitions, or product direction.
+Those live in `/docs/refactor`.
 
 The junkyard exists so old docs, fixtures, prototypes, generated output, and
 experiments can be preserved without continuing to define how RTA works.

@@ -10,7 +10,7 @@ This is the focused snapshot of the refactor target.
 4. CLI-first structural authoring.
 5. Generated files have provenance.
 6. Hand-authored leaves are protected.
-7. Edges defend all untrusted input.
+7. External boundaries/translators defend all untrusted input before steps receive trusted inputs.
 8. Steps decide and act.
 9. Flows/sagas connect steps.
 10. Ports declare capabilities.
@@ -23,7 +23,7 @@ This is the focused snapshot of the refactor target.
 17. Blueprints compose tiered vocabulary; they are not tiers.
 18. Branded/generated structure makes unsupported invention hard.
 19. Native tests at unit, step, flow, integration, scenario, and smoke layers.
-20. Catalog/wiki explains concepts, source, tests, ARDs, generated files, and evidence.
+20. The concept wiki explains stable RTA concepts; generated app workbenches explain source, tests, ARDs, generated files, and evidence for one app workspace.
 21. Old concepts are kept, renamed, moved to `/junkyard`, or deleted deliberately.
 22. The RTA core repo builds the CLI, server, templates, and app-authoring
     machinery.
@@ -43,7 +43,7 @@ This is the focused snapshot of the refactor target.
 7. Add provenance and generated-sync checks.
 8. Add runtime evidence wrappers.
 9. Add native tests for the seed app.
-10. Rebuild catalog around concepts plus source.
+10. Split the stable concept wiki from the generated app workbench/source explorer.
 11. Migrate one real app.
 12. Compare old and new paths.
 13. Remove old paths or move them to `/junkyard`.
@@ -60,7 +60,7 @@ packages/vocab
 
 packages/core
   pure domain contracts
-  edges
+  external boundaries / translators
   flows
   steps
   ports
@@ -86,10 +86,15 @@ packages/cli
   rta generate
   rta check
   rta test
-  rta serve/catalog
 
-packages/catalog
-  optional later split if CLI/catalog/workshop grows too large
+packages/workbench-template
+  generated app workbench template
+  source renderer
+  command/evidence views
+
+packages/wiki
+  stable concept articles shipped with RTA
+  not an active app/source/runtime browser
 
 apps/
   seed app only if needed for core tests
@@ -110,3 +115,21 @@ docs/
 Generated app repos should have their own source, ARDs, tests, scenarios,
 workbench server, candidate-upstream lane, and runtime evidence. The core repo
 provides the machinery that makes those app repos understandable.
+
+## Phase 0B Drift To Keep Visible
+
+Current source still contains older language and surfaces such as `catalog`,
+`Edge`, `EdgeBoundary`, and broad `BoundedContext` parentage. Those names are
+not automatically authoritative just because they exist in code today.
+
+Phase 0B work should classify each occurrence as one of:
+
+- keep and redefine,
+- rename into the new model,
+- move to `/junkyard`,
+- delete,
+- or preserve temporarily as compatibility scaffolding.
+
+Do not silently promote old generated catalog output, demos, fixtures, or
+workbench experiments into the new architecture. Real doctrine lives in this
+refactor packet until code catches up.

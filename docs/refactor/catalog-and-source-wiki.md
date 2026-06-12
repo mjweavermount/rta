@@ -1,21 +1,42 @@
 # Catalog And Source Wiki
 
-The catalog should become a wiki-first explanation surface with source attached.
-It should not feel like a raw list of YAML files.
+This file has a legacy title. The intended model is now split:
+
+- **Concept wiki**: stable explanatory articles for durable RTA ideas.
+- **Generated app workbench**: source, declarations, ARDs, generated files,
+  wiring, tests, runtime evidence, command streams, diffs, probes, and traces
+  for one generated app workspace.
+- **Legacy catalog**: current exploratory code/UI/API that may be mined, moved
+  to `/junkyard`, renamed, or deleted during Phase 0B.
+
+Do not treat the old catalog as the final product surface.
+
+The concept wiki should help a reader get their head around RTA. It should not
+feel like a raw list of YAML files, ARDs, source files, or app inventory.
 
 ## Primary Entry Points
 
-The top-level catalog should have these entry points:
+The concept wiki should have entry points for stable architectural ideas:
 
-- Concepts,
-- Apps,
 - Flows,
 - Steps,
-- Edges,
+- External boundaries and translators,
 - Rules and Decisions,
 - Ports and Adapters,
-- Scenarios and Evidence,
-- Source Browser.
+- Scenarios and Evidence.
+
+The generated app workbench, not the concept wiki, should expose:
+
+- app-local definitions,
+- candidate-upstream concepts,
+- source browser,
+- declaration browser,
+- ARDs,
+- wiring graph,
+- generated files,
+- tests,
+- live/runtime evidence,
+- probe and trace views.
 
 ## Concept Pages
 
@@ -54,7 +75,7 @@ Inline source excerpt or generated skeleton.
 
 ## Concrete Item Pages
 
-Concrete vocabulary items should show:
+Concrete vocabulary items in a generated app workbench should show:
 
 - name,
 - kind,
@@ -85,17 +106,18 @@ This prevents confusing the map for the territory.
 
 ## Source Links
 
-The source browser should support RTA-specific definition links where practical.
+The generated app workbench source browser should support RTA-specific
+definition links where practical.
 
 When source mentions an RTA concept such as a step, port, adapter, rule, or
-decision, the catalog should be able to link that identifier to the concept
-page.
+decision, the workbench should be able to link that identifier to the concept
+page or the concrete declaration/source item.
 
 This can start with simple deterministic identifier matching and improve later.
 
 ## Tree Browsing
 
-The left side should support multiple browsing modes:
+The generated app workbench should support multiple browsing modes:
 
 - by concept kind,
 - by app,
@@ -105,31 +127,30 @@ The left side should support multiple browsing modes:
 - by tier,
 - by evidence/scenario.
 
-Source tree browsing is advanced mode. Concept browsing is the default.
+Source tree browsing is advanced mode. Concept browsing is the default for the
+wiki, while app structure and wiring are the default for the workbench.
 
 ## Apps Executing
 
-Eventually the catalog should distinguish:
+Eventually the generated app workbench should distinguish:
 
-- apps declared in repo,
-- apps with generated source,
-- apps with passing checks,
-- apps with scenario evidence,
-- apps currently executing,
-- apps deployed elsewhere.
+- the app declared in this generated workspace,
+- generated source for that app,
+- passing checks for that app,
+- scenario evidence for that app,
+- whether that app is currently executing locally,
+- whether that app is deployed elsewhere.
 
 Runtime state should not be faked from declarations.
 
 ## API Shape
 
-The catalog API should expose clean, stable resources:
+The future generated app workbench API should expose clean, stable resources:
 
 ```text
-GET /api/v1/catalog
 GET /api/v1/concepts
 GET /api/v1/concepts/:id
-GET /api/v1/apps
-GET /api/v1/apps/:id
+GET /api/v1/app
 GET /api/v1/flows/:id
 GET /api/v1/steps/:id
 GET /api/v1/source?path=...
@@ -137,5 +158,4 @@ GET /api/v1/source-links?path=...
 GET /api/v1/evidence?app=...
 ```
 
-The UI should use these APIs rather than reconstructing meaning from raw files.
-
+The UI should use model APIs rather than reconstructing meaning from raw files.

@@ -27,8 +27,8 @@ the good parts that make RTA worth having:
   RTA core repo, generated app workspaces, and the app being built.
 - [Requirements](requirements.md): the refactor requirements in detailed form.
 - [Concept Model](concept-model.md): the vocabulary RTA should converge on.
-- [Operation Contracts](operation-contracts.md): edge, flow, step, port,
-  adapter, rule, decision, and evidence contracts.
+- [Operation Contracts](operation-contracts.md): boundary/translator, flow,
+  step, port, adapter, rule, decision, and evidence contracts.
 - [T1 Vocabulary Spec](t1-vocabulary-spec.md): admission rules, candidate T1
   categories, missing primitives, and repair plan.
 - [Testing And Evidence](testing-and-evidence.md): native test layers and the
@@ -36,6 +36,8 @@ the good parts that make RTA worth having:
 - [Catalog And Source Wiki](catalog-and-source-wiki.md): legacy name for the
   future wiki/workbench split; this doc should be split or renamed as the model
   settles.
+- [Phase 0B Drift Register](phase-0b-drift-register.md): known legacy surfaces
+  and weirdness that must stay visible while the refactor proceeds.
 - [Feature Requests](feature_requests.md): the desired app-builder/workbench
   product surface collected from the design conversation.
 - [Technical Requirements](technical_requirements.md): model, API, source,

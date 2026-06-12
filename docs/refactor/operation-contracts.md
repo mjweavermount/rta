@@ -3,15 +3,15 @@
 This document describes the contracts that should eventually be enforceable by
 schemas, generators, checks, tests, and runtime wrappers.
 
-## Edge Contract
+## External Boundary / Translator Contract
 
-Edges defend.
+External boundaries/translators defend.
 
 Required declaration:
 
 ```ts
-edge({
-  name: "CreateDocumentHttpEdge",
+externalBoundary({
+  name: "CreateDocumentHttpBoundary",
   protocol: "http",
   trust: "external",
   actor: "required",
@@ -38,12 +38,12 @@ edge({
     "payload-too-large"
   ],
   evidence: [
-    "edge.received",
-    "edge.validated",
-    "edge.sanitized",
-    "edge.authorized",
-    "edge.rejected",
-    "edge.trusted-output"
+    "boundary.received",
+    "boundary.validated",
+    "boundary.sanitized",
+    "boundary.authorized",
+    "boundary.rejected",
+    "boundary.trusted-output"
   ]
 })
 ```
@@ -238,4 +238,3 @@ Minimum evidence fields:
 ```
 
 Evidence should be readable first and machine-queriable second.
-
